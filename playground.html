@@ -653,6 +653,7 @@ textarea.form-input { min-height: 90px; resize: vertical; line-height: 1.7; }
   </div>
   <div class="lab-tabs">
     <div class="lab-tab active" id="btn-tab-hash" onclick="App.switchLabTab('hash')">Hash Engine</div>
+    <div class="lab-tab" id="btn-tab-compare" onclick="App.switchLabTab('compare')">Compare All Algos</div>
     <div class="lab-tab" id="btn-tab-enc" onclick="App.switchLabTab('enc')">AES-GCM Utility</div>
   </div>
 
@@ -685,6 +686,94 @@ textarea.form-input { min-height: 90px; resize: vertical; line-height: 1.7; }
       </div>
       <span class="form-label">Binary Structure (<span id="lab-bit-count"></span> bits)</span>
       <div class="bit-grid" id="lab-bit-grid"></div>
+    </div>
+  </div>
+
+  <!-- COMPARE TAB -->
+  <div id="lab-compare" class="lab-panel">
+    <div class="panel">
+      <div class="panel-title"><span>COMPARE ALL HASH ALGORITHMS</span></div>
+      <p style="font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-bottom:16px;line-height:1.8;">Type any text below and see MD5, SHA-256, and SHA-512 output simultaneously. Notice how output <strong style="color:var(--bright);">length doubles</strong> between each algorithm.</p>
+      <span class="form-label">Input Text</span>
+      <div style="display:flex;gap:8px;align-items:flex-start;">
+        <input type="text" id="cmp-input" class="form-input" placeholder="Type here to compare all algorithms..." oninput="App.runCompare()" style="flex:1;">
+      </div>
+    </div>
+
+    <div id="cmp-results" style="display:none;">
+
+      <!-- MD5 row -->
+      <div class="panel" style="border-left:3px solid rgba(255,0,60,0.5);">
+        <div class="panel-title" style="margin-bottom:12px;">
+          <span style="display:flex;align-items:center;gap:12px;">
+            <span style="font-family:var(--font-display);font-size:18px;color:var(--c2);">MD5</span>
+            <span class="status-tag st-err">128-BIT // BROKEN</span>
+          </span>
+          <span id="cmp-md5-len" style="font-family:var(--font-display);font-size:22px;color:var(--c2);">—</span>
+        </div>
+        <div class="copy-wrap">
+          <div class="readout" style="color:var(--c2);border-left-color:rgba(255,0,60,0.3);padding-right:90px;font-size:12px;" id="cmp-md5-out">—</div>
+          <button class="copy-btn" onclick="App.copyVal('cmp-md5-out',this)"><span class="copy-icon">⧉</span><span class="copy-text">COPY</span></button>
+        </div>
+        <div class="bit-grid" id="cmp-md5-bits" style="max-height:60px;"></div>
+      </div>
+
+      <!-- SHA-256 row -->
+      <div class="panel" style="border-left:3px solid rgba(0,245,255,0.5);">
+        <div class="panel-title" style="margin-bottom:12px;">
+          <span style="display:flex;align-items:center;gap:12px;">
+            <span style="font-family:var(--font-display);font-size:18px;color:var(--c);">SHA-256</span>
+            <span class="status-tag st-info">256-BIT // SECURE</span>
+          </span>
+          <span id="cmp-sha256-len" style="font-family:var(--font-display);font-size:22px;color:var(--c);">—</span>
+        </div>
+        <div class="copy-wrap">
+          <div class="readout readout-cyan" style="padding-right:90px;font-size:12px;" id="cmp-sha256-out">—</div>
+          <button class="copy-btn" onclick="App.copyVal('cmp-sha256-out',this)"><span class="copy-icon">⧉</span><span class="copy-text">COPY</span></button>
+        </div>
+        <div class="bit-grid" id="cmp-sha256-bits" style="max-height:60px;"></div>
+      </div>
+
+      <!-- SHA-512 row -->
+      <div class="panel" style="border-left:3px solid rgba(0,255,136,0.5);">
+        <div class="panel-title" style="margin-bottom:12px;">
+          <span style="display:flex;align-items:center;gap:12px;">
+            <span style="font-family:var(--font-display);font-size:18px;color:var(--c3);">SHA-512</span>
+            <span class="status-tag st-ok">512-BIT // MAXIMUM STRENGTH</span>
+          </span>
+          <span id="cmp-sha512-len" style="font-family:var(--font-display);font-size:22px;color:var(--c3);">—</span>
+        </div>
+        <div class="copy-wrap">
+          <div class="readout readout-green" style="padding-right:90px;font-size:12px;" id="cmp-sha512-out">—</div>
+          <button class="copy-btn" onclick="App.copyVal('cmp-sha512-out',this)"><span class="copy-icon">⧉</span><span class="copy-text">COPY</span></button>
+        </div>
+        <div class="bit-grid" id="cmp-sha512-bits" style="max-height:60px;"></div>
+      </div>
+
+      <!-- Length comparison visual -->
+      <div class="panel">
+        <div class="panel-title"><span>OUTPUT LENGTH — WHY IT MATTERS</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;text-align:center;margin-bottom:16px;">
+          <div style="padding:20px 12px;border:1px solid rgba(255,0,60,0.15);background:rgba(255,0,60,0.02);">
+            <div style="font-family:var(--font-display);font-size:40px;color:var(--c2);" id="sz-md5">32</div>
+            <div style="font-family:var(--font-mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-top:6px;">MD5 HEX CHARS</div>
+            <div style="font-family:var(--font-mono);font-size:9px;color:var(--c2);margin-top:4px;">128 bits</div>
+          </div>
+          <div style="padding:20px 12px;border:1px solid rgba(0,245,255,0.15);background:rgba(0,245,255,0.02);">
+            <div style="font-family:var(--font-display);font-size:40px;color:var(--c);" id="sz-sha256">64</div>
+            <div style="font-family:var(--font-mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-top:6px;">SHA-256 HEX CHARS</div>
+            <div style="font-family:var(--font-mono);font-size:9px;color:var(--c);margin-top:4px;">256 bits</div>
+          </div>
+          <div style="padding:20px 12px;border:1px solid rgba(0,255,136,0.15);background:rgba(0,255,136,0.02);">
+            <div style="font-family:var(--font-display);font-size:40px;color:var(--c3);" id="sz-sha512">128</div>
+            <div style="font-family:var(--font-mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-top:6px;">SHA-512 HEX CHARS</div>
+            <div style="font-family:var(--font-mono);font-size:9px;color:var(--c3);margin-top:4px;">512 bits</div>
+          </div>
+        </div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--muted);padding:12px;border:1px solid rgba(0,255,231,0.06);background:rgba(0,0,0,0.4);line-height:1.9;">
+          <span style="color:var(--c);">// KEY INSIGHT:</span> All three are one-way — you cannot reverse any of them back to your input. The longer the hash, the larger the <span style="color:var(--c3);">search space</span> an attacker must brute-force. MD5's 128-bit space has been broken; SHA-256 and SHA-512 remain computationally secure.
+        </div>
+      </div>
     </div>
   </div>
 
@@ -863,6 +952,31 @@ const App = {
     document.getElementById('btn-tab-'+tab).classList.add('active');
     document.querySelectorAll('.lab-panel').forEach(p => p.classList.remove('active'));
     document.getElementById('lab-'+tab).classList.add('active');
+  },
+
+  runCompare: async () => {
+    const input = document.getElementById('cmp-input').value;
+    const res = document.getElementById('cmp-results');
+    if (!input) { res.style.display = 'none'; return; }
+    res.style.display = 'block';
+
+    const fillAlgo = async (algo, outId, bitsId, lenId) => {
+      const r = await CE.hash(algo, input);
+      document.getElementById(outId).innerText = r.hex;
+      document.getElementById(lenId).innerText = r.hex.length + ' chars';
+      const grid = document.getElementById(bitsId); grid.innerHTML = '';
+      for (let i = 0; i < Math.min(r.bits.length, 256); i++) {
+        const b = document.createElement('div');
+        b.className = 'bit' + (r.bits[i] === '1' ? ' on' : '');
+        grid.appendChild(b);
+      }
+    };
+
+    await Promise.all([
+      fillAlgo('MD5',     'cmp-md5-out',    'cmp-md5-bits',    'cmp-md5-len'),
+      fillAlgo('SHA-256', 'cmp-sha256-out', 'cmp-sha256-bits', 'cmp-sha256-len'),
+      fillAlgo('SHA-512', 'cmp-sha512-out', 'cmp-sha512-bits', 'cmp-sha512-len'),
+    ]);
   },
   setLabAlgo: algo => {
     App.S.lab.algo = algo;
