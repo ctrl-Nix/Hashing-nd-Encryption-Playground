@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nix // Operational Interface</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#060608; --panel:#0d0d12; --surface:#13131a;
+  --rim:#1e1e2e; --rim2:#2a2a3d;
+  --green:#00ffa3; --green-d:rgba(0,255,163,0.12);
+  --blue:#4da6ff;  --blue-d:rgba(77,166,255,0.12);
+  --yellow:#ffd166;--yellow-d:rgba(255,209,102,0.12);
+  --red:#ff4d6d;   --red-d:rgba(255,77,109,0.12);
+  --cyan:#67e8f9;  --muted:#4a4a6a;
+  --text:#c8c8e8;  --bright:#f0f0ff;
+  --mono:'Share Tech Mono',monospace;
+  --display:'Syne',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100vh;}
+body{background:var(--void);color:var(--text);font-family:var(--mono);overflow-x:hidden;-webkit-font-smoothing:antialiased;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(77,166,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(77,166,255,0.03) 1px,transparent 1px);background-size:40px 40px;}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.1) 2px,rgba(0,0,0,0.1) 4px);}
+
+/* ── SCREENS ── */
+.screen{display:none;position:relative;z-index:1;min-height:100vh;width:100%;}
+.screen.active{display:block;animation:sIn .4s cubic-bezier(0.16,1,0.3,1) both;}
+@keyframes sIn{from{opacity:0;transform:scale(0.98);filter:blur(4px);}to{opacity:1;transform:none;filter:blur(0);}}
+
+/* ════ MENU ════ */
+#s-menu{display:none;flex-direction:column;justify-content:center;align-items:center;padding:20px;}
+#s-menu.active{display:flex;}
+.m-eye{font-size:12px;letter-spacing:6px;color:var(--blue);margin-bottom:20px;text-transform:uppercase;}
+.m-logo{font-family:var(--display);font-size:clamp(60px,10vw,120px);font-weight:800;color:var(--bright);line-height:1;letter-spacing:-4px;margin-bottom:16px;}
+.m-logo em{color:var(--green);font-style:normal;}
+.m-sub{font-size:14px;color:var(--muted);line-height:1.8;max-width:500px;text-align:center;margin-bottom:60px;}
+
+.m-cards{display:grid;grid-template-columns:1fr 1fr;gap:24px;width:100%;max-width:800px;}
+@media(max-width:600px){.m-cards{grid-template-columns:1fr;}}
+.m-card{background:var(--panel);border:1px solid var(--rim);border-radius:8px;padding:40px 30px;cursor:pointer;transition:all .3s;position:relative;overflow:hidden;text-align:left;}
+.m-card::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent 50%,rgba(77,166,255,0.05));pointer-events:none;opacity:0;transition:opacity .3s;}
+.m-card:hover{border-color:var(--blue);transform:translateY(-6px);box-shadow:0 20px 40px rgba(0,0,0,.6);}
+.m-card:hover::after{opacity:1;}
+.m-card.c-red:hover{border-color:var(--red);}
+.m-card.c-red::after{background:linear-gradient(135deg,transparent 50%,rgba(255,77,109,0.05));}
+
+.mc-icon{font-size:32px;margin-bottom:20px;display:block;}
+.mc-title{font-family:var(--display);font-size:24px;font-weight:700;color:var(--bright);margin-bottom:12px;}
+.mc-desc{font-size:13px;color:var(--muted);line-height:1.7;}
+
+/* ════ STORY INTRO TERMINAL ════ */
+#s-story-intro{background:#000;display:none;flex-direction:column;justify-content:center;align-items:center;padding:40px;}
+#s-story-intro.active{display:flex;}
+.intro-term{width:100%;max-width:700px;font-size:15px;line-height:2;color:var(--green);}
+.intro-line{display:block;margin-bottom:10px;}
+.intro-sys{color:var(--muted);}
+.intro-nix{color:var(--blue);}
+.cursor{display:inline-block;width:10px;height:18px;background:var(--green);animation:blink 1s infinite;vertical-align:middle;margin-left:4px;}
+@keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+
+/* ════ STORY MAIN LAYOUT ════ */
+#s-story-main{display:none;}
+#s-story-main.active{display:grid;grid-template-columns:260px 1fr;}
+@media(max-width:780px){#s-story-main.active{grid-template-columns:1fr;}}
+
+/* SIDEBAR */
+.sb{background:var(--panel);border-right:1px solid var(--rim);padding:24px 16px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.sb-logo{font-family:var(--display);font-size:20px;font-weight:800;color:var(--bright);margin-bottom:4px;}
+.sb-logo em{color:var(--green);font-style:normal;}
+.sb-sub{font-size:10px;color:var(--muted);letter-spacing:4px;text-transform:uppercase;margin-bottom:24px;}
+.sb-back{display:flex;align-items:center;justify-content:center;width:100%;padding:10px;background:var(--red-d);border:1px solid var(--red);border-radius:4px;color:var(--red);font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:2px;cursor:pointer;transition:all .2s;margin-bottom:30px;}
+.sb-back:hover{background:var(--red);color:#fff;box-shadow:0 0 15px rgba(255,77,109,0.4);}
+.sb-sect{font-size:10px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;padding:0 4px;}
+.nav-list{display:flex;flex-direction:column;gap:4px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid transparent;border-radius:4px;transition:all .2s;font-size:11px;color:var(--muted);opacity:0.5;}
+.nav-item.nia{background:var(--blue-d);border-color:var(--blue);color:var(--blue);opacity:1;}
+.nav-item.nid{color:var(--green);opacity:1;}
+.nd{width:8px;height:8px;border-radius:50%;border:2px solid currentColor;flex-shrink:0;transition:all .3s;}
+.nav-item.nid .nd{background:var(--green);}
+.nav-item.nia .nd{background:var(--blue);box-shadow:0 0 8px var(--blue);}
+
+/* STORY MAIN CONTENT */
+.smain{padding:30px;overflow-y:auto;max-height:100vh;}
+.mod-box{background:var(--panel);border:1px solid var(--rim);border-radius:8px;overflow:hidden;max-width:800px;margin:0 auto;}
+.mod-head{display:flex;align-items:flex-start;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--rim);background:var(--surface);}
+.mod-ey{font-size:10px;color:var(--blue);letter-spacing:4px;text-transform:uppercase;margin-bottom:6px;}
+.mod-title{font-family:var(--display);font-size:22px;font-weight:700;color:var(--bright);}
+
+/* Terminal Logs */
+.term{padding:20px 24px;font-size:13px;line-height:2.2;border-bottom:1px solid var(--rim);background:#000;}
+.tl{display:block;animation:tli .3s ease both;}
+@keyframes tli{from{opacity:0;transform:translateX(-5px);}to{opacity:1;transform:none;}}
+.tc-NIX{color:var(--blue);}.tc-SYS{color:var(--muted);}.tc-HCK{color:var(--red);}
+
+/* Action zone */
+.az{padding:24px;}
+.az-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;}
+.az-inp{width:100%;background:var(--void);border:1px solid var(--rim2);border-radius:4px;color:var(--bright);font-family:var(--mono);font-size:14px;padding:12px 16px;outline:none;transition:border-color .2s;margin-bottom:16px;}
+.az-inp:focus{border-color:var(--blue);box-shadow:0 0 10px rgba(77,166,255,0.1);}
+.az-ta{min-height:80px;resize:vertical;}
+.az-sel{appearance:none;cursor:pointer;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:4px;font-family:var(--mono);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:2px;cursor:pointer;transition:all .2s;border:1px solid;}
+.btn-b{background:var(--blue-d);border-color:var(--blue);color:var(--blue);} .btn-b:hover{background:var(--blue);color:var(--void);box-shadow:0 0 15px rgba(77,166,255,0.4);}
+.btn-g{background:var(--green-d);border-color:var(--green);color:var(--green);} .btn-g:hover{background:var(--green);color:var(--void);box-shadow:0 0 15px rgba(0,255,163,0.4);}
+.btn-d{background:transparent;border-color:var(--rim2);color:var(--muted);} .btn-d:hover{border-color:var(--text);color:var(--text);}
+.btn-r{background:var(--red-d);border-color:var(--red);color:var(--red);} .btn-r:hover{background:var(--red);color:#fff;box-shadow:0 0 15px rgba(255,77,109,0.4);}
+.btn-row{display:flex;gap:12px;flex-wrap:wrap;}
+
+/* Result block */
+.rb{background:var(--void);border:1px solid var(--rim2);border-radius:4px;padding:16px;font-size:13px;margin-top:16px;animation:rbi .3s ease both;word-break:break-all;}
+.rbl{font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;}
+.rbv{color:var(--green);line-height:1.6;}
+.rbr{display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--rim);font-size:12px;gap:16px;}
+.rbr:last-child{border-bottom:none;}
+.rbk{color:var(--muted);flex-shrink:0;}
+.rbvv{color:var(--bright);text-align:right;word-break:break-all;}
+
+/* Bits */
+.bit-grid{display:flex;flex-wrap:wrap;gap:2px;margin:8px 0 16px;}
+.bit{width:10px;height:10px;border-radius:1px;background:var(--rim);}
+.bit.on{background:var(--blue);box-shadow:0 0 4px rgba(77,166,255,.5);}
+
+/* Diff */
+.dw{display:flex;flex-wrap:wrap;gap:1px;font-size:12px;line-height:1.5;}
+.dm{color:var(--green);}.dx{background:var(--red);color:#fff;border-radius:2px;padding:0 2px;}
+
+/* Tags */
+.tag{display:inline-block;padding:4px 10px;border-radius:3px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;}
+.tg{background:var(--green-d);color:var(--green);border:1px solid var(--green);}
+.tb{background:var(--blue-d);color:var(--blue);border:1px solid var(--blue);}
+.ty{background:var(--yellow-d);color:var(--yellow);border:1px solid var(--yellow);}
+.tr{background:var(--red-d);color:var(--red);border:1px solid var(--red);}
+
+/* ════ LAB SCREEN ════ */
+#s-lab{min-height:100vh;}
+.lab-inner{max-width:900px;margin:0 auto;padding:40px 24px;}
+.lab-hud{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;background:var(--panel);border:1px solid var(--rim);border-radius:8px;margin-bottom:24px;}
+.lab-hl{font-family:var(--display);font-size:18px;font-weight:700;color:var(--bright);}
+.lab-hl em{color:var(--red);font-style:normal;}
+.tbar{display:flex;border-bottom:1px solid var(--rim);margin-bottom:24px;}
+.tbtn{padding:12px 24px;font-family:var(--mono);font-size:13px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;text-transform:uppercase;letter-spacing:2px;transition:all .2s;background:transparent;border-top:none;border-left:none;border-right:none;}
+.tbtn:hover{color:var(--text);}
+.tbtn.ta{color:var(--red);border-bottom-color:var(--red);}
+.tp{display:none;}.tp.ta{display:block;}
+.lp{background:var(--panel);border:1px solid var(--rim);border-radius:8px;padding:24px;margin-bottom:20px;}
+.lph{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--rim);padding-bottom:12px;margin-bottom:20px;}
+.lpht{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:3px;}
+.mtog{display:flex;gap:12px;margin-bottom:20px;}
+.mtb{flex:1;padding:10px;border-radius:4px;font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:2px;cursor:pointer;transition:all .2s;border:1px solid var(--rim2);color:var(--muted);background:transparent;}
+.mtb.ma{background:var(--red-d);border-color:var(--red);color:var(--red);}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+@media(max-width:600px){.g2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<div id="s-menu" class="screen active">
+  <div class="m-eye">MERIDIAN SYSTEMS // SECURITY PROTOCOL v3.0</div>
+  <div class="m-logo">N<em>I</em>X</div>
+  <p class="m-sub">Select your interface. <strong>Story Mode</strong> drops you into a live cyber-defense scenario. <strong>Pro Sandbox</strong> gives you unrestricted access to raw cryptographic protocols.</p>
+  
+  <div class="m-cards">
+    <div class="m-card" onclick="startStoryIntro()">
+      <span class="mc-icon">🎭</span>
+      <div class="mc-title">Story Mode</div>
+      <div class="mc-desc">The network is bleeding. Connect with rogue agent Nix to secure the corporate payload before the threat actors extract it.</div>
+      <div style="margin-top:20px;"><span class="tag tb">NARRATIVE DRIVEN</span></div>
+    </div>
+    <div class="m-card c-red" onclick="startLab()">
+      <span class="mc-icon">⚡</span>
+      <div class="mc-title" style="color:var(--red);">Pro Sandbox</div>
+      <div class="mc-desc">Raw developer access. Generate hashes, visualize binary avalanches, and test AES-GCM encryption payloads with zero restrictions.</div>
+      <div style="margin-top:20px;"><span class="tag tr">UNRESTRICTED ACCESS</span></div>
+    </div>
+  </div>
+</div>
+
+<div id="s-story-intro" class="screen">
+  <div class="intro-term" id="intro-term"></div>
+</div>
+
+<div id="s-story-main" class="screen">
+  <aside class="sb">
+    <div class="sb-logo">N<em>I</em>X</div>
+    <div class="sb-sub">Live Operations</div>
+    <button class="sb-back" onclick="goHome()">[ DISCONNECT ]</button>
+    <div class="sb-sect">Defense Protocol</div>
+    <div class="nav-list" id="story-nav"></div>
+  </aside>
+  <div class="smain" id="smain"></div>
+</div>
+
+<div id="s-lab" class="screen">
+  <div class="lab-inner">
+    <div class="lab-hud">
+      <div class="lab-hl">N<em>I</em>X <span style="color:var(--muted);font-weight:400;font-size:12px;">// DevTools</span></div>
+      <div style="display:flex;align-items:center;gap:16px;">
+        <button class="btn btn-r" onclick="goHome()">[ DISCONNECT ]</button>
+      </div>
+    </div>
+    
+    <div class="tbar">
+      <button class="tbtn ta" id="tb-hash" onclick="switchLabTab('hash')">⚡ Hash Engine</button>
+      <button class="tbtn" id="tb-enc" onclick="switchLabTab('enc')">🔒 AES-GCM Array</button>
+    </div>
+
+    <div class="tp ta" id="tp-hash">
+      <div class="lp">
+        <div class="lph"><div class="lpht">Hash Engine</div><span class="tag tb" id="lab-algo-badge">SHA-256</span></div>
+        <div class="g2">
+          <div>
+            <div class="az-lbl">Algorithm</div>
+            <select class="az-inp az-sel" id="lab-algo" onchange="labAlgoChange()">
+              <option value="SHA-256">SHA-256 — 256 bit (secure)</option>
+              <option value="SHA-512">SHA-512 — 512 bit (secure)</option>
+              <option value="SHA-1">SHA-1 — 160 bit (deprecated)</option>
+              <option value="MD5">MD5 — 128 bit (broken)</option>
+            </select>
+          </div>
+          <div style="display:flex;align-items:center;">
+            <div style="font-size:12px;color:var(--muted);line-height:1.9;">Select algorithm. Enter plaintext. Compute digest.</div>
+          </div>
+        </div>
+        <div class="az-lbl">Plaintext Input</div>
+        <textarea class="az-inp az-ta" id="lab-hash-input" placeholder="Enter text to hash..."></textarea>
+        <div class="btn-row">
+          <button class="btn btn-b" onclick="labRunHash()">▶ Compute Digest</button>
+          <button class="btn btn-d" onclick="labClearHash()">✕ Clear</button>
+        </div>
+      </div>
+      <div id="lab-hash-result"></div>
+    </div>
+
+    <div class="tp" id="tp-enc">
+      <div class="lp">
+        <div class="lph"><div class="lpht">AES-256-GCM Cryptography</div><span class="tag tr">PBKDF2 · 100K ITERS</span></div>
+        <div class="mtog">
+          <button class="mtb ma" id="mt-enc" onclick="labEncMode('enc')">🔒 Encrypt Payload</button>
+          <button class="mtb" id="mt-dec" onclick="labEncMode('dec')">🔓 Decrypt Payload</button>
+        </div>
+        <div id="lab-enc-form">
+          <div class="az-lbl">Plaintext Data</div>
+          <textarea class="az-inp az-ta" id="lab-enc-pt" placeholder="Enter sensitive data to encrypt..."></textarea>
+          <div class="az-lbl">Master Passphrase</div>
+          <input type="password" class="az-inp" id="lab-enc-pp" placeholder="Strong cryptographic key...">
+          <button class="btn btn-r" onclick="labRunEncrypt()">🔒 Execute Encryption</button>
+        </div>
+        <div id="lab-dec-form" style="display:none;">
+          <div class="az-lbl">Ciphertext Payload (salt:iv:ciphertext)</div>
+          <textarea class="az-inp az-ta" id="lab-dec-payload" placeholder="Paste full encrypted payload here..."></textarea>
+          <div class="az-lbl">Master Passphrase</div>
+          <input type="password" class="az-inp" id="lab-dec-pp" placeholder="Passphrase used during encryption...">
+          <button class="btn btn-g" onclick="labRunDecrypt()">🔓 Execute Decryption</button>
+        </div>
+      </div>
+      <div id="lab-enc-result"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══ CRYPTO ENGINE (Mathematically Accurate) ══ */
+const CE={
+  bufToHex(b){return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');},
+  hexToBuf(h){return new Uint8Array(h.match(/.{1,2}/g).map(b=>parseInt(b,16)));},
+  hexToBits(h){return h.split('').map(c=>parseInt(c,16).toString(2).padStart(4,'0')).join('');},
+  async hash(algo,str){
+    const t0=performance.now();
+    let hex;
+    if(algo==='MD5'){hex=CE.md5(str);}
+    else{const buf=await crypto.subtle.digest(algo,new TextEncoder().encode(str));hex=CE.bufToHex(buf);}
+    return{hex,ms:(performance.now()-t0).toFixed(2),bits:CE.hexToBits(hex)};
+  },
+  async deriveKey(pp,salt){
+    const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pp),{name:'PBKDF2'},false,['deriveKey']);
+    const k=await crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:100000,hash:'SHA-256'},km,{name:'AES-GCM',length:256},true,['encrypt','decrypt']);
+    return{k,hex:CE.bufToHex(await crypto.subtle.exportKey('raw',k))};
+  },
+  async encrypt(data,pp){
+    const t0=performance.now();
+    const salt=crypto.getRandomValues(new Uint8Array(16));
+    const iv=crypto.getRandomValues(new Uint8Array(12));
+    const{k,hex}=await CE.deriveKey(pp,salt);
+    const cipher=await crypto.subtle.encrypt({name:'AES-GCM',iv},k,new TextEncoder().encode(data));
+    return{payload:`${CE.bufToHex(salt)}:${CE.bufToHex(iv)}:${CE.bufToHex(cipher)}`,salt:CE.bufToHex(salt),iv:CE.bufToHex(iv),key:hex,ms:(performance.now()-t0).toFixed(2)};
+  },
+  async decrypt(payload,pp){
+    const t0=performance.now();
+    const parts=payload.trim().split(':');
+    if(parts.length!==3)throw new Error('Invalid format — expected salt:iv:ciphertext');
+    const salt=CE.hexToBuf(parts[0]),iv=CE.hexToBuf(parts[1]),cipher=CE.hexToBuf(parts[2]);
+    const{k,hex}=await CE.deriveKey(pp,salt);
+    const plain=new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv},k,cipher));
+    return{plain,key:hex,ms:(performance.now()-t0).toFixed(2)};
+  },
+  md5(str) {
+      let hl = [1732584193, -271733879, -1732584194, 271733878];
+      let msg = unescape(encodeURIComponent(str));
+      let ml = msg.length;
+      let wa = [];
+      for (let i = 0; i < ml; i++) wa[i >> 2] |= (msg.charCodeAt(i) & 255) << (8 * (i % 4));
+      wa[ml >> 2] |= 0x80 << (8 * (ml % 4));
+      wa[(((ml + 8) >> 6) << 4) + 14] = ml * 8;
+      let c = [7, 12, 17, 22, 5, 9, 14, 20, 4, 11, 16, 23, 6, 10, 15, 21];
+      let kl = [];
+      for (let i = 0; i < 64; i++) kl[i] = Math.floor(Math.abs(Math.sin(i + 1)) * 4294967296);
+      for (let i = 0; i < wa.length; i += 16) {
+          let [a, b, d, e] = hl;
+          for (let j = 0; j < 64; j++) {
+              let f, g = j;
+              if (j < 16) f = (b & d) | (~b & e);
+              else if (j < 32) { f = (d & b) | (~d & e); g = (5 * j + 1) % 16; }
+              else if (j < 48) { f = b ^ d ^ e; g = (3 * j + 5) % 16; }
+              else { f = e ^ (b | ~d); g = (7 * j) % 16; }
+              let temp = d, shift = c[(j >> 4) * 4 + (j % 4)], sum = a + f + kl[j] + (wa[i + g] || 0);
+              d = b + ((sum << shift) | (sum >>> (32 - shift)));
+              a = e; e = temp; b = d;
+          }
+          hl[0] = (hl[0] + a) | 0; hl[1] = (hl[1] + b) | 0; hl[2] = (hl[2] + d) | 0; hl[3] = (hl[3] + e) | 0;
+      }
+      return hl.map(x => {
+          let s = "";
+          for(let i=0; i<4; i++) s += ('0' + ((x >> (i * 8)) & 255).toString(16)).slice(-2);
+          return s;
+      }).join('');
+  }
+};
+
+/* ══ STORY NARRATIVE DATA ══ */
+const STORY=[
+  {id:0,ey:'Phase 01 // Lock The Gates',title:'Secure Control Node',task:'hash',
+   intro:[
+     {t:'NIX',m:'The threat actors are mapping the Meridian network right now.'},
+     {t:'NIX',m:'We need to lock down the master control node before they reach it.'},
+     {t:'SYS',m:'[WARNING] Current control node password is plain text.'},
+     {t:'NIX',m:'Set a new password and hash it immediately. A hash is a one-way digital fingerprint. If they steal the database, all they get is gibberish.'},
+     {t:'NIX',m:'Do NOT use MD5. It\'s mathematically broken and they will shatter it in seconds.'},
+   ]},
+  {id:1,ey:'Phase 02 // Threat Analysis',title:'Verify Avalanche Integrity',task:'avalanche',
+   intro:[
+     {t:'NIX',m:'Good. The hash is saved.'},
+     {t:'NIX',m:'The hackers are running similarity analysis. They guess passwords that are "close" to yours and see if the hash looks similar.'},
+     {t:'NIX',m:'A strong algorithm prevents this using the Avalanche Effect. Changing even ONE letter should completely scramble the output.'},
+     {t:'NIX',m:'Prove the algorithm is safe. Change one letter of your password and watch the bits flip.'},
+   ]},
+  {id:2,ey:'Phase 03 // Perimeter Defense',title:'Deflect Authentication',task:'decrypt_sim',
+   intro:[
+     {t:'SYS',m:'[ALERT] Inbound login request detected on master control node.'},
+     {t:'NIX',m:'It\'s them. They are trying to log in using brute-force scripts.'},
+     {t:'NIX',m:'The server doesn\'t know your real password anymore. It will hash whatever the hacker types and compare it blindly to your stored hash.'},
+     {t:'NIX',m:'Watch the hash comparator reject their attempt.'},
+   ]},
+  {id:3,ey:'Phase 04 // Incident Zero',title:'Database Compromised',task:'breach',
+   intro:[
+     {t:'SYS',m:'[CRITICAL] Firewall breached. Unauthorized database exfiltration in progress.'},
+     {t:'NIX',m:'Damn it. They got the shadow files. They have your hash.'},
+     {t:'HCK',m:'> Extracting data... Hash found.'},
+     {t:'HCK',m:'> Attempting reversal... ERROR: Mathematical one-way function.'},
+     {t:'NIX',m:'See? Because you hashed it, the password is safe. But we can\'t stay here.'},
+   ]},
+  {id:4,ey:'Phase 05 // Exfiltration',title:'Extract Root Certificate',task:'encrypt',
+   intro:[
+     {t:'NIX',m:'We need to extract the root certificate before they wipe the server.'},
+     {t:'NIX',m:'Hashing won\'t work—we need to be able to DECRYPT and read it on the other side.'},
+     {t:'NIX',m:'Encrypt the payload using AES-GCM. Create a strong passphrase. The server will use PBKDF2 to stretch it into an unbreakable key.'},
+   ]},
+];
+
+/* ══ STORY STATE ══ */
+const S={
+  step:0,
+  hashHex:'', hashBits:'', pwd:'',
+  maxStep:0 // Tracks furthest progressed step
+};
+
+/* ══ UI / NAV CONTROLLERS ══ */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function goHome(){ showScreen('s-menu'); }
+
+/* ══ STORY INTRO TYPEWRITER ══ */
+async function startStoryIntro(){
+  showScreen('s-story-intro');
+  const term = document.getElementById('intro-term');
+  term.innerHTML = '';
+  
+  const lines = [
+    {s:'SYS', m:'Establishing secure connection to Meridian internal network...'},
+    {s:'SYS', m:'Bypassing external firewalls... SUCCESS.'},
+    {s:'NIX', m:'You there? Good.'},
+    {s:'NIX', m:'I am Nix. Meridian Systems is under active cyber attack.'},
+    {s:'NIX', m:'We have approximately 5 minutes to secure the payload before the threat actors extract it.'},
+    {s:'NIX', m:'I need a ghost in the machine. Let\'s get to work.'}
+  ];
+
+  for(let i=0; i<lines.length; i++) {
+    const line = document.createElement('div');
+    line.className = 'intro-line';
+    const prefix = lines[i].s === 'SYS' ? `<span class="intro-sys">[SYS]</span> ` : `<span class="intro-nix">[NIX]</span> `;
+    line.innerHTML = `${prefix}<span id="type-${i}"></span><span class="cursor" id="curs-${i}"></span>`;
+    term.appendChild(line);
+    
+    await typeText(`type-${i}`, lines[i].m, 20);
+    document.getElementById(`curs-${i}`).style.display = 'none';
+    await new Promise(r => setTimeout(r, 600));
+  }
+  
+  const btn = document.createElement('button');
+  btn.className = 'btn btn-b';
+  btn.style.marginTop = '20px';
+  btn.innerText = 'ENTER NETWORK';
+  btn.onclick = () => { S.step=0; S.maxStep=0; showScreen('s-story-main'); renderStory(); };
+  term.appendChild(btn);
+}
+
+function typeText(id, text, speed) {
+  return new Promise(resolve => {
+    const el = document.getElementById(id);
+    let i = 0;
+    const int = setInterval(() => {
+      el.textContent += text.charAt(i);
+      i++;
+      if(i >= text.length) { clearInterval(int); resolve(); }
+    }, speed);
+  });
+}
+
+/* ══ STORY RENDER ══ */
+function renderNav(){
+  document.getElementById('story-nav').innerHTML=STORY.map((s,i)=>{
+    const isUnlocked = i <= S.maxStep;
+    const isActive = i === S.step;
+    return`<div class="nav-item ${isUnlocked?'nid':''} ${isActive?'nia':''}" ${isUnlocked ? `style="cursor:pointer;" onclick="jumpTo(${i})"` : ''}>
+      <div class="nd"></div>
+      <div class="nn">${s.ey.split('//')[0].trim()} — ${s.title}</div>
+    </div>`;
+  }).join('');
+}
+
+function jumpTo(idx){
+  if(idx <= S.maxStep) {
+    S.step=idx;
+    renderStory();
+    document.getElementById('smain').scrollTop=0;
+  }
+}
+
+function renderStory(){
+  renderNav();
+  const s=STORY[S.step];
+
+  let az='';
+  if(s.task==='hash'){az=buildHash(s);}
+  else if(s.task==='avalanche'){az=buildAvalanche();}
+  else if(s.task==='decrypt_sim'){az=buildLogin();}
+  else if(s.task==='breach'){az=buildBreach();}
+  else if(s.task==='encrypt'){az=buildEncrypt();}
+
+  document.getElementById('smain').innerHTML=`
+    <div class="mod-box">
+      <div class="mod-head">
+        <div>
+          <div class="mod-ey">${esc(s.ey)}</div>
+          <div class="mod-title">${esc(s.title)}</div>
+        </div>
+      </div>
+      <div class="term">${s.intro.map((l,i)=>termLine(l.t,l.m,i)).join('')}</div>
+      <div class="az" id="az-zone">${az}</div>
+    </div>`;
+    
+  if(s.task==='breach') setTimeout(() => { showNextButton(4); }, 4000);
+}
+
+function showNextButton(nextIdx) {
+  if (S.maxStep < nextIdx) S.maxStep = nextIdx;
+  
+  const existing = document.getElementById('next-btn-zone');
+  if(existing) existing.remove();
+  
+  let btnHtml = '';
+  if (nextIdx >= STORY.length) {
+    btnHtml = `<button class="btn btn-g" onclick="goHome()">Mission Accomplished. Return to Base.</button>`;
+  } else {
+    btnHtml = `<button class="btn btn-b" onclick="jumpTo(${nextIdx})">Proceed to Next Phase →</button>`;
+  }
+  
+  const div = document.createElement('div');
+  div.id = 'next-btn-zone';
+  div.style.cssText = 'margin-top:24px; border-top:1px solid var(--rim); padding-top:20px;';
+  div.innerHTML = btnHtml;
+  document.getElementById('az-zone').appendChild(div);
+  renderNav();
+}
+
+/* ── BUILDERS & LOGIC FOR STORY ── */
+
+// MOD 1: HASH
+function buildHash(s){
+  return`
+    <div class="az-lbl">Select Algorithm</div>
+    <select class="az-inp az-sel" id="az-algo-sel">
+      <option value="SHA-256">SHA-256 (Secure)</option>
+      <option value="SHA-512">SHA-512 (Secure)</option>
+      <option value="SHA-1">SHA-1 (Deprecated)</option>
+      <option value="MD5">MD5 (Broken)</option>
+    </select>
+    <div class="az-lbl">Set Control Node Password</div>
+    <input type="text" class="az-inp" id="az-hash-inp" placeholder="e.g. ProtocolBeta99">
+    <div class="btn-row"><button class="btn btn-b" onclick="doStoryHash()">Generate Fingerprint</button></div>
+    <div id="hash-result"></div>`;
+}
+
+async function doStoryHash(){
+  const algo=document.getElementById('az-algo-sel').value;
+  const val=document.getElementById('az-hash-inp').value.trim();
+  const resEl=document.getElementById('hash-result');
+  
+  if(!val){resEl.innerHTML=`<div class="rb" style="border-color:var(--yellow);color:var(--yellow)">⚠ Enter a password.</div>`;return;}
+  
+  const r=await CE.hash(algo,val);
+  S.hashHex = r.hex; S.hashBits = r.bits; S.pwd = val;
+
+  if(algo === 'MD5' || algo === 'SHA-1') {
+    resEl.innerHTML=`<div class="rb" style="border-color:var(--red);">
+      <div style="color:var(--red);font-weight:bold;margin-bottom:8px;">[!] INSECURE PROTOCOL BLOCKED</div>
+      <div style="color:var(--text);font-size:12px;">${algo} is vulnerable to collision attacks. Nix refuses to let you use this. Switch to SHA-256 or SHA-512.</div>
+    </div>`;
+  } else {
+    resEl.innerHTML=`<div class="rb" style="border-color:var(--green);">
+      <div class="rbl">Stored Hash Digest (${algo})</div>
+      <div class="rbv" style="font-size:11px;word-break:break-all;">${r.hex}</div>
+      <div class="rbl" style="margin-top:12px;">Binary Representation</div>
+      <div class="bit-grid">${bits2grid(r.bits, 160)}</div>
+    </div>`;
+    showNextButton(1);
+  }
+}
+
+// MOD 2: AVALANCHE
+function buildAvalanche(){
+  return`
+    <div class="az-lbl">Original Password</div>
+    <input class="az-inp" disabled value="${S.pwd}" style="opacity:0.5;">
+    <div class="az-lbl">Modified Password (Change 1 char)</div>
+    <input class="az-inp" id="av-b" placeholder="Type slightly modified password..." oninput="doStoryAvalanche()">
+    <div id="av-result"></div>`;
+}
+
+async function doStoryAvalanche(){
+  const b=document.getElementById('av-b').value;
+  const resEl=document.getElementById('av-result');
+  if(!b || b===S.pwd) { resEl.innerHTML=''; return; }
+  
+  const hb = await CE.hash('SHA-256',b);
+  let diffs=0;
+  for(let i=0;i<S.hashBits.length;i++) if(S.hashBits[i]!==hb.bits[i]) diffs++;
+  const pct=((diffs/S.hashBits.length)*100).toFixed(1);
+  const ready = parseFloat(pct) > 30;
+
+  resEl.innerHTML=`
+    <div class="rb">
+      <div class="rbl">Hash Delta</div>
+      <div style="font-size:11px;color:var(--text);margin-bottom:8px;">${hb.hex}</div>
+      <div class="rbr"><span class="rbk">Bits Flipped</span><span class="rbvv" style="color:${ready?'var(--green)':'var(--yellow)'}">${diffs} / ${S.hashBits.length} (${pct}%)</span></div>
+    </div>`;
+    
+  if(ready) showNextButton(2);
+}
+
+// MOD 3: LOGIN
+function buildLogin(){
+  return`
+    <div class="az-lbl">Inbound Request: Password Guess</div>
+    <input type="text" class="az-inp" id="story-login-pwd" placeholder="Hacker is guessing...">
+    <div class="btn-row">
+      <button class="btn btn-r" onclick="document.getElementById('story-login-pwd').value = 'password123'; doStoryLogin();">Simulate Brute Force</button>
+    </div>
+    <div id="login-res" style="margin-top:16px;"></div>`;
+}
+
+async function doStoryLogin() {
+  const typed = document.getElementById('story-login-pwd').value;
+  if(!typed) return;
+  const r = await CE.hash('SHA-256', typed);
+  
+  const dbEl = document.getElementById('login-res');
+  let diffHtml = '<div class="dw" style="background:var(--void);border:1px solid var(--rim);padding:10px;border-radius:4px;margin-top:8px;">';
+  for(let i=0;i<S.hashHex.length;i++){
+    const match = S.hashHex[i]===r.hex[i];
+    diffHtml += `<span class="${match?'dm':'dx'}">${r.hex[i]}</span>`;
+  }
+  diffHtml += '</div>';
+
+  dbEl.innerHTML = `
+    <div class="az-lbl">System Comparator Output</div>
+    ${diffHtml}
+    <div style="margin-top:12px;color:var(--red);font-weight:bold;font-size:14px;">[!] HASH MISMATCH. ACCESS DENIED.</div>
+  `;
+  showNextButton(3);
+}
+
+// MOD 4: BREACH
+function buildBreach() {
+  return `<div style="color:var(--green);font-family:var(--mono);font-size:13px;">Analyzing network perimeter...</div>`;
+}
+
+// MOD 5: ENCRYPT
+function buildEncrypt(){
+  return`
+    <div class="az-lbl">Payload</div>
+    <textarea class="az-inp az-ta" disabled style="opacity:0.5;">ROOT_CERT_KEY_A9982</textarea>
+    <div class="az-lbl">Create Extraction Passphrase</div>
+    <input type="password" class="az-inp" id="az-enc-pp" placeholder="Enter strong phrase...">
+    <div class="btn-row"><button class="btn btn-b" onclick="doStoryEncrypt()">🔒 Encrypt & Extract</button></div>
+    <div id="enc-result"></div>`;
+}
+
+async function doStoryEncrypt(){
+  const pp = document.getElementById('az-enc-pp').value;
+  const resEl=document.getElementById('enc-result');
+  if(!pp) { resEl.innerHTML=`<div class="rb" style="color:var(--yellow)">⚠ Enter a passphrase.</div>`; return; }
+  
+  const r = await CE.encrypt('ROOT_CERT_KEY_A9982', pp);
+  resEl.innerHTML = `
+    <div class="rb" style="border-color:var(--green);">
+      <div class="rbl" style="color:var(--green)">Payload Secured</div>
+      <div class="rbv" style="font-size:10px;">${r.payload}</div>
+    </div>
+  `;
+  showNextButton(5);
+}
+
+/* ══ LAB MODE (PRO SANDBOX) LOGIC ══ */
+function switchLabTab(tab){
+  ['hash','enc'].forEach(t=>{
+    document.getElementById(`tp-${t}`).classList.toggle('ta',t===tab);
+    document.getElementById(`tb-${t}`).classList.toggle('ta',t===tab);
+  });
+}
+function labAlgoChange(){ document.getElementById('lab-algo-badge').innerText=document.getElementById('lab-algo').value; }
+async function labRunHash(){
+  const input=document.getElementById('lab-hash-input').value.trim();
+  const algo=document.getElementById('lab-algo').value;
+  const resEl=document.getElementById('lab-hash-result');
+  if(!input){resEl.innerHTML='';return;}
+  const r=await CE.hash(algo,input);
+  const sec=algo==='SHA-256'||algo==='SHA-512';
+  resEl.innerHTML=`
+    <div class="lp">
+      <div class="lph"><div class="lpht">Output — ${algo}</div><span class="tag ${sec?'tg':algo==='SHA-1'?'ty':'tr'}">${sec?'SECURE':algo==='SHA-1'?'DEPRECATED':'BROKEN'}</span></div>
+      <div class="rb" style="margin-top:0;"><div class="rbl">Hex Digest</div><div class="rbv">${r.hex}</div></div>
+      <div class="srow" style="margin-top:10px;"><span class="sk">Digest bits</span><span class="sv">${r.hex.length*4}</span></div>
+      <div class="srow"><span class="sk">Execution</span><span class="sv">${r.ms}ms</span></div>
+    </div>`;
+}
+function labClearHash(){document.getElementById('lab-hash-input').value='';document.getElementById('lab-hash-result').innerHTML='';}
+function labEncMode(mode){
+  document.getElementById('lab-enc-form').style.display=mode==='enc'?'block':'none';
+  document.getElementById('lab-dec-form').style.display=mode==='dec'?'block':'none';
+  document.getElementById('mt-enc').classList.toggle('ma',mode==='enc');
+  document.getElementById('mt-dec').classList.toggle('ma',mode==='dec');
+  
+  // Auto clear fields when switching
+  document.getElementById('lab-enc-pt').value = '';
+  document.getElementById('lab-enc-pp').value = '';
+  document.getElementById('lab-dec-payload').value = '';
+  document.getElementById('lab-dec-pp').value = '';
+  document.getElementById('lab-enc-result').innerHTML='';
+}
+async function labRunEncrypt(){
+  const pt=document.getElementById('lab-enc-pt').value.trim();
+  const pp=document.getElementById('lab-enc-pp').value.trim();
+  const resEl=document.getElementById('lab-enc-result');
+  if(!pt||!pp){resEl.innerHTML=`<div class="lp"><span style="color:var(--yellow)">⚠ Fill in both fields.</span></div>`;return;}
+  const r=await CE.encrypt(pt,pp);
+  resEl.innerHTML=`
+    <div class="lp">
+      <div class="lph"><div class="lpht">Ciphertext</div></div>
+      <div class="rb" style="margin-top:0;"><div class="rbl">salt:iv:cipher</div><div class="rbv" style="font-size:10px;">${r.payload}</div></div>
+      <div class="srow" style="margin-top:10px;"><span class="sk">Derived Key</span><span class="sv">${r.key.substring(0,32)}...</span></div>
+      <div class="srow"><span class="sk">Execution</span><span class="sv">${r.ms}ms</span></div>
+    </div>`;
+}
+async function labRunDecrypt(){
+  const pl=document.getElementById('lab-dec-payload').value.trim();
+  const pp=document.getElementById('lab-dec-pp').value.trim();
+  const resEl=document.getElementById('lab-enc-result');
+  if(!pl||!pp){resEl.innerHTML=`<div class="lp"><span style="color:var(--yellow)">⚠ Fill in both fields.</span></div>`;return;}
+  try{
+    const r=await CE.decrypt(pl,pp);
+    resEl.innerHTML=`
+      <div class="lp" style="border-color:var(--green)">
+        <div class="lph"><div class="lpht" style="color:var(--green)">Decrypted</div></div>
+        <div class="rb" style="margin-top:0;"><div class="rbl">Plaintext</div><div class="rbv">${esc(r.plain)}</div></div>
+      </div>`;
+  }catch(e){
+    resEl.innerHTML=`<div class="lp" style="border-color:var(--red)"><span style="color:var(--red)">❌ Auth Tag Mismatch or Bad Key</span></div>`;
+  }
+}
+</script>
+</body>
+</html>
