@@ -185,6 +185,9 @@
       </div>
       <span class="form-label">Binary Structure (<span id="lab-bit-count"></span> bits)</span>
       <div class="bit-grid" id="lab-bit-grid"></div>
+      <div class="btn-group" style="margin-top:20px;">
+        <button class="btn btn-full" onclick="App.exportTelemetry('hash')">📥 EXPORT SESSION TELEMETRY</button>
+      </div>
     </div>
   </div>
 
@@ -307,6 +310,9 @@
         </div>
         <span class="form-label">PBKDF2 Derived Key (Debug)</span>
         <div class="readout readout-dim"><span id="lab-debug-key"></span></div>
+        <div class="btn-group" style="margin-top:20px;">
+          <button class="btn btn-full" onclick="App.exportTelemetry('enc')">📥 EXPORT SESSION TELEMETRY</button>
+        </div>
       </div>
     </div>
   </div>
@@ -349,6 +355,9 @@
               <div class="readout readout-cyan" id="rsa-cipher-out" style="font-size:10px; max-height:100px; overflow-y:auto;"></div>
               <button class="copy-btn" onclick="App.copyVal('rsa-cipher-out', this)"><span class="copy-icon">⧉</span><span class="copy-text">COPY</span></button>
             </div>
+            <div class="btn-group" style="margin-top:16px;">
+              <button class="btn btn-full" onclick="App.exportTelemetry('rsa-enc')" style="font-size:10px; padding:10px;">📥 EXPORT ENCRYPTION</button>
+            </div>
           </div>
         </div>
 
@@ -363,6 +372,9 @@
           <div id="rsa-dec-res" style="display:none; margin-top:20px;">
             <span class="form-label">Decrypted Message</span>
             <div class="readout readout-green" id="rsa-plain-out"></div>
+            <div class="btn-group" style="margin-top:16px;">
+              <button class="btn btn-full" onclick="App.exportTelemetry('rsa-dec')" style="font-size:10px; padding:10px;">📥 EXPORT DECRYPTION</button>
+            </div>
           </div>
         </div>
       </div>
@@ -405,6 +417,9 @@
         <button class="copy-btn" onclick="App.copyVal('lab-hmac-out', this)">
           <span class="copy-icon">⧉</span><span class="copy-text">COPY</span>
         </button>
+      </div>
+      <div class="btn-group" style="margin-top:20px;">
+        <button class="btn btn-full" onclick="App.exportTelemetry('hmac')">📥 EXPORT SESSION TELEMETRY</button>
       </div>
       <div style="font-family:var(--font-mono); font-size:11px; color:var(--muted); padding:12px; border:1px solid rgba(0,255,136,0.06); background:rgba(0,0,0,0.4); line-height:1.9; margin-top:20px;">
         <span style="color:var(--c3);">// SECURITY NOTE:</span> If even one bit of the payload or the key changes, the resulting MAC will be entirely different. This ensures that the message hasn't been tampered with in transit.
@@ -452,6 +467,9 @@
         <button class="copy-btn" onclick="App.copyVal('lab-stego-out', this)">
           <span class="copy-icon">⧉</span><span class="copy-text">COPY</span>
         </button>
+      </div>
+      <div class="btn-group" style="margin-top:20px;">
+        <button class="btn btn-full" onclick="App.exportTelemetry('stego')">📥 EXPORT SESSION TELEMETRY</button>
       </div>
     </div>
   </div>

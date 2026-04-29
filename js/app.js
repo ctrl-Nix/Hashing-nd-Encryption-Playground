@@ -11,6 +11,7 @@ const App = {
   show: id => {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
   },
 
   resetState: () => {
@@ -61,6 +62,46 @@ const App = {
     App.show('screen-lab'); 
     App.setupDropZone();
     App.setupStegoDropZone();
+  },
+
+  exportTelemetry: (module) => {
+    let data = { timestamp: new Date().toISOString(), module };
+    
+    if (module === 'hash') {
+      data.algorithm = App.S.lab.algo;
+      data.input = document.getElementById('lab-hash-in').value || 'File: ' + App.S.lab.fileName;
+      data.salt = document.getElementById('lab-hash-salt').value;
+      data.output = document.getElementById('lab-hash-out').innerText;
+    } else if (module === 'enc') {
+      data.mode = App.S.lab.encMode;
+      data.input = document.getElementById('lab-enc-data').value;
+      data.output = document.getElementById('lab-enc-out').innerText;
+      data.derivedKey = document.getElementById('lab-debug-key').innerText;
+    } else if (module === 'rsa-enc') {
+      data.plain = document.getElementById('rsa-enc-in').value;
+      data.publicKey = document.getElementById('rsa-enc-key').value;
+      data.ciphertext = document.getElementById('rsa-cipher-out').innerText;
+    } else if (module === 'rsa-dec') {
+      data.ciphertext = document.getElementById('rsa-dec-in').value;
+      data.privateKey = document.getElementById('rsa-dec-key').value;
+      data.decrypted = document.getElementById('rsa-plain-out').innerText;
+    } else if (module === 'hmac') {
+      data.algorithm = App.S.lab.hmacAlgo;
+      data.payload = document.getElementById('lab-hmac-payload').value;
+      data.secretKey = document.getElementById('lab-hmac-key').value;
+      data.tag = document.getElementById('lab-hmac-out').innerText;
+    } else if (module === 'stego') {
+      data.payload = document.getElementById('stego-payload').value;
+      data.output = document.getElementById('lab-stego-out').innerText;
+    }
+
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `nix_telemetry_${module}_${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
   },
 
   switchLabTab: tab => {
