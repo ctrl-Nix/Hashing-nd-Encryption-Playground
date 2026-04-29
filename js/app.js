@@ -87,8 +87,8 @@ const App = {
       data.decrypted = document.getElementById('rsa-plain-out').innerText;
     } else if (module === 'hmac') {
       data.algorithm = App.S.lab.hmacAlgo;
-      data.payload = document.getElementById('lab-hmac-payload').value;
-      data.secretKey = document.getElementById('lab-hmac-key').value;
+      data.payload = document.getElementById('hmac-data').value;
+      data.secretKey = document.getElementById('hmac-key').value;
       data.tag = document.getElementById('lab-hmac-out').innerText;
     } else if (module === 'stego') {
       data.payload = document.getElementById('stego-payload').value;
@@ -109,6 +109,7 @@ const App = {
     document.getElementById('btn-tab-'+tab).classList.add('active');
     document.querySelectorAll('.lab-panel').forEach(p => p.classList.remove('active'));
     document.getElementById('lab-'+tab).classList.add('active');
+    window.scrollTo({ top: document.querySelector('.lab-tabs').offsetTop - 40, behavior: 'smooth' });
   },
 
   setupDropZone: () => {
@@ -746,6 +747,213 @@ const App = {
       `;
       App.setupStoryStegoDrop();
     }
+  },
+
+  selectStoryAlgo: (el, algo) => {
+    App.S.story.algo = algo;
+    el.parentElement.querySelectorAll('.algo-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+  },
+
+  runStoryHash: async () => {
+    const input = document.getElementById('s-hash-in').value.trim();
+    if(!input) return alert('Enter a password first.');
+    App.S.story.pwd = input;
+    const r = await CE.hash(App.S.story.algo, input);
+    App.S.story.hashHex = r.hex;
+    App.S.story.hashBits = r.bits;
+    
+    const res = document.getElementById('s-hash-res');
+    res.innerHTML = `
+      <div class="readout readout-green" style="font-size:12px; margin-bottom:12px;">
+        <div style="font-size:9px; color:var(--muted); margin-bottom:4px;">GENERATED FINGERPRINT (${App.S.story.algo})</div>
+        ${r.hex}
+      </div>
+      <div class="bit-grid" style="max-height:100px;"></div>
+    `;
+    const grid = res.querySelector('.bit-grid');
+    for(let i=0; i<Math.min(r.bits.length, 256); i++) {
+      const b = document.createElement('div'); b.className = 'bit' + (r.bits[i]==='1'?' on':''); grid.appendChild(b);
+    }
+    App.showNextBtn(1);
+  },
+
+  runStoryAvalanche: async (init) => {
+    const input = document.getElementById('s-av-in').value || '';
+    const r = await CE.hash(App.S.story.algo, input);
+    const grid = document.getElementById('s-av-grid');
+    const res = document.getElementById('s-av-res');
+    if(!grid) return;
+    grid.innerHTML = '';
+    
+    let diffs = 0;
+    const maxBits = Math.min(r.bits.length, 256);
+    for(let i=0; i<maxBits; i++) {
+      const b = document.createElement('div');
+      const bitOn = r.bits[i] === '1';
+      const isDiff = !init && r.bits[i] !== App.S.story.hashBits[i];
+      if(isDiff) diffs++;
+      b.className = 'bit' + (bitOn ? ' on' : '') + (isDiff ? ' diff' : '');
+      grid.appendChild(b);
+    }
+    
+    if(!init) {
+      const percent = ((diffs / maxBits) * 100).toFixed(1);
+      res.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span>BIT FLIPS DETECTED: <strong style="color:var(--c2);">${diffs}</strong> / ${maxBits}</span>
+          <span class="status-tag ${diffs > 100 ? 'st-ok' : 'st-warn'}">${percent}% VARIANCE</span>
+        </div>
+      `;
+      if(input !== App.S.story.pwd && input.length > 0) App.showNextBtn(2);
+    } else {
+      res.innerHTML = '// Modify the password above to observe the avalanche effect.';
+    }
+  },
+
+  runStoryBruteForce: async () => {
+    const step = App.S.story.step;
+    const btn = document.getElementById(step === 2 ? 'btn-brute' : 'btn-breach-start');
+    const term = document.getElementById(step === 2 ? 'brute-term' : 's-breach-term');
+    btn.disabled = true;
+    term.style.display = 'block';
+    term.innerHTML = '';
+    
+    const log = (txt, cls='') => {
+      const l = document.createElement('div'); l.className = 'tl ' + cls; l.innerHTML = txt;
+      term.appendChild(l); term.scrollTop = term.scrollHeight;
+    };
+
+    if(step === 2) {
+      log('>> INITIALIZING DICTIONARY ATTACK...', 'to');
+      await new Promise(r => setTimeout(r, 600));
+      const guesses = ['password', '123456', 'admin', 'qwerty', 'meridian', App.S.story.pwd];
+      for(const g of guesses) {
+        log(`TRYING: <span class="tc">${g}</span> ...`, 'to');
+        const r = await CE.hash(App.S.story.algo, g);
+        log(`HASH: ${r.hex.substring(0,32)}...`, 'to');
+        await new Promise(r => setTimeout(r, 400));
+        if(g === App.S.story.pwd) {
+          log('!! MATCH FOUND !! ACCESS GRANTED.', 'tc');
+          document.getElementById('s-log-res').style.display = 'block';
+          document.getElementById('s-log-db').innerHTML = `<span class="to">DB_HASH:</span> ${App.S.story.hashHex}`;
+          document.getElementById('s-log-typed').innerHTML = `<span class="to">IN_HASH:</span> ${r.hex}`;
+          document.getElementById('s-log-msg').innerHTML = '<span class="st-ok">SIGNATURE VERIFIED // SESSION OPEN</span>';
+          App.showNextBtn(3);
+          break;
+        } else {
+          log('ERROR: HASH MISMATCH. REJECTED.', 'te');
+        }
+      }
+    } else {
+      log('>> SCANNING NETWORK TOPOLOGY...', 'to');
+      await new Promise(r => setTimeout(r, 800));
+      log('>> VULNERABILITY FOUND: CVE-2026-X99 (Buffer Overflow)', 'te');
+      await new Promise(r => setTimeout(r, 600));
+      log('>> INJECTING PAYLOAD...', 'tc');
+      await new Promise(r => setTimeout(r, 1000));
+      log('!! EXPLOIT SUCCESSFUL. DROPPING SHELL.', 'tc');
+      App.showNextBtn(4);
+    }
+  },
+
+  runStoryBreachCutscene: async () => {
+    App.show('screen-cutscene');
+    const term = document.getElementById('cutscene-term');
+    term.innerHTML = '';
+    
+    const addLine = (txt, cls='') => {
+      const d = document.createElement('div'); d.className = cls;
+      if(cls === 'ct-nix-badge') {
+         const b = document.createElement('div'); b.className = 'ct-nix-badge';
+         b.innerHTML = '<div class="ct-nix-badge-dot"></div>NIX';
+         term.appendChild(b);
+      }
+      const s = document.createElement('span'); s.style.cssText = 'color:var(--c2); font-family:var(--font-mono); font-size:15px; margin-left:12px;';
+      s.textContent = txt; term.appendChild(d); d.appendChild(s);
+      term.scrollTop = term.scrollHeight;
+    };
+
+    const addSysLine = async (txt) => {
+       const row = document.createElement('div'); row.style.marginBottom = '4px';
+       row.innerHTML = `<span class="ct-sys">[ALRT]</span> <span style="color:var(--c2); font-family:var(--font-mono);">${txt}</span>`;
+       term.appendChild(row); term.scrollTop = term.scrollHeight;
+    };
+
+    await addSysLine('!!! CRITICAL SYSTEM ALERT !!!');
+    await new Promise(r => setTimeout(r, 500));
+    await addSysLine('UNAUTHORIZED ACCESS DETECTED AT NODE 0xF2');
+    await new Promise(r => setTimeout(r, 400));
+    await addSysLine('ENCRYPTION ARCHITECTURE COMPROMISED...');
+    await new Promise(r => setTimeout(r, 1000));
+    
+    const wrap = document.createElement('div'); wrap.className = 'cta-wrap';
+    const btn = document.createElement('button'); btn.className = 'cta-btn';
+    btn.innerHTML = '<span>⚠</span><span>&nbsp;&nbsp;EMERGENCY LOCKDOWN</span>';
+    btn.onclick = () => {
+      App.jumpToStory(4);
+    };
+    wrap.appendChild(btn);
+    term.appendChild(wrap);
+  },
+
+  setStoryEncMode: mode => {
+    document.getElementById('s-mode-enc').className = 'btn' + (mode === 'enc' ? ' btn-primary' : '');
+    document.getElementById('id-mode-dec').className = 'btn' + (mode === 'dec' ? ' btn-primary' : '');
+    document.getElementById('s-enc-panel').style.display = mode === 'enc' ? 'block' : 'none';
+    document.getElementById('s-dec-panel').style.display = mode === 'dec' ? 'block' : 'none';
+  },
+
+  runStoryEncrypt: async () => {
+    const pass = document.getElementById('s-enc-in').value;
+    if(!pass) return alert('Create a passphrase to lock the data.');
+    const btn = document.getElementById('s-enc-btn');
+    btn.disabled = true;
+    btn.innerText = 'STRETCHING KEY (PBKDF2)...';
+    
+    setTimeout(async () => {
+      const r = await CE.encrypt('LOCKDOWN_PROTOCOL_ALPHA', pass);
+      const res = document.getElementById('s-enc-res');
+      res.innerHTML = `
+        <div class="status-tag st-ok" style="margin-bottom:12px;">ENCRYPTION COMPLETE</div>
+        <div class="readout readout-cyan" style="font-size:11px; padding-right:80px;">${r.payload}</div>
+        <div style="font-size:10px; color:var(--muted); margin-top:8px;">// This payload contains your Salt, IV, and Ciphertext. It is now safely unreadable without your key.</div>
+      `;
+      btn.disabled = false;
+      btn.innerText = 'STRETCH KEY & ENCRYPT';
+      App.showNextBtn(5);
+    }, 100);
+  },
+
+  retryStoryEncrypt: () => {
+    document.getElementById('s-enc-in').value = '';
+    document.getElementById('s-enc-res').innerHTML = '';
+  },
+
+  runStandaloneDecrypt: async () => {
+    const payload = document.getElementById('s-standalone-payload').value.trim();
+    const pass = document.getElementById('s-standalone-key').value;
+    const res = document.getElementById('s-standalone-res');
+    if(!payload || !pass) return alert('Enter both the payload and the passphrase.');
+    
+    try {
+      const r = await CE.decrypt(payload, pass);
+      res.innerHTML = `
+        <div class="status-tag st-ok">SUCCESS</div>
+        <div class="readout readout-green" style="margin-top:12px;">${r.plain}</div>
+      `;
+    } catch(e) {
+      res.innerHTML = `
+        <div class="status-tag st-err">FAILED</div>
+        <div class="readout readout-red" style="margin-top:12px;">${e.message}</div>
+      `;
+    }
+  },
+
+  clearStandaloneDecrypt: () => {
+    document.getElementById('s-standalone-payload').value = '';
+    document.getElementById('s-standalone-key').value = '';
+    document.getElementById('s-standalone-res').innerHTML = '';
   },
 
   setupStoryStegoDrop: () => {
