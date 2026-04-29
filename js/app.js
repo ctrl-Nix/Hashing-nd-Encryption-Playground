@@ -153,20 +153,24 @@ const App = {
   },
 
   runCompare: async () => {
-    const input = document.getElementById('cmp-input').value;
+    const input = document.getElementById('cmp-input').value.trim();
     const res = document.getElementById('cmp-results');
     if (!input) { res.style.display = 'none'; return; }
     res.style.display = 'block';
 
     const fillAlgo = async (algo, outId, bitsId, lenId) => {
-      const r = await CE.hash(algo, input);
-      document.getElementById(outId).innerText = r.hex;
+      try {
+        const r = await CE.hash(algo, input);
+        if (document.getElementById('cmp-input').value !== input) return; 
+        document.getElementById(outId).innerText = r.hex;
       document.getElementById(lenId).innerText = r.hex.length + ' chars';
       const grid = document.getElementById(bitsId); grid.innerHTML = '';
       for (let i = 0; i < Math.min(r.bits.length, 256); i++) {
         const b = document.createElement('div');
         b.className = 'bit' + (r.bits[i] === '1' ? ' on' : '');
-        grid.appendChild(b);
+        }
+      } catch (e) {
+        document.getElementById(outId).innerText = "ERROR: " + e.message;
       }
     };
 
