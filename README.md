@@ -1,32 +1,40 @@
-# Let's Play Project
-A hacker-themed, interactive cryptography playground that teaches the real difference between one-way hashing and two-way encryption — through both a guided story mission and an unrestricted technical sandbox.
+# NIX // THE MATRIX PROTOCOL
+**Interactive Cryptography & Cyber-Defense Simulation**
 
+A hacker-themed, interactive playground designed to teach the fundamentals of modern cryptography. This platform bridges the gap between theoretical hashing and reversible encryption through an immersive terminal-based experience.
 
-What Is This?
-Most people treat "hashing" and "encryption" as synonyms. They're not. This tool makes that gap impossible to ignore by letting you experiment with both side by side, in an environment that actually makes cryptography feel cool.
-There are two ways in:
+---
 
-01 // MISSION — Story Mode
-A guided narrative simulation. You play as a hacker learning cryptographic fundamentals under pressure. Visualize avalanche effects, follow a storyline, and defend against simulated breach attempts.
+## 🕹️ Operational Modes
 
-02 // SANDBOX — Pro Sandbox
-Unrestricted access. No logging. Raw hashing engines, bit visualizers, and a fully functional AES-256-GCM encryption utility. For when you just want to get your hands dirty.
+### 01 // MISSION (Story Mode)
+A guided narrative simulation. Step into the shoes of a network operative to master cryptographic concepts under fire.
+- **Visualize Avalanche Effects**: Watch how single-bit changes ripple through complex hash structures.
+- **Simulate Brute Force**: Experience how dictionary attacks exploit weak hashing protocols.
+- **Live Breach Response**: Defend virtual infrastructure using encryption protocols during simulated security incidents.
 
+### 02 // SANDBOX (Pro Lab)
+An unrestricted technical environment for raw experimentation.
+- **Hash Engine**: Compare MD5, SHA-1, SHA-256, and SHA-512 with real-time bit-grid visualization.
+- **AES-GCM Utility**: Symmetric encryption using PBKDF2 key derivation and AES-256-GCM payloads.
+- **RSA Asymmetric**: Generate 2048-bit key pairs and simulate public-key encryption/decryption.
+- **HMAC Auth**: Generate Hash-based Message Authentication Codes to verify data integrity.
+- **LSB Steganography**: Hide and extract encrypted payloads within image pixels using Least Significant Bit encoding.
 
-Features:
+---
 
-->Hash Engine:
-Supports MD5 (128-bit, broken), SHA-1 (160-bit, deprecated), SHA-256 (256-bit, secure), and SHA-512 (512-bit, maximum strength)
-Live hex output + binary structure visualization
-One-click copy
+## 🛠️ Technical Architecture
+- **Engine**: Built on the native **Web Crypto API** for high-performance, industry-standard cryptographic operations.
+- **Frontend**: Vanilla JavaScript (ES6+) with a modular architecture (`app.js`, `crypto.js`, `data.js`).
+- **Styling**: Cyber-themed "NIX" UI system using custom CSS variables, sticky navigation, and high-contrast typography.
+- **Assets**: Dynamic bit-grids, matrix-rain canvases, and smooth transitions for a gamified UX.
 
-->Compare All Algorithms:
-Type once, see MD5, SHA-256, and SHA-512 output simultaneously
-Output length comparison (32 / 64 / 128 hex chars) makes the bit-size difference tangible
-Inline explanation of why longer hashes are harder to brute-force
+---
 
-->AES-256-GCM Encryption Utility:
-Symmetric encryption using PBKDF2 key derivation + AES-256-GCM
-Encrypt and decrypt modes
-Debug view of the PBKDF2-derived key
-Demonstrates that unlike hashing, encryption is fully reversible — with the right passphrase
+## 🚀 Quick Start
+1.  Open `index.html` in any modern browser.
+2.  Choose **Mission** for a guided tutorial or **Sandbox** for direct tool access.
+3.  **Note**: For optimal performance and access to all Web Crypto features, it is recommended to run via a local server (e.g., `npx serve`).
+
+---
+**NIX // MATRIX PROTOCOL // SECURE CHANNEL ACTIVE**
