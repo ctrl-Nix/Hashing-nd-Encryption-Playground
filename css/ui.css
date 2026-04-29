@@ -104,7 +104,7 @@
   font-family: var(--font-display); font-size: 26px; font-weight: 700;
   color: var(--bright); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 2px;
 }
-.mc-desc { font-size: 14px; color: var(--muted); line-height: 1.7; font-weight: 500; }
+.mc-desc { font-size: 14px; color: var(--muted); line-height: 1.7; font-weight: 500; opacity: 0.9; }
 .mc-arrow {
   position: absolute; bottom: 24px; right: 24px;
   font-family: var(--font-mono); font-size: 12px; color: var(--muted);
@@ -305,7 +305,7 @@
   transition: all 0.25s; caret-color: var(--c);
 }
 .form-input:focus { border-color: rgba(0,245,255,0.5); box-shadow: 0 0 0 1px rgba(0,245,255,0.15), 0 0 24px rgba(0,245,255,0.06); }
-.form-input::placeholder { color: rgba(61,79,97,0.6); }
+.form-input::placeholder { color: rgba(255,255,255,0.25); }
 textarea.form-input { min-height: 90px; resize: vertical; line-height: 1.7; }
 
 /* ─── ALGO CARDS ─── */
@@ -443,7 +443,7 @@ textarea.form-input { min-height: 90px; resize: vertical; line-height: 1.7; }
 .st-ok { color: var(--c3); border: 1px solid rgba(0,255,136,0.25); background: rgba(0,255,136,0.04); }
 .st-err { color: var(--c2); border: 1px solid rgba(255,0,60,0.25); background: rgba(255,0,60,0.04); }
 .st-warn { color: var(--c4); border: 1px solid rgba(255,170,0,0.25); background: rgba(255,170,0,0.04); }
-.st-info { color: var(--c); border: 1px solid var(--border); }
+.st-info { color: var(--c); border: 1px solid rgba(0,245,255,0.4); background: rgba(0,245,255,0.02); }
 
 .paste-btn {
   background: transparent; border: 1px solid var(--border);
