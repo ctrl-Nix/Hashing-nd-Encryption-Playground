@@ -4,7 +4,7 @@
 const App = {
   S: {
     alias: '',
-    lab: { algo: 'SHA-256', encMode: 'enc' },
+    lab: { algo: 'SHA-256', encMode: 'enc', fileBuffer: null, fileName: '' },
     story: { step: 0, maxStep: 0, algo: 'SHA-256', pwd: '', hashHex: '', hashBits: '', cipherData: null, tampered: false, score: 0 }
   },
 
@@ -15,11 +15,12 @@ const App = {
 
   resetState: () => {
     App.S.alias = '';
-    App.S.lab = { algo: 'SHA-256', encMode: 'enc' };
+    App.S.lab = { algo: 'SHA-256', encMode: 'enc', fileBuffer: null, fileName: '' };
     App.S.story = { step:0, maxStep:0, algo:'SHA-256', pwd:'', hashHex:'', hashBits:'', cipherData:null, tampered:false, score:0 };
     document.querySelectorAll('input:not([type=button]), textarea').forEach(el => el.value = '');
-    ['lab-hash-result','lab-enc-result'].forEach(id => { const el = document.getElementById(id); if(el) el.style.display='none'; });
+    ['lab-hash-result','lab-enc-result','rsa-keys-area','rsa-enc-res','rsa-dec-res','salt-demo-area'].forEach(id => { const el = document.getElementById(id); if(el) el.style.display='none'; });
     const nz = document.getElementById('story-next-zone'); if(nz) nz.innerHTML = '';
+    const nameEl = document.getElementById('drop-filename'); if(nameEl) nameEl.innerText = '';
   },
 
   goHome: () => { App.resetState(); App.show('screen-title'); },
@@ -46,13 +47,66 @@ const App = {
     catch { alert('Clipboard access denied — paste manually (Ctrl+V / Cmd+V).'); }
   },
 
+  flash: id => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.classList.remove('glitch-flash');
+    void el.offsetWidth; // Trigger reflow
+    el.classList.add('glitch-flash');
+  },
+
   /* ─── LAB ─── */
-  startLab: () => { App.resetState(); App.show('screen-lab'); },
+  startLab: () => { 
+    App.resetState(); 
+    App.show('screen-lab'); 
+    App.setupDropZone();
+  },
+
   switchLabTab: tab => {
     document.querySelectorAll('.lab-tab').forEach(b => b.classList.remove('active'));
     document.getElementById('btn-tab-'+tab).classList.add('active');
     document.querySelectorAll('.lab-panel').forEach(p => p.classList.remove('active'));
     document.getElementById('lab-'+tab).classList.add('active');
+  },
+
+  setupDropZone: () => {
+    const zone = document.getElementById('drop-zone');
+    if(!zone || zone.dataset.init) return;
+    
+    const input = document.getElementById('file-input');
+    zone.onclick = () => input.click();
+    
+    zone.ondragover = (e) => { e.preventDefault(); zone.classList.add('hover'); };
+    zone.ondragleave = () => zone.classList.remove('hover');
+    zone.ondrop = (e) => {
+      e.preventDefault();
+      zone.classList.remove('hover');
+      if(e.dataTransfer.files.length) App.handleFile(e.dataTransfer.files[0]);
+    };
+    input.onchange = (e) => {
+      if(e.target.files.length) App.handleFile(e.target.files[0]);
+    };
+    zone.dataset.init = "true";
+  },
+
+  handleFile: (file) => {
+    const reader = new FileReader();
+    const nameEl = document.getElementById('drop-filename');
+    
+    nameEl.innerText = "READING FILE...";
+    reader.onload = (e) => {
+      App.S.lab.fileBuffer = e.target.result;
+      App.S.lab.fileName = file.name;
+      nameEl.innerText = `${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+      const textIn = document.getElementById('lab-hash-in');
+      if(textIn) textIn.value = ""; 
+    };
+    reader.readAsArrayBuffer(file);
+  },
+
+  genRandomSalt: () => {
+    const salt = Array.from(crypto.getRandomValues(new Uint8Array(8))).map(b => b.toString(16).padStart(2,'0')).join('');
+    document.getElementById('lab-hash-salt').value = salt;
   },
 
   runCompare: async () => {
@@ -79,26 +133,55 @@ const App = {
       fillAlgo('SHA-512', 'cmp-sha512-out', 'cmp-sha512-bits', 'cmp-sha512-len'),
     ]);
   },
+
   setLabAlgo: algo => {
     App.S.lab.algo = algo;
     document.querySelectorAll('#lab-algo-grid .algo-card').forEach(c => c.classList.remove('selected'));
     const card = document.getElementById('lab-'+algo); if(card) card.classList.add('selected');
   },
+
   runLabHash: async () => {
-    const input = document.getElementById('lab-hash-in').value;
-    if(!input) return alert('Enter plaintext data.');
-    const r = await CE.hash(App.S.lab.algo, input);
+    App.flash('lab-hash');
+    const textInput = document.getElementById('lab-hash-in').value;
+    const salt = document.getElementById('lab-hash-salt').value;
+    const data = App.S.lab.fileBuffer || textInput;
+    
+    if(!data) return alert('Enter plaintext or drop a file.');
+    
+    const r = await CE.hash(App.S.lab.algo, salt ? (typeof data === 'string' ? data + salt : data) : data);
     const res = document.getElementById('lab-hash-result');
     res.style.display = 'block';
+    
+    // Salt Comparison Demo
+    const saltDemo = document.getElementById('salt-demo-area');
+    if(salt && typeof data === 'string') {
+      saltDemo.style.display = 'block';
+      const rUnsalted = await CE.hash(App.S.lab.algo, data);
+      document.getElementById('res-unsalted').innerText = rUnsalted.hex;
+      document.getElementById('res-salted').innerText = r.hex;
+      document.getElementById('salt-viz').innerHTML = `
+        <span style="color:var(--bright); opacity:0.8;">"${data}"</span>
+        <span style="color:var(--muted);">+</span>
+        <span style="color:var(--c3); font-weight:700;">"${salt}"</span>
+      `;
+    } else {
+      saltDemo.style.display = 'none';
+    }
+
+    const label = App.S.lab.fileBuffer ? `FILE HASH: ${App.S.lab.fileName}` : (salt ? 'SALTED STRING HASH' : 'STRING HASH');
     document.getElementById('lab-hash-out').innerText = r.hex;
     document.getElementById('lab-hash-time').innerText = `${r.ms}ms`;
     document.getElementById('lab-bit-count').innerText = r.bits.length;
-    const grid = document.getElementById('lab-bit-grid'); grid.innerHTML = '';
+    
+    const grid = document.getElementById('lab-bit-grid'); 
+    grid.innerHTML = `<div style="font-family:var(--font-mono); font-size:10px; color:var(--c); margin-bottom:10px;">[ TYPE: ${label} ]</div>`;
+    
     for(let i=0; i<Math.min(r.bits.length,512); i++){
       const b = document.createElement('div'); b.className = 'bit'+(r.bits[i]==='1'?' on':''); grid.appendChild(b);
     }
     res.scrollIntoView({ behavior:'smooth', block:'nearest' });
   },
+
   setLabEncMode: mode => {
     App.S.lab.encMode = mode;
     document.getElementById('btn-mode-enc').className = 'btn'+(mode==='enc'?' btn-primary':'');
@@ -111,7 +194,9 @@ const App = {
     document.getElementById('lab-enc-action').innerText = mode==='enc' ? 'EXECUTE ENCRYPTION' : 'EXECUTE DECRYPTION';
     document.getElementById('lab-btn-paste').style.display = mode==='enc' ? 'none' : 'block';
   },
+
   runLabEnc: async () => {
+    App.flash('lab-enc');
     const data = document.getElementById('lab-enc-data').value;
     const pass = document.getElementById('lab-enc-key').value;
     if(!data||!pass) return alert('Provide data and passphrase.');
@@ -154,6 +239,43 @@ const App = {
       action.innerText = App.S.lab.encMode==='enc' ? 'EXECUTE ENCRYPTION' : 'EXECUTE DECRYPTION';
       resBox.scrollIntoView({ behavior:'smooth', block:'nearest' });
     }, 60);
+  },
+
+  /* ─── RSA LAB ─── */
+  runRSAGen: async () => {
+    const btn = document.getElementById('btn-gen-rsa');
+    btn.disabled = true; btn.innerText = 'GENERATING 2048-BIT KEY PAIR...';
+    try {
+      const keys = await CE.generateRSA();
+      document.getElementById('rsa-pub-out').innerText = keys.pub;
+      document.getElementById('rsa-priv-out').innerText = keys.priv;
+      document.getElementById('rsa-keys-area').style.display = 'block';
+      document.getElementById('rsa-enc-key').value = keys.pub;
+      document.getElementById('rsa-dec-key').value = keys.priv;
+    } catch (e) { alert('RSA Generation Failed: ' + e.message); }
+    btn.disabled = false; btn.innerText = 'GENERATE NEW RSA KEY PAIR';
+  },
+
+  runRSAEncrypt: async () => {
+    const plain = document.getElementById('rsa-enc-in').value;
+    const pubKey = document.getElementById('rsa-enc-key').value.trim();
+    if(!plain || !pubKey) return alert('Enter message and public key.');
+    try {
+      const r = await CE.rsaEncrypt(plain, pubKey);
+      document.getElementById('rsa-cipher-out').innerText = r.cipher;
+      document.getElementById('rsa-enc-res').style.display = 'block';
+    } catch (e) { alert('RSA Encryption Failed: Check Public Key format.'); }
+  },
+
+  runRSADecrypt: async () => {
+    const cipher = document.getElementById('rsa-dec-in').value.trim();
+    const privKey = document.getElementById('rsa-dec-key').value.trim();
+    if(!cipher || !privKey) return alert('Enter ciphertext and private key.');
+    try {
+      const r = await CE.rsaDecrypt(cipher, privKey);
+      document.getElementById('rsa-plain-out').innerText = r.plain;
+      document.getElementById('rsa-dec-res').style.display = 'block';
+    } catch (e) { alert('RSA Decryption Failed: Bad key or corrupted ciphertext.'); }
   },
 
   /* ─── STORY ─── */
@@ -418,7 +540,7 @@ const App = {
     }
     else if(step===3){
       aBox.innerHTML=`
-        <div class="btn-group"><button class="btn btn-danger" onclick="App.runStoryBreachLogic()" id="btn-breach-start">[ INITIATE PERIMETER SCAN ]</button></div>
+        <div class="btn-group"><button class="btn btn-danger" onclick="App.runStoryBruteForce()" id="btn-breach-start">[ INITIATE PERIMETER SCAN ]</button></div>
         <div class="term" id="s-breach-term" style="display:none;margin-top:16px;"></div>
       `;
     }
@@ -426,7 +548,7 @@ const App = {
       aBox.innerHTML=`
         <div style="display:flex;gap:8px;margin-bottom:24px;">
           <button class="btn btn-primary" id="s-mode-enc" onclick="App.setStoryEncMode('enc')" style="flex:1;">🔒 ENCRYPT</button>
-          <button class="btn" id="s-mode-dec" onclick="App.setStoryEncMode('dec')" style="flex:1;">🔓 DECRYPT</button>
+          <button class="btn" id="id-mode-dec" onclick="App.setStoryEncMode('dec')" style="flex:1;">🔓 DECRYPT</button>
         </div>
         <div id="s-enc-panel">
           <span class="form-label" style="color:var(--c3);">1. Client Encryption Phase</span>
@@ -467,264 +589,6 @@ const App = {
       aBox.innerHTML=html+`<div id="s-quiz-res"></div>`;
       App.S.story.score=0;
     }
-  },
-
-  selectStoryAlgo: (el, algo) => {
-    App.S.story.algo=algo;
-    document.querySelectorAll('#story-algo-grid .algo-card').forEach(c=>c.classList.remove('selected'));
-    el.classList.add('selected');
-  },
-
-  runStoryHash: async () => {
-    const val=document.getElementById('s-hash-in').value.trim();
-    if(!val) return alert('Enter a password.');
-    const resEl=document.getElementById('s-hash-res');
-    const r=await CE.hash(App.S.story.algo, val);
-    if(App.S.story.algo==='MD5'||App.S.story.algo==='SHA-1'){
-      resEl.innerHTML=`<div class="readout readout-red">
-        <strong style="display:block;margin-bottom:8px;">[!] PROTOCOL BLOCKED: ${App.S.story.algo}</strong>
-        This algorithm is cryptographically compromised — vulnerable to <strong>Collision Attacks</strong>. Select SHA-256 or SHA-512 to continue.
-        <div class="bit-grid" style="margin-top:12px;">${r.bits.slice(0,160).split('').map(b=>`<div class="bit${b==='1'?' diff':''}"></div>`).join('')}</div>
-      </div>`;
-    } else {
-      App.S.story.pwd=val; App.S.story.hashHex=r.hex; App.S.story.hashBits=r.bits;
-      resEl.innerHTML=`<div class="readout readout-green">
-        <strong style="display:block;margin-bottom:8px;">[✓] FINGERPRINT SECURED</strong>
-        <span style="font-size:11px;word-break:break-all;display:block;margin-bottom:12px;">${r.hex}</span>
-        <div class="bit-grid">${r.bits.slice(0,256).split('').map(b=>`<div class="bit${b==='1'?' on':''}"></div>`).join('')}</div>
-      </div>`;
-      App.showNextBtn(1);
-    }
-  },
-
-  runStoryAvalanche: async (initOnly=false) => {
-    const base=App.S.story.hashBits; if(!base) return;
-    const b=document.getElementById('s-av-in')?.value||App.S.story.pwd;
-    let modBits=base;
-    if(!initOnly&&b!==App.S.story.pwd){
-      const h=await CE.hash(App.S.story.algo,b); modBits=h.bits;
-    }
-    const limit=base.length; let diffs=0;
-    const grid=document.getElementById('s-av-grid'); if(!grid) return;
-    grid.innerHTML='';
-    for(let i=0;i<limit;i++){
-      const bit=document.createElement('div'); bit.className='bit';
-      if(modBits[i]==='1') bit.classList.add('on');
-      if(base[i]!==modBits[i]){ bit.classList.add('diff'); diffs++; }
-      grid.appendChild(bit);
-    }
-    if(!initOnly){
-      const pct=((diffs/limit)*100).toFixed(1);
-      const resEl=document.getElementById('s-av-res');
-      if(resEl) resEl.innerHTML=`
-        <div class="dr-row"><div class="dr-lbl">Bits Flipped:</div><div><strong style="color:${diffs>0?'var(--c2)':'inherit'};font-size:16px;">${diffs}</strong> / ${limit} (${pct}%) ${parseFloat(pct)>40?'🌊 Avalanche Confirmed!':''}</div></div>
-      `;
-      if(parseFloat(pct)>30) App.showNextBtn(2);
-    }
-  },
-
-  runStoryBruteForce: async () => {
-    document.getElementById('btn-brute').disabled=true;
-    const term=document.getElementById('brute-term'); term.style.display='block'; term.innerHTML='';
-    const guesses=['password','123456','admin','root','qwerty','letmein','Meridian99','MeridianAdmin1'];
-    for(const g of guesses){
-      const s=document.createElement('span'); s.className='tl';
-      const h=await CE.hash(App.S.story.algo,g);
-      s.innerHTML=`<span class="tc">trying: ${g}</span> → <span class="to">${h.hex.substring(0,20)}...</span>`;
-      term.appendChild(s); term.scrollTop=term.scrollHeight;
-      await new Promise(r=>setTimeout(r,140));
-    }
-    const final='MeridianAdmin1';
-    const r=await CE.hash(App.S.story.algo,final);
-    document.getElementById('s-log-res').style.display='block';
-    const dbEl=document.getElementById('s-log-db'); dbEl.innerHTML='';
-    const typEl=document.getElementById('s-log-typed'); typEl.innerHTML='';
-    for(let i=0;i<App.S.story.hashHex.length;i++){
-      const m=App.S.story.hashHex[i]===r.hex[i];
-      const s1=document.createElement('span'); s1.textContent=App.S.story.hashHex[i]; s1.className=m?'hc-match':'hc-miss';
-      const s2=document.createElement('span'); s2.textContent=r.hex[i]||'-'; s2.className=m?'hc-match':'hc-miss';
-      dbEl.appendChild(s1); typEl.appendChild(s2);
-    }
-    document.getElementById('s-log-msg').innerHTML=`<span class="status-tag st-ok">[✓] HASH MISMATCH — ATTACK DEFLECTED — SYSTEM SECURE</span>`;
-    App.showNextBtn(3);
-  },
-
-  runStoryBreachCutscene: () => {
-    App.playCutscene([
-      {m:'[CRITICAL] UNAUTHORIZED ACCESS DETECTED ON PORT 22.',c:'var(--c2)'},
-      {m:'[SYS] OUTER FIREWALL BREACHED.',c:'var(--c2)'},
-      {m:'[SYS] DUMPING SHADOW DATABASE FILES ...',c:'var(--muted)'},
-      {m:'[SYS] DATABASE EXFILTRATION IN PROGRESS.',c:'var(--muted)',wait:900},
-      {m:`Nix: They got the hashes, ${App.S.alias}. We are out of time.`,c:'var(--c)'},
-    ], ()=>App.jumpToStory(3));
-  },
-
-  playCutscene: async (lines, onDone) => {
-    App.show('screen-cutscene');
-    const term=document.getElementById('cutscene-term'); term.innerHTML='';
-    for(const line of lines){
-      const row=document.createElement('div'); row.className='cutscene-line';
-      const el=document.createElement('span'); el.style.color=line.c; el.style.fontFamily='var(--font-mono)'; el.style.fontSize='14px'; el.style.lineHeight='2.4'; el.style.display='block';
-      el.textContent=line.m; row.appendChild(el); term.appendChild(row);
-      await new Promise(r=>setTimeout(r,line.wait||700));
-    }
-    const btn=document.createElement('button'); btn.className='cta-btn'; btn.style.marginTop='32px';
-    btn.innerHTML='<span>&gt;</span><span>&nbsp;&nbsp;CONTINUE</span>';
-    btn.onclick=()=>{ document.getElementById('screen-cutscene').classList.remove('active'); if(onDone) onDone(); };
-    term.appendChild(btn);
-  },
-
-  runStoryBreachLogic: () => {
-    const startBtn=document.getElementById('btn-breach-start'); if(startBtn) startBtn.style.display='none';
-    const term=document.getElementById('s-breach-term'); term.style.display='block'; term.innerHTML='';
-    const lines=[
-      {c:'tp',m:'root@h4x0r:~# SELECT username, hash FROM users;'},
-      {c:'to',m:`nix_admin | ${App.S.story.hashHex.substring(0,32)}...`},
-      {c:'tp',m:'root@h4x0r:~# reverse_hash target.hash'},
-      {c:'te',m:'ERROR: Mathematical one-way function. Reversal is impossible.'},
-      {c:'tp',m:'root@h4x0r:~# crack_password --brute-force --wordlist rockyou.txt'},
-      {c:'te',m:'ETA: 5.2 × 10⁴² years. Computation terminated.'},
-    ];
-    lines.forEach((l,i)=>setTimeout(()=>{
-      const s=document.createElement('span'); s.className='tl '+l.c; s.innerText=l.m; term.appendChild(s); term.scrollTop=term.scrollHeight;
-    },400+i*800));
-    setTimeout(()=>App.showNextBtn(4), lines.length*800+600);
-  },
-
-  runStoryEncrypt: async () => {
-    const pass=document.getElementById('s-enc-in').value;
-    if(!pass) return alert('Enter passphrase.');
-    const btn=document.getElementById('s-enc-btn');
-    btn.innerText='PROCESSING PBKDF2 (100K ITERATIONS)...'; btn.disabled=true;
-    setTimeout(async()=>{
-      const r=await CE.encrypt('LOCKDOWN_PROTOCOL_ALPHA',pass);
-      App.S.story.cipherData={payload:r.payload,cipherBuf:r.cipherBuf};
-      App.S.story.tampered=false;
-      document.getElementById('s-enc-res').innerHTML=`
-        <div class="readout readout-cyan" style="font-size:11px;word-break:break-all;">${r.payload}</div>
-        <div style="margin-top:10px;"><span class="status-tag st-ok">[✓] PAYLOAD ENCRYPTED — TRANSMITTING...</span></div>
-      `;
-      App.showNextBtn(5);
-      ['s-enc-step-2','s-enc-step-3'].forEach(id=>{const el=document.getElementById(id);if(el)el.remove();});
-      const sdp=document.getElementById('s-standalone-payload'); if(sdp) sdp.value=r.payload;
-      btn.innerText='STRETCH KEY & ENCRYPT'; btn.disabled=false;
-
-      document.getElementById('s-enc-res').insertAdjacentHTML('afterend',`
-        <div id="s-enc-step-2" style="margin-top:28px;padding-top:20px;border-top:1px solid var(--border);">
-          <span class="form-label" style="color:var(--c2);">2. Threat Actor Interception</span>
-          <div style="font-size:13px;color:var(--muted);margin-bottom:12px;font-family:var(--font-ui);">The attacker intercepts the payload. They can't read it — but what if they alter the ciphertext bytes?</div>
-          <div class="readout readout-dim" id="s-tamp-payload" style="font-size:11px;word-break:break-all;margin-bottom:12px;">${r.payload}</div>
-          <div class="btn-group">
-            <button class="btn btn-danger" id="btn-tamper" onclick="App.runStoryTamper()">[INJECT MALICIOUS BYTE]</button>
-            <button class="btn" id="btn-fwd" onclick="App.runStoryForward()">ALLOW PACKET THROUGH</button>
-          </div>
-          <div id="tamper-msg" style="display:none;margin-top:12px;padding:10px;border-left:2px solid var(--c2);background:rgba(255,0,60,0.04);">
-            <span style="font-family:var(--font-mono);font-size:11px;color:var(--c2);">[!] HACKER ALTERED CIPHERTEXT PAYLOAD IN TRANSIT</span>
-          </div>
-        </div>
-        <div id="s-enc-step-3" style="display:none;margin-top:28px;padding-top:20px;border-top:1px solid var(--border);">
-          <span class="form-label" style="color:var(--c);">3. Server Decryption Attempt</span>
-          <input type="password" class="form-input" id="s-tamp-in" placeholder="Server enters shared passphrase...">
-          <div class="btn-group" style="margin-top:12px;">
-            <button class="btn btn-primary" id="s-dec-btn" onclick="App.runStoryDecrypt()">🔓 ATTEMPT DECRYPTION</button>
-          </div>
-          <div id="s-tamp-res" style="margin-top:20px;"></div>
-        </div>
-      `);
-    },800);
-  },
-
-  runStoryTamper: () => {
-    const src=new Uint8Array(App.S.story.cipherData.cipherBuf instanceof ArrayBuffer ? App.S.story.cipherData.cipherBuf : App.S.story.cipherData.cipherBuf);
-    const bytes=new Uint8Array(src.length); bytes.set(src); bytes[bytes.length-1]^=1;
-    App.S.story.cipherData.cipherBuf=bytes.buffer;
-    const parts=App.S.story.cipherData.payload.split(':');
-    App.S.story.cipherData.payload=`${parts[0]}:${parts[1]}:${CE.bufToHex(bytes.buffer)}`;
-    document.getElementById('s-tamp-payload').innerText=App.S.story.cipherData.payload;
-    document.getElementById('tamper-msg').style.display='block';
-    App.S.story.tampered=true;
-    document.getElementById('btn-tamper').disabled=true;
-    document.getElementById('btn-fwd').disabled=true;
-    App.runStoryForward();
-  },
-
-  runStoryForward: () => {
-    const bt=document.getElementById('btn-tamper'),bf=document.getElementById('btn-fwd');
-    if(bt) bt.disabled=true; if(bf) bf.disabled=true;
-    document.getElementById('s-enc-step-3').style.display='block';
-  },
-
-  runStoryDecrypt: async () => {
-    const pass=document.getElementById('s-tamp-in').value;
-    if(!pass) return alert('Enter the passphrase used for encryption.');
-    const resDiv=document.getElementById('s-tamp-res');
-    const btn=document.getElementById('s-dec-btn');
-    btn.innerText='AUTHENTICATING...'; btn.disabled=true;
-    setTimeout(async()=>{
-      try {
-        const r=await CE.decrypt(App.S.story.cipherData.payload,pass);
-        resDiv.innerHTML=`<span class="status-tag st-ok" style="font-size:13px;padding:8px 16px;">✅ DECRYPTION & AUTHENTICATION SUCCESSFUL</span><br><br><span style="color:var(--bright);font-family:var(--font-mono);font-size:14px;">Message: "${r.plain}"</span>`;
-        App.showNextBtn(5);
-      } catch(e){
-        if(App.S.story.tampered){
-          resDiv.innerHTML=`<div class="readout readout-red">
-            <strong style="display:block;margin-bottom:8px;">❌ FATAL: AUTH TAG MISMATCH</strong>
-            <span style="font-size:13px;color:var(--text);line-height:1.7;">AES-GCM detected that the ciphertext was altered in transit. Decryption was blocked to prevent payload injection. This is AES-GCM's cryptographic integrity guarantee — working exactly as designed.</span>
-          </div>`;
-          App.showNextBtn(5);
-        } else {
-          resDiv.innerHTML=`<span class="status-tag st-err" style="font-size:13px;padding:8px 16px;">❌ WRONG PASSPHRASE — TRY AGAIN</span>`;
-          App.showNextBtn(5);
-        }
-      }
-      btn.innerText='🔓 ATTEMPT DECRYPTION'; btn.disabled=false;
-    },100);
-  },
-
-  setStoryEncMode: mode => {
-    document.getElementById('s-mode-enc').className='btn'+(mode==='enc'?' btn-primary':'');
-    document.getElementById('s-mode-dec').className='btn'+(mode==='dec'?' btn-primary':'');
-    document.getElementById('s-enc-panel').style.display=mode==='enc'?'block':'none';
-    document.getElementById('s-dec-panel').style.display=mode==='dec'?'block':'none';
-  },
-
-  retryStoryEncrypt: () => {
-    const encIn=document.getElementById('s-enc-in'); if(encIn) encIn.value='';
-    const res=document.getElementById('s-enc-res'); if(res) res.innerHTML='';
-    ['s-enc-step-2','s-enc-step-3'].forEach(id=>{const el=document.getElementById(id);if(el)el.remove();});
-    const btn=document.getElementById('s-enc-btn'); if(btn){btn.innerText='STRETCH KEY & ENCRYPT';btn.disabled=false;}
-    App.S.story.cipherData=null; App.S.story.tampered=false;
-    const zone=document.getElementById('story-next-zone'); if(zone) zone.innerHTML='';
-    if(encIn) encIn.focus();
-  },
-
-  runStandaloneDecrypt: async () => {
-    const payload=document.getElementById('s-standalone-payload').value.trim();
-    const pass=document.getElementById('s-standalone-key').value;
-    const resDiv=document.getElementById('s-standalone-res');
-    if(!payload||!pass){ resDiv.innerHTML='<span class="status-tag st-warn">[!] Enter both ciphertext and passphrase.</span>'; return; }
-    resDiv.innerHTML='<span class="status-tag st-info">[ PBKDF2 KEY DERIVATION... ]</span>';
-    setTimeout(async()=>{
-      try {
-        const r=await CE.decrypt(payload,pass);
-        resDiv.innerHTML=`<div class="readout readout-green">
-          <strong style="display:block;margin-bottom:8px;">[✓] DECRYPTION SUCCESSFUL</strong>
-          <span style="font-size:15px;color:var(--bright);">${r.plain}</span>
-          <span style="display:block;margin-top:8px;font-size:10px;color:var(--muted);">[${r.ms}ms] — AES-256-GCM auth tag verified</span>
-        </div>`;
-        App.showNextBtn(5);
-      } catch(e){
-        resDiv.innerHTML=`<div class="readout readout-red">
-          <strong>[✗] DECRYPTION FAILED</strong>
-          <span style="font-size:12px;display:block;margin-top:8px;color:var(--text);">${e.message.includes('Invalid')?'Invalid payload format. Use salt:iv:cipher.':'Wrong passphrase or tampered ciphertext. AES-GCM authentication failed.'}</span>
-        </div>`;
-      }
-    },80);
-  },
-
-  clearStandaloneDecrypt: () => {
-    ['s-standalone-payload','s-standalone-key'].forEach(id=>document.getElementById(id).value='');
-    document.getElementById('s-standalone-res').innerHTML='';
   },
 
   ansQuiz: (qi,oi,c) => {

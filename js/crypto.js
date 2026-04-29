@@ -44,11 +44,20 @@ const CE = {
     return[a,b,c,d].map(n=>(n<0?n+0x100000000:n).toString(16).padStart(8,'0')).join('');
   },
 
-  hash: async (algo, str) => {
+  hash: async (algo, data) => {
     const t0 = performance.now();
     let hex;
-    if(algo === 'MD5') hex = CE.md5(str);
-    else { const buf = await crypto.subtle.digest(algo, new TextEncoder().encode(str)); hex = CE.bufToHex(buf); }
+    const buffer = (typeof data === 'string') ? new TextEncoder().encode(data) : data;
+    
+    if(algo === 'MD5') {
+      // MD5 implementation still expects a string for its internal byte processing
+      // so we convert back if needed, but for files we'll use a string-safe approach
+      const str = (typeof data === 'string') ? data : new TextDecoder().decode(data);
+      hex = CE.md5(str);
+    } else {
+      const hashBuf = await crypto.subtle.digest(algo, buffer);
+      hex = CE.bufToHex(hashBuf);
+    }
     return { hex, ms: (performance.now()-t0).toFixed(2), bits: CE.hexToBits(hex) };
   },
 
@@ -76,5 +85,45 @@ const CE = {
     const { aesKey, hexKey } = await CE.deriveKey(pass, salt);
     const dec = await crypto.subtle.decrypt({name:'AES-GCM',iv}, aesKey, cipher);
     return { plain: new TextDecoder().decode(dec), key:hexKey, ms:(performance.now()-t0).toFixed(2) };
+  },
+
+  /* ─── ASYMMETRIC (RSA) ─── */
+  generateRSA: async () => {
+    const pair = await crypto.subtle.generateKey(
+      { name: "RSA-OAEP", modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: "SHA-256" },
+      true, ["encrypt", "decrypt"]
+    );
+    const pub = await crypto.subtle.exportKey("spki", pair.publicKey);
+    const priv = await crypto.subtle.exportKey("pkcs8", pair.privateKey);
+    return {
+      pub: btoa(String.fromCharCode(...new Uint8Array(pub))),
+      priv: btoa(String.fromCharCode(...new Uint8Array(priv)))
+    };
+  },
+
+  importRSA: async (keyData, isPrivate) => {
+    const buf = Uint8Array.from(atob(keyData), c => c.charCodeAt(0));
+    return await crypto.subtle.importKey(
+      isPrivate ? "pkcs8" : "spki",
+      buf,
+      { name: "RSA-OAEP", hash: "SHA-256" },
+      true,
+      isPrivate ? ["decrypt"] : ["encrypt"]
+    );
+  },
+
+  rsaEncrypt: async (plain, pubKeyB64) => {
+    const t0 = performance.now();
+    const pubKey = await CE.importRSA(pubKeyB64, false);
+    const cipher = await crypto.subtle.encrypt({ name: "RSA-OAEP" }, pubKey, new TextEncoder().encode(plain));
+    return { cipher: btoa(String.fromCharCode(...new Uint8Array(cipher))), ms: (performance.now()-t0).toFixed(2) };
+  },
+
+  rsaDecrypt: async (cipherB64, privKeyB64) => {
+    const t0 = performance.now();
+    const privKey = await CE.importRSA(privKeyB64, true);
+    const cipher = Uint8Array.from(atob(cipherB64), c => c.charCodeAt(0));
+    const plain = await crypto.subtle.decrypt({ name: "RSA-OAEP" }, privKey, cipher);
+    return { plain: new TextDecoder().decode(plain), ms: (performance.now()-t0).toFixed(2) };
   }
 };
