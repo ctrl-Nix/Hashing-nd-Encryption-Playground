@@ -4,7 +4,7 @@
 const App = {
   S: {
     alias: '',
-    lab: { algo: 'SHA-256', encMode: 'enc', fileBuffer: null, fileName: '' },
+    lab: { algo: 'SHA-256', hmacAlgo: 'SHA-256', encMode: 'enc', fileBuffer: null, fileName: '' },
     story: { step: 0, maxStep: 0, algo: 'SHA-256', pwd: '', hashHex: '', hashBits: '', cipherData: null, tampered: false, score: 0 }
   },
 
@@ -15,10 +15,10 @@ const App = {
 
   resetState: () => {
     App.S.alias = '';
-    App.S.lab = { algo: 'SHA-256', encMode: 'enc', fileBuffer: null, fileName: '' };
+    App.S.lab = { algo: 'SHA-256', hmacAlgo: 'SHA-256', encMode: 'enc', fileBuffer: null, fileName: '' };
     App.S.story = { step:0, maxStep:0, algo:'SHA-256', pwd:'', hashHex:'', hashBits:'', cipherData:null, tampered:false, score:0 };
     document.querySelectorAll('input:not([type=button]), textarea').forEach(el => el.value = '');
-    ['lab-hash-result','lab-enc-result','rsa-keys-area','rsa-enc-res','rsa-dec-res','salt-demo-area'].forEach(id => { const el = document.getElementById(id); if(el) el.style.display='none'; });
+    ['lab-hash-result','lab-enc-result','rsa-keys-area','rsa-enc-res','rsa-dec-res','salt-demo-area','lab-hmac-result'].forEach(id => { const el = document.getElementById(id); if(el) el.style.display='none'; });
     const nz = document.getElementById('story-next-zone'); if(nz) nz.innerHTML = '';
     const nameEl = document.getElementById('drop-filename'); if(nameEl) nameEl.innerText = '';
   },
@@ -276,6 +276,32 @@ const App = {
       document.getElementById('rsa-plain-out').innerText = r.plain;
       document.getElementById('rsa-dec-res').style.display = 'block';
     } catch (e) { alert('RSA Decryption Failed: Bad key or corrupted ciphertext.'); }
+  },
+
+  /* ─── HMAC LAB ─── */
+  setHMACAlgo: algo => {
+    App.S.lab.hmacAlgo = algo;
+    document.querySelectorAll('#hmac-algo-grid .algo-card').forEach(c => c.classList.remove('selected'));
+    const card = document.getElementById('hmac-'+algo); if(card) card.classList.add('selected');
+  },
+
+  genHMACKey: () => {
+    const key = Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b => b.toString(16).padStart(2,'0')).join('');
+    document.getElementById('hmac-key').value = key;
+  },
+
+  runLabHMAC: async () => {
+    App.flash('lab-hmac');
+    const data = document.getElementById('hmac-data').value;
+    const key = document.getElementById('hmac-key').value;
+    if(!data || !key) return alert('Provide both a message and a secret key.');
+    
+    const r = await CE.hmac(App.S.lab.hmacAlgo, key, data);
+    const res = document.getElementById('lab-hmac-result');
+    res.style.display = 'block';
+    document.getElementById('lab-hmac-out').innerText = r.hex;
+    document.getElementById('lab-hmac-time').innerText = `${r.ms}ms`;
+    res.scrollIntoView({ behavior:'smooth', block:'nearest' });
   },
 
   /* ─── STORY ─── */

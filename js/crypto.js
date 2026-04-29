@@ -125,5 +125,23 @@ const CE = {
     const cipher = Uint8Array.from(atob(cipherB64), c => c.charCodeAt(0));
     const plain = await crypto.subtle.decrypt({ name: "RSA-OAEP" }, privKey, cipher);
     return { plain: new TextDecoder().decode(plain), ms: (performance.now()-t0).toFixed(2) };
+  },
+
+  /* ─── HMAC ─── */
+  hmac: async (algo, keyStr, dataStr) => {
+    const t0 = performance.now();
+    const enc = new TextEncoder();
+    const keyData = enc.encode(keyStr);
+    const data = enc.encode(dataStr);
+    
+    const key = await crypto.subtle.importKey(
+      "raw", keyData,
+      { name: "HMAC", hash: algo },
+      false, ["sign"]
+    );
+    
+    const sig = await crypto.subtle.sign("HMAC", key, data);
+    const hex = CE.bufToHex(sig);
+    return { hex, ms: (performance.now()-t0).toFixed(2), bits: CE.hexToBits(hex) };
   }
 };

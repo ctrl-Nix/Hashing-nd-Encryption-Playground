@@ -101,6 +101,7 @@
     <div class="lab-tab" id="btn-tab-compare" onclick="App.switchLabTab('compare')">Compare All Algos</div>
     <div class="lab-tab" id="btn-tab-enc" onclick="App.switchLabTab('enc')">AES-GCM Utility</div>
     <div class="lab-tab" id="btn-tab-rsa" onclick="App.switchLabTab('rsa')">RSA Asymmetric</div>
+    <div class="lab-tab" id="btn-tab-hmac" onclick="App.switchLabTab('hmac')">HMAC Auth</div>
   </div>
 
   <!-- HASH TAB -->
@@ -363,6 +364,49 @@
             <div class="readout readout-green" id="rsa-plain-out"></div>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HMAC TAB -->
+  <div id="lab-hmac" class="lab-panel">
+    <div class="panel">
+      <div class="panel-title"><span>HMAC (HASH-BASED MESSAGE AUTHENTICATION CODE)</span></div>
+      <p style="font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-bottom:24px;line-height:1.8;">HMAC uses a <strong style="color:var(--c3);">Secret Key</strong> combined with a message to create a unique fingerprint. Unlike a standard hash, only someone with the secret key can verify the authenticity. This is how webhooks and APIs prevent data tampering.</p>
+      
+      <span class="form-label">Message Payload (Data to Authenticate)</span>
+      <textarea id="hmac-data" class="form-input" style="min-height:80px;" placeholder='e.g. {"order_id": 1024, "amount": 500.00}'></textarea>
+      
+      <span class="form-label">Shared Secret Key</span>
+      <div style="display:flex; gap:8px;">
+        <input type="password" id="hmac-key" class="form-input" placeholder="Enter secret signing key..." style="flex:1;">
+        <button class="btn" onclick="App.genHMACKey()" title="Generate Random Key">
+          <span style="font-size:10px; letter-spacing:1px;">[ RNG_KEY ]</span>
+        </button>
+      </div>
+
+      <span class="form-label" style="margin-top:24px;">HMAC Algorithm</span>
+      <div class="algo-grid" id="hmac-algo-grid">
+        <div class="algo-card selected" id="hmac-SHA-256" onclick="App.setHMACAlgo('SHA-256')"><div class="algo-dot"></div><div><div class="algo-name">HMAC-SHA-256</div><div class="algo-tag">RECOMMENDED</div></div></div>
+        <div class="algo-card" id="hmac-SHA-512" onclick="App.setHMACAlgo('SHA-512')"><div class="algo-dot"></div><div><div class="algo-name">HMAC-SHA-512</div><div class="algo-tag">EXTREME</div></div></div>
+      </div>
+
+      <button class="btn btn-primary btn-full" onclick="App.runLabHMAC()">GENERATE AUTHENTICATION CODE</button>
+    </div>
+
+    <div class="panel" id="lab-hmac-result" style="display:none;">
+      <div class="panel-title">
+        <span>AUTHENTICATION TAG (MAC)</span>
+        <span id="lab-hmac-time" class="status-tag st-info"></span>
+      </div>
+      <div class="copy-wrap">
+        <div class="readout readout-green" id="lab-hmac-out"></div>
+        <button class="copy-btn" onclick="App.copyVal('lab-hmac-out', this)">
+          <span class="copy-icon">⧉</span><span class="copy-text">COPY</span>
+        </button>
+      </div>
+      <div style="font-family:var(--font-mono); font-size:11px; color:var(--muted); padding:12px; border:1px solid rgba(0,255,136,0.06); background:rgba(0,0,0,0.4); line-height:1.9; margin-top:20px;">
+        <span style="color:var(--c3);">// SECURITY NOTE:</span> If even one bit of the payload or the key changes, the resulting MAC will be entirely different. This ensures that the message hasn't been tampered with in transit.
       </div>
     </div>
   </div>
