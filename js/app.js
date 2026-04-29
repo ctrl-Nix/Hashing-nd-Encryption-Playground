@@ -4,7 +4,7 @@
 const App = {
   S: {
     alias: '',
-    lab: { algo: 'SHA-256', hmacAlgo: 'SHA-256', encMode: 'enc', fileBuffer: null, fileName: '' },
+    lab: { algo: 'SHA-256', hmacAlgo: 'SHA-256', stegoImg: null, encMode: 'enc', fileBuffer: null, fileName: '' },
     story: { step: 0, maxStep: 0, algo: 'SHA-256', pwd: '', hashHex: '', hashBits: '', cipherData: null, tampered: false, score: 0 }
   },
 
@@ -15,10 +15,10 @@ const App = {
 
   resetState: () => {
     App.S.alias = '';
-    App.S.lab = { algo: 'SHA-256', hmacAlgo: 'SHA-256', encMode: 'enc', fileBuffer: null, fileName: '' };
+    App.S.lab = { algo: 'SHA-256', hmacAlgo: 'SHA-256', stegoImg: null, encMode: 'enc', fileBuffer: null, fileName: '' };
     App.S.story = { step:0, maxStep:0, algo:'SHA-256', pwd:'', hashHex:'', hashBits:'', cipherData:null, tampered:false, score:0 };
     document.querySelectorAll('input:not([type=button]), textarea').forEach(el => el.value = '');
-    ['lab-hash-result','lab-enc-result','rsa-keys-area','rsa-enc-res','rsa-dec-res','salt-demo-area','lab-hmac-result'].forEach(id => { const el = document.getElementById(id); if(el) el.style.display='none'; });
+    ['lab-hash-result','lab-enc-result','rsa-keys-area','rsa-enc-res','rsa-dec-res','salt-demo-area','lab-hmac-result','lab-stego-result'].forEach(id => { const el = document.getElementById(id); if(el) el.style.display='none'; });
     const nz = document.getElementById('story-next-zone'); if(nz) nz.innerHTML = '';
     const nameEl = document.getElementById('drop-filename'); if(nameEl) nameEl.innerText = '';
   },
@@ -60,6 +60,7 @@ const App = {
     App.resetState(); 
     App.show('screen-lab'); 
     App.setupDropZone();
+    App.setupStegoDropZone();
   },
 
   switchLabTab: tab => {
@@ -304,6 +305,70 @@ const App = {
     res.scrollIntoView({ behavior:'smooth', block:'nearest' });
   },
 
+  /* ─── STEGANOGRAPHY LAB ─── */
+  setupStegoDropZone: () => {
+    const zone = document.getElementById('stego-drop-zone');
+    if(!zone || zone.dataset.init) return;
+    const input = document.getElementById('stego-file-input');
+    zone.onclick = () => input.click();
+    zone.ondragover = (e) => { e.preventDefault(); zone.classList.add('hover'); };
+    zone.ondragleave = () => zone.classList.remove('hover');
+    zone.ondrop = (e) => { e.preventDefault(); zone.classList.remove('hover'); if(e.dataTransfer.files.length) App.handleStegoFile(e.dataTransfer.files[0]); };
+    input.onchange = (e) => { if(e.target.files.length) App.handleStegoFile(e.target.files[0]); };
+    zone.dataset.init = "true";
+  },
+
+  handleStegoFile: (file) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.getElementById('stego-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = img.width; canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        App.S.lab.stegoImg = img;
+        document.getElementById('stego-preview-wrap').style.display = 'block';
+        document.getElementById('stego-filename').innerText = `${file.name} (${img.width}x${img.height})`;
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  },
+
+  runLabStegoEncode: () => {
+    const canvas = document.getElementById('stego-canvas');
+    const payload = document.getElementById('stego-payload').value;
+    if(!App.S.lab.stegoImg || !payload) return alert('Upload an image and enter a payload.');
+    
+    try {
+      const ctx = canvas.getContext('2d');
+      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const r = CE.stegoEncode(imgData.data, payload);
+      ctx.putImageData(imgData, 0, 0);
+      
+      const link = document.createElement('a');
+      link.download = 'secret_carrier.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      alert(`Success! Data encoded in ${r.ms}ms. Downloaded as secret_carrier.png`);
+    } catch(e) { alert(e.message); }
+  },
+
+  runLabStegoDecode: () => {
+    if(!App.S.lab.stegoImg) return alert('Upload the carrier image first.');
+    const canvas = document.getElementById('stego-canvas');
+    const ctx = canvas.getContext('2d');
+    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const r = CE.stegoDecode(imgData.data);
+    
+    const res = document.getElementById('lab-stego-result');
+    res.style.display = 'block';
+    document.getElementById('lab-stego-out').innerText = r.plain || '[ EMPTY OR CORRUPTED ]';
+    document.getElementById('lab-stego-time').innerText = `${r.ms}ms`;
+    res.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  },
+
   /* ─── STORY ─── */
   openAliasScreen: () => { App.resetState(); App.show('screen-alias'); setTimeout(() => document.getElementById('op-alias-input').focus(), 300); },
   submitAlias: () => {
@@ -473,15 +538,15 @@ const App = {
   },
 
   renderStoryMap: () => {
-    const titles = ['Init','Avalanche','Auth','Breach','AES-GCM','Eval'];
+    const titles = ['Init','Avalanche','Auth','Breach','AES-GCM','Stego','Eval'];
     const S = App.S.story;
     let html='';
-    for(let i=0;i<6;i++){
+    for(let i=0;i<7;i++){
       const done=i<S.maxStep, active=i===S.step, unlocked=i<=S.maxStep;
       html+=`<div class="cm-node${done?' done':''}${active?' active':''}${unlocked?' unlocked':''}" ${unlocked?`onclick="App.jumpToStory(${i})"`:''}>
         <div class="cm-diamond"></div><div class="cm-lbl">${titles[i]}</div>
       </div>`;
-      if(i<5) html+=`<div class="cm-line${done?' done':''}"></div>`;
+      if(i<6) html+=`<div class="cm-line${done?' done':''}"></div>`;
     }
     document.getElementById('story-map').innerHTML=html;
   },
@@ -498,7 +563,7 @@ const App = {
     zone.style.cssText='margin-top:28px;border-top:1px solid var(--border);padding-top:24px;';
     if(nextIdx===4) {
       zone.innerHTML=`<button class="btn btn-primary btn-full" onclick="App.runStoryBreachCutscene()">PROCEED TO NEXT PHASE →</button>`;
-    } else if(nextIdx>=6) {
+    } else if(nextIdx>=7) {
       zone.innerHTML=`<button class="btn btn-success btn-full" onclick="App.goHome()">MISSION ACCOMPLISHED — RETURN TO BASE</button>`;
     } else {
       zone.innerHTML=`<button class="btn btn-primary btn-full" onclick="App.jumpToStory(${nextIdx})">PROCEED TO NEXT PHASE →</button>`;
@@ -615,6 +680,68 @@ const App = {
       aBox.innerHTML=html+`<div id="s-quiz-res"></div>`;
       App.S.story.score=0;
     }
+    else if(step===5){
+      aBox.innerHTML=`
+        <div id="stego-story-zone" class="panel" style="padding:24px; background:rgba(0,0,0,0.4); border-style:dashed;">
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px;">
+            <div>
+              <span class="form-label">Carrier Image</span>
+              <div id="stego-story-drop" class="drop-zone" style="min-height:100px;">
+                <div class="drop-text" style="font-size:12px;">DRAG & DROP DECOY IMAGE</div>
+              </div>
+              <canvas id="stego-story-canvas" style="display:none; max-width:100%; margin-top:12px; border:1px solid var(--c);"></canvas>
+            </div>
+            <div>
+              <span class="form-label">Encrypted Data</span>
+              <textarea id="stego-story-data" class="form-input" style="font-size:11px; height:80px;" disabled>0fe721:bc892a:f821de77bc21009822a1f8...</textarea>
+              <button class="btn btn-primary btn-full" style="margin-top:12px;" onclick="App.runStoryStego()">ENCODE & EXFILTRATE</button>
+            </div>
+          </div>
+          <div id="stego-story-res" style="display:none; margin-top:20px; text-align:center;">
+             <div class="status-tag st-ok">DATA SUCCESSFULLY HIDDEN IN PIXELS</div>
+             <p style="font-size:11px; color:var(--muted); margin-top:8px;">The carrier image has been modified with the AES ciphertext. To the network monitors, it looks like a standard image upload.</p>
+          </div>
+        </div>
+      `;
+      App.setupStoryStegoDrop();
+    }
+  },
+
+  setupStoryStegoDrop: () => {
+    const zone = document.getElementById('stego-story-drop');
+    if(!zone) return;
+    zone.ondragover = (e) => { e.preventDefault(); zone.classList.add('hover'); };
+    zone.ondragleave = () => zone.classList.remove('hover');
+    zone.ondrop = (e) => {
+      e.preventDefault(); zone.classList.remove('hover');
+      if(e.dataTransfer.files.length) {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const img = new Image();
+          img.onload = () => {
+             const canvas = document.getElementById('stego-story-canvas');
+             const ctx = canvas.getContext('2d');
+             canvas.width = img.width; canvas.height = img.height;
+             ctx.drawImage(img, 0, 0);
+             canvas.style.display = 'block';
+             zone.style.display = 'none';
+          };
+          img.src = ev.target.result;
+        };
+        reader.readAsDataURL(e.dataTransfer.files[0]);
+      }
+    };
+  },
+
+  runStoryStego: () => {
+    const canvas = document.getElementById('stego-story-canvas');
+    if(canvas.style.display === 'none') return alert('Please upload a decoy image first.');
+    const ctx = canvas.getContext('2d');
+    const imgData = ctx.getImageData(0,0,canvas.width,canvas.height);
+    CE.stegoEncode(imgData.data, "0fe721:bc892a:f821de77bc21009822a1f8...");
+    ctx.putImageData(imgData, 0, 0);
+    document.getElementById('stego-story-res').style.display = 'block';
+    App.showNextBtn(6);
   },
 
   ansQuiz: (qi,oi,c) => {

@@ -102,6 +102,7 @@
     <div class="lab-tab" id="btn-tab-enc" onclick="App.switchLabTab('enc')">AES-GCM Utility</div>
     <div class="lab-tab" id="btn-tab-rsa" onclick="App.switchLabTab('rsa')">RSA Asymmetric</div>
     <div class="lab-tab" id="btn-tab-hmac" onclick="App.switchLabTab('hmac')">HMAC Auth</div>
+    <div class="lab-tab" id="btn-tab-stego" onclick="App.switchLabTab('stego')">Steganography</div>
   </div>
 
   <!-- HASH TAB -->
@@ -407,6 +408,50 @@
       </div>
       <div style="font-family:var(--font-mono); font-size:11px; color:var(--muted); padding:12px; border:1px solid rgba(0,255,136,0.06); background:rgba(0,0,0,0.4); line-height:1.9; margin-top:20px;">
         <span style="color:var(--c3);">// SECURITY NOTE:</span> If even one bit of the payload or the key changes, the resulting MAC will be entirely different. This ensures that the message hasn't been tampered with in transit.
+      </div>
+    </div>
+  </div>
+  <!-- STEGO TAB -->
+  <div id="lab-stego" class="lab-panel">
+    <div class="panel">
+      <div class="panel-title"><span>IMAGE STEGANOGRAPHY (LSB ENGINE)</span></div>
+      <p style="font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-bottom:24px;line-height:1.8;">Hide encrypted data inside the pixels of an image. We use the **Least Significant Bit** of the Red, Green, and Blue channels. The visual difference is so small it is undetectable by the human eye.</p>
+      
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px;">
+        <div>
+          <span class="form-label">Step 1: Upload Carrier Image (PNG/JPG)</span>
+          <div id="stego-drop-zone" class="drop-zone" style="min-height:120px;">
+            <div class="drop-icon">🖼️</div>
+            <div class="drop-text">DROP IMAGE OR <span style="color:var(--c);">CLICK TO SELECT</span></div>
+            <div id="stego-filename" class="drop-filename"></div>
+            <input type="file" id="stego-file-input" style="display:none;" accept="image/*">
+          </div>
+          <div id="stego-preview-wrap" style="display:none; margin-top:16px; border:1px solid var(--border); padding:8px; background:rgba(0,0,0,0.3); text-align:center;">
+            <canvas id="stego-canvas" style="max-width:100%; max-height:200px; border:1px solid rgba(255,255,255,0.1);"></canvas>
+            <div style="font-size:9px; color:var(--muted); margin-top:4px;">CARRIER PREVIEW</div>
+          </div>
+        </div>
+        <div>
+          <span class="form-label">Step 2: Enter Payload to Hide</span>
+          <textarea id="stego-payload" class="form-input" style="min-height:100px;" placeholder="Enter secret message or AES ciphertext..."></textarea>
+          <div style="margin-top:12px; display:flex; gap:8px;">
+            <button class="btn btn-primary" style="flex:1;" onclick="App.runLabStegoEncode()">ENCODE & DOWNLOAD</button>
+            <button class="btn btn-success" style="flex:1;" onclick="App.runLabStegoDecode()">DECODE IMAGE</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="lab-stego-result" style="display:none;">
+      <div class="panel-title">
+        <span>EXTRACTION RESULT</span>
+        <span id="lab-stego-time" class="status-tag st-info"></span>
+      </div>
+      <div class="copy-wrap">
+        <div class="readout readout-green" id="lab-stego-out"></div>
+        <button class="copy-btn" onclick="App.copyVal('lab-stego-out', this)">
+          <span class="copy-icon">⧉</span><span class="copy-text">COPY</span>
+        </button>
       </div>
     </div>
   </div>

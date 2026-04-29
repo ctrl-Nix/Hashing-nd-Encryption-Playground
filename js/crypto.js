@@ -143,5 +143,44 @@ const CE = {
     const sig = await crypto.subtle.sign("HMAC", key, data);
     const hex = CE.bufToHex(sig);
     return { hex, ms: (performance.now()-t0).toFixed(2), bits: CE.hexToBits(hex) };
+  },
+
+  /* ─── STEGANOGRAPHY (LSB) ─── */
+  stegoEncode: (pixelData, dataStr) => {
+    const t0 = performance.now();
+    const data = new TextEncoder().encode(dataStr + "\0"); // Null terminator
+    if (data.length * 8 > pixelData.length * 0.75) throw new Error("Data too large for this image.");
+
+    let bitIdx = 0;
+    for (let i = 0; i < data.length; i++) {
+      for (let bit = 7; bit >= 0; bit--) {
+        const value = (data[i] >> bit) & 1;
+        const pixelPos = bitIdx + Math.floor(bitIdx / 3); // Skip alpha channel
+        pixelData[pixelPos] = (pixelData[pixelPos] & 0xFE) | value;
+        bitIdx++;
+      }
+    }
+    return { ms: (performance.now() - t0).toFixed(2) };
+  },
+
+  stegoDecode: (pixelData) => {
+    const t0 = performance.now();
+    let bits = [];
+    let bytes = [];
+    
+    for (let i = 0; i < pixelData.length; i++) {
+      if ((i + 1) % 4 === 0) continue; // Skip alpha
+      bits.push(pixelData[i] & 1);
+      if (bits.length === 8) {
+        const byte = parseInt(bits.join(""), 2);
+        if (byte === 0) break; // Found null terminator
+        bytes.push(byte);
+        bits = [];
+      }
+      if (bytes.length > 10000) break; // Safety limit
+    }
+    
+    const plain = new TextDecoder().decode(new Uint8Array(bytes));
+    return { plain, ms: (performance.now() - t0).toFixed(2) };
   }
 };

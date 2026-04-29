@@ -54,10 +54,16 @@ const StoryData = {
       text: 'Hashing is one-way. But to send data we need to retrieve, we need <span class="hl">Symmetric Encryption</span> — AES-256-GCM.<br><br>To stop Rainbow Table attacks, a random <strong>Salt</strong> is injected into your passphrase, then <strong>PBKDF2</strong> stretches it through 100,000 iterations. Brute-forcing becomes computationally impossible.'
     },
     {
-      title: '06: FINAL EVALUATION',
+      title: '06: COVERT EXFILTRATION',
       module: 'MODULE 06',
       dialogue: 'NIX',
-      text: (alias) => `Lockdown successful. Threat actors expelled from the network. You held the line, ${alias}.<br><br>Complete this final evaluation to confirm your operational clearance.`
+      text: 'The enemy is smart. They aren\'t just attacking our servers; they are trying to sneak data out right under our noses using <span class="hl">Steganography</span>.<br><br>By hiding encrypted ciphertext in the <strong>Least Significant Bits</strong> of image pixels, a secret message can be sent inside an innocent-looking photo. The change is invisible to the human eye.'
+    },
+    {
+      title: '07: FINAL EVALUATION',
+      module: 'MODULE 07',
+      dialogue: 'NIX',
+      text: (alias) => `All modules cleared. Threat actors expelled. You have mastered the fundamentals of the Matrix Protocol, ${alias}.<br><br>Complete this final assessment to secure your operational clearance.`
     }
   ],
 
