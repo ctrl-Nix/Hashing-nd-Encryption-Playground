@@ -193,6 +193,94 @@ const CE = {
     return { plain, ms: (performance.now() - t0).toFixed(2) };
   },
 
+  /* ─── ENTROPY ─── */
+  shannonEntropy: (str) => {
+    if (!str.length) return { bitsPerChar: 0, total: 0 };
+    const freqs = {};
+    for (let i = 0; i < str.length; i++) {
+      freqs[str[i]] = (freqs[str[i]] || 0) + 1;
+    }
+    let entropy = 0;
+    for (let char in freqs) {
+      const p = freqs[char] / str.length;
+      entropy -= p * Math.log2(p);
+    }
+    return {
+      bitsPerChar: entropy.toFixed(2),
+      total: Math.round(entropy * str.length)
+    };
+  },
+
+  /* ─── X.509 CERTIFICATE INSPECTION (BASIC ASN.1 DER PARSER) ─── */
+  parsePEMCertificate: async (pem) => {
+    try {
+      const b64 = pem.replace(/(-----(BEGIN|END) CERTIFICATE-----|\s)/g, '');
+      const bin = atob(b64);
+      const bytes = new Uint8Array(bin.length);
+      for(let i=0; i<bin.length; i++) bytes[i] = bin.charCodeAt(i);
+
+      // Extract string via OID heuristic
+      const extractStrings = (oidBytes) => {
+        let results = [];
+        for(let i=0; i<bytes.length-20; i++) {
+          let match = true;
+          for(let j=0; j<oidBytes.length; j++) {
+            if (bytes[i+j] !== oidBytes[j]) { match = false; break; }
+          }
+          if (match) {
+            let t = bytes[i+oidBytes.length];
+            if (t === 0x13 || t === 0x0c || t === 0x16) {
+              let len = bytes[i+oidBytes.length+1];
+              let start = i+oidBytes.length+2;
+              results.push(new TextDecoder().decode(bytes.slice(start, start+len)));
+            }
+          }
+        }
+        return results;
+      };
+
+      const cns = extractStrings([0x06, 0x03, 0x55, 0x04, 0x03]);
+      const orgs = extractStrings([0x06, 0x03, 0x55, 0x04, 0x0A]);
+      const countries = extractStrings([0x06, 0x03, 0x55, 0x04, 0x06]);
+      
+      let dates = [];
+      for(let i=0; i<bytes.length-15; i++) {
+        if (bytes[i] === 0x17 && bytes[i+1] === 0x0D) {
+          let dStr = new TextDecoder().decode(bytes.slice(i+2, i+15));
+          let yr = parseInt(dStr.slice(0,2));
+          yr = (yr < 50 ? 2000 : 1900) + yr;
+          dates.push(`${yr}-${dStr.slice(2,4)}-${dStr.slice(4,6)} ${dStr.slice(6,8)}:${dStr.slice(8,10)} UTC`);
+        }
+      }
+      
+      let serial = "Unknown";
+      for(let i=0; i<100; i++) {
+        if (bytes[i] === 0x02 && bytes[i+1] > 4) {
+          let slen = bytes[i+1];
+          let hex = [];
+          for(let j=0; j<slen; j++) hex.push(bytes[i+2+j].toString(16).padStart(2,'0'));
+          serial = hex.join(':').toUpperCase();
+          break;
+        }
+      }
+
+      // Calculate SHA-256 fingerprint
+      const hashBuf = await crypto.subtle.digest('SHA-256', bytes);
+      const fingerprint = CE.bufToHex(hashBuf).toUpperCase().match(/.{1,2}/g).join(':');
+
+      return {
+        subject: `CN=${cns[1] || cns[0] || 'Unknown'}, O=${orgs[1] || orgs[0] || 'Unknown'}, C=${countries[1] || countries[0] || 'Unknown'}`,
+        issuer: `CN=${cns[0] || 'Unknown'}, O=${orgs[0] || 'Unknown'}`,
+        notBefore: dates[0] || 'Unknown',
+        notAfter: dates[1] || 'Unknown',
+        serial: serial,
+        fingerprint: fingerprint
+      };
+    } catch (e) {
+      throw new Error("Invalid or malformed PEM certificate format.");
+    }
+  },
+
   /* ─── ECDSA DIGITAL SIGNATURES ─── */
   generateECDSA: async () => {
     const pair = await crypto.subtle.generateKey(
@@ -202,9 +290,16 @@ const CE = {
     );
     // Export public key only for display
     const pubRaw = await crypto.subtle.exportKey('spki', pair.publicKey);
+    const pubJwk = await crypto.subtle.exportKey('jwk', pair.publicKey);
+    
+    const b64 = btoa(String.fromCharCode(...new Uint8Array(pubRaw)));
+    const pem = `-----BEGIN PUBLIC KEY-----\n${b64.match(/.{1,64}/g).join('\n')}\n-----END PUBLIC KEY-----`;
+    
     return {
       keyPair: pair,
-      publicKeyHex: CE.bufToHex(pubRaw)
+      publicKeyHex: CE.bufToHex(pubRaw),
+      publicKeyPem: pem,
+      publicKeyJwk: JSON.stringify(pubJwk, null, 2)
     };
   },
 
