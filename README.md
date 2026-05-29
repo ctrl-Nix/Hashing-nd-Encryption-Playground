@@ -28,7 +28,7 @@ An unrestricted technical environment for raw experimentation.
 - **ECDSA Signatures**: Generate P-256 keys, sign payloads securely, and observe cryptographic tampering detection.
 - **Certificate Inspector**: Parse PEM X.509 certificates to extract Issuer, Subject, Validity, and SHA-256 fingerprints without third-party libraries.
 - **Entropy Analyzer**: Calculate Shannon Entropy and measure bits-per-character density of input strings in real-time.
-- **Birthday Attack**: Visualize hash collision probability curves utilizing a high-performance Web Worker to brute-force truncated hashes.
+- **Birthday Attack**: Visualize hash collision probability curves utilizing a high-performance Web Worker to brute-force truncated hashes. Includes the ability to export a JSON Proof Card containing verified collision data.
 
 ---
 
