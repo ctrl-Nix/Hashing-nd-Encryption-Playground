@@ -46,3 +46,30 @@
 - **Console Errors**: None.
 - **Mobile Emulation**: Verified 375px, 480px, and 768px breakpoints.
 - **Web Worker**: Collision detection correctly offloaded, UI remains highly responsive during intense hash iteration loops.
+
+---
+
+# Progress Log — Hashing & Encryption Playground v3
+
+## Core Spec & Checklist Status
+
+- [x] **Two-user ECDH demo**: Completed. Fully operational symmetric key exchange utilizing Web Crypto and URL fragments, securely bypassing the server. Includes AES-GCM encryption/decryption of messages.
+- [x] **QR code display for key exchange links**: Completed. Integrated pure-JS `qrcode.min.js` to render dynamic QR codes via canvas for mobile exchange.
+- [x] **Session export**: Completed. Serializes state into base64 JSON, strips private keys, and triggers an immediate download.
+- [x] **Session import**: Completed. Secure parsing and DOM state injection from exported session JSON payloads.
+- [x] **Share button on each sandbox tool**: Completed. Uses `#share=` fragment payloads to instantly pre-load the UI state via base64url data without query strings.
+- [x] **Story mode progress persistence**: Completed. Story `maxStep` states are committed to `localStorage` ensuring chapters remain unlocked between sessions.
+- [x] **Achievement/badge system**: Completed. Created `AchievementSystem` using `localStorage`. 8 custom badges designed and successfully hooked into sandbox tools.
+- [x] **Large file hashing**: Completed. Built `hash-worker.js` with `FileReader` offloading logic to process 100MB+ files incrementally via 5MB chunk slicing.
+
+## Stretch Goals Attempted
+
+- [x] **Two-user demo: add a "Tamper the ciphertext" button**: Completed. A bit-flipper modifies the AES-GCM ciphertext payload and attempts to decrypt it with the shared key, visually demonstrating an authentication failure.
+- [x] **Session export encrypted mode**: Completed. Appends an AES-GCM passphrase step to the session exporter, actively leveraging the lab's own cryptographic routines to protect the serialized state.
+
+## Verification & Build Status
+
+- **Development Server**: Verified locally.
+- **Console Errors**: None.
+- **Worker Execution**: Verified `hash-worker.js` updates without UI freezing.
+- **Cross-Tab Sharing**: `#ecdh=` and `#share=` fragment listeners tested and functioning securely.

@@ -29,13 +29,17 @@ An unrestricted technical environment for raw experimentation.
 - **Certificate Inspector**: Parse PEM X.509 certificates to extract Issuer, Subject, Validity, and SHA-256 fingerprints without third-party libraries.
 - **Entropy Analyzer**: Calculate Shannon Entropy and measure bits-per-character density of input strings in real-time.
 - **Birthday Attack**: Visualize hash collision probability curves utilizing a high-performance Web Worker to brute-force truncated hashes. Includes the ability to export a JSON Proof Card containing verified collision data.
+- **Two-User ECDH Key Exchange**: Secure, end-to-end symmetric key derivation utilizing shareable links (via `#` fragments) and dynamically rendered QR codes for real-time browser-to-browser cryptography.
+- **Session Manager**: Export, import, and share live Sandbox states securely with optional AES-GCM passphrase protection.
+- **Achievement System**: An interactive, locally persisted progression system containing 8 unlockable badges designed to reward active exploration.
+- **Large File Hashing**: Real-time chunked hashing of 100MB+ files utilizing Web Workers to maintain UI responsiveness.
 
 ---
 
 ## 🛠️ Technical Architecture
 - **Engine**: Built on the native **Web Crypto API** for high-performance, industry-standard cryptographic operations.
 - **Frontend**: Vanilla JavaScript (ES6+) with a modular architecture (`app.js`, `crypto.js`, `data.js`, `story-mode-v2.js`, `story-explain.js`).
-- **Web Workers**: Dedicated `md5-worker.js` and `birthday-worker.js` for non-blocking UI during intense hashing loops.
+- **Web Workers**: Dedicated `md5-worker.js`, `birthday-worker.js`, and `hash-worker.js` for non-blocking UI during intense cryptographic tasks.
 - **Styling**: Fully mobile-responsive cyber-themed "NIX" UI system using CSS `clamp()`, flexible grids, CRT scanlines, and 44x44px touch targets.
 - **Compatibility**: Extensively audited and cross-browser tested on modern Chrome, Firefox, and Safari.
 

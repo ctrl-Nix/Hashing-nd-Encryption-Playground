@@ -1,6 +1,6 @@
 # System Context — NIX // MATRIX PROTOCOL
 
-This document outlines the operational context, active state variables, and architectural modifications introduced in Version 1.
+This document outlines the operational context, active state variables, and architectural modifications introduced in Version 1, 2, and 3.
 
 ---
 
@@ -16,12 +16,12 @@ App.S = {
     hmacAlgo: 'SHA-256',  // Lab HMAC algorithm
     stegoImg: null,       // Loaded stego carrier image
     encMode: 'enc',       // Lab encryption mode ('enc' or 'dec')
-    fileBuffer: null,     // Active file buffer loaded in Hash lab
+    fileObj: null,        // Active File object for worker processing
     fileName: ''          // Active file name loaded in Hash lab
   },
   story: {
-    step: 0,              // Current story step (0-8)
-    maxStep: 0,           // Max unlocked story step (0-8)
+    step: 0,              // Current story step
+    maxStep: 0,           // Max unlocked story step (persisted to localStorage)
     algo: 'SHA-256',      // Active hashing algorithm in story step 0
     pwd: '',              // Control node password
     hashHex: '',          // Password hash hexadecimal
@@ -52,9 +52,9 @@ App.S = {
 
 ## 2. Web Workers & Concurrent Execution
 
-- **Worker Spawn**: Spawns `js/md5-worker.js` to run MD5 dictionary cracking concurrently.
-- **Main Thread**: Remains 100% responsive, with no layout blocking, allowing users to drag elements and navigate sandbox panels during the attack.
-- **Worker Terminate**: Clean worker destruction using `App.stopMD5Crack()` on tab switch, search abort, or search completion.
+- **md5-worker**: Spawns `js/md5-worker.js` to run MD5 dictionary cracking concurrently.
+- **birthday-worker**: Spawns `js/birthday-worker.js` to run Birthday Attack hash collision loops concurrently without blocking the UI.
+- **hash-worker**: Spawns `js/hash-worker.js` to process large file hashing (100MB+) via 5MB chunk slicing and offloaded `crypto.subtle` hashing.
 
 ---
 
@@ -76,8 +76,11 @@ The story steps have been re-numbered and expanded to support a 9-step progressi
 
 ---
 
-## 4. Architectural Modifications in v1
+## 4. Architectural Modifications in v1, v2, & v3
 
 1. **Accessibility**: Integrated keyboard focus attributes and delegated space/enter listeners to enable mouse-free operation across all custom components.
-2. **File Processing**: Optimized MD5 file hashing with direct buffer inputs to eliminate character corruption, and added a binary salt concatenation routine.
+2. **File Processing**: Optimized MD5 file hashing with direct buffer inputs. Introduced `hash-worker.js` to handle large `File` objects incrementally, preventing main thread freezing.
 3. **Patcher/Encoding Stability**: Corrected a malformed UTF-8 header in `js/app.js` to prevent browser file-load and development server decode failures.
+4. **Persistence Architecture**: Integrated `AchievementSystem` relying on local storage. Re-wrote `showNextBtn` logic to utilize local storage for `App.S.story.maxStep`.
+5. **Session Serialization**: Introduced Session Manager to serialize and export live Sandbox states (including inputs, algorithm params, and ciphertexts). Securely protects data using PBKDF2 and AES-GCM for optional file encryptions.
+6. **Stateless Cross-Browser Sharing**: Utilized hash fragments (`#share=` and `#ecdh=`) with base64url-encoded JSON payloads to bypass the server completely when sharing keys and parameters between browser clients.
