@@ -1,11 +1,51 @@
 /* ═══════════════════════════════════════════════ */
+const AchievementSystem = {
+  badges: {
+    first_hash: { name: "First Hash", desc: "Hash your first string in the engine.", icon: "🔑" },
+    bit_flipper: { name: "Bit Flipper", desc: "Trigger an avalanche effect by changing a single character.", icon: "🌊" },
+    crypto_ninja: { name: "Crypto Ninja", desc: "Encrypt a payload using AES-GCM.", icon: "🥷" },
+    rsa_master: { name: "RSA Master", desc: "Generate an RSA 2048-bit keypair.", icon: "🗝️" },
+    ghost_channel: { name: "Ghost Channel", desc: "Establish an end-to-end ECDH shared secret.", icon: "👻" },
+    the_forger: { name: "The Forger", desc: "Generate an ECDSA digital signature.", icon: "✒️" },
+    trust_no_one: { name: "Trust No One", desc: "Inspect an X.509 Certificate.", icon: "📜" },
+    collision_course: { name: "Collision Course", desc: "Generate a hash collision in the Birthday Attack lab.", icon: "💥" }
+  },
+  unlocked: [],
+  init: () => {
+    const saved = localStorage.getItem('nix_achievements');
+    if (saved) AchievementSystem.unlocked = JSON.parse(saved);
+  },
+  unlock: (id) => {
+    if (AchievementSystem.unlocked.includes(id)) return;
+    AchievementSystem.unlocked.push(id);
+    localStorage.setItem('nix_achievements', JSON.stringify(AchievementSystem.unlocked));
+    AchievementSystem.showNotification(AchievementSystem.badges[id]);
+  },
+  showNotification: (badge) => {
+    const el = document.createElement('div');
+    el.style.position = 'fixed';
+    el.style.bottom = '20px';
+    el.style.right = '20px';
+    el.style.background = 'var(--bg)';
+    el.style.border = '1px solid var(--c)';
+    el.style.padding = '16px';
+    el.style.color = 'var(--c)';
+    el.style.zIndex = '9999';
+    el.style.boxShadow = '0 0 20px rgba(0,0,0,0.8)';
+    el.innerHTML = `<div style="font-size:24px; float:left; margin-right:12px;">${badge.icon}</div><div><strong style="display:block; margin-bottom:4px;">ACHIEVEMENT UNLOCKED</strong>${badge.name}</div>`;
+    document.body.appendChild(el);
+    setTimeout(() => { document.body.removeChild(el); }, 4000);
+  }
+};
+AchievementSystem.init();
+
 const App = {
   compareTimeout: null,
   crackWorker: null,
   S: {
     alias: '',
     lab: { algo: 'SHA-256', hmacAlgo: 'SHA-256', stegoImg: null, encMode: 'enc', fileBuffer: null, fileName: '' },
-    story: { step: 0, maxStep: 0, algo: 'SHA-256', pwd: '', hashHex: '', hashBits: '', cipherData: null, tampered: false, score: 0 }
+    story: { step: 0, maxStep: parseInt(localStorage.getItem('nix_story_max')) || 0, algo: 'SHA-256', pwd: '', hashHex: '', hashBits: '', cipherData: null, tampered: false, score: 0 }
   },
 
   show: id => {
@@ -18,7 +58,7 @@ const App = {
     App.stopMD5Crack();
     App.S.alias = '';
     App.S.lab = { algo: 'SHA-256', hmacAlgo: 'SHA-256', stegoImg: null, encMode: 'enc', fileBuffer: null, fileName: '' };
-    App.S.story = { step:0, maxStep:0, algo:'SHA-256', pwd:'', hashHex:'', hashBits:'', cipherData:null, tampered:false, score:0 };
+    App.S.story = { step:0, maxStep: parseInt(localStorage.getItem('nix_story_max')) || 0, algo:'SHA-256', pwd:'', hashHex:'', hashBits:'', cipherData:null, tampered:false, score:0 };
     document.querySelectorAll('input:not([type=button]), textarea').forEach(el => el.value = '');
     ['lab-hash-result','lab-enc-result','rsa-keys-area','rsa-enc-res','rsa-dec-res','salt-demo-area','lab-hmac-result','lab-stego-result', 'crack-progress-area', 'crack-result-area'].forEach(id => { const el = document.getElementById(id); if(el) el.style.display='none'; });
     const nz = document.getElementById('story-next-zone'); if(nz) nz.innerHTML = '';
@@ -212,6 +252,7 @@ const App = {
         fillAlgo('SHA-256', 'cmp-sha256-out', 'cmp-sha256-bits', 'cmp-sha256-len'),
         fillAlgo('SHA-512', 'cmp-sha512-out', 'cmp-sha512-bits', 'cmp-sha512-len'),
       ]);
+      AchievementSystem.unlock('bit_flipper');
     }, 150);
   },
 
@@ -274,6 +315,7 @@ const App = {
       const b = document.createElement('div'); b.className = 'bit'+(r.bits[i]==='1'?' on':''); grid.appendChild(b);
     }
     res.scrollIntoView({ behavior:'smooth', block:'nearest' });
+    AchievementSystem.unlock('first_hash');
   },
 
   setLabEncMode: mode => {
@@ -311,6 +353,7 @@ const App = {
         outEl.innerText = r.payload;
         dbgKey.innerText = r.key;
         document.getElementById('lab-btn-copy').style.display = 'flex';
+        AchievementSystem.unlock('crypto_ninja');
       } else {
         try {
           const r = await CE.decrypt(data, pass);
@@ -346,6 +389,7 @@ const App = {
       document.getElementById('rsa-keys-area').style.display = 'block';
       document.getElementById('rsa-enc-key').value = keys.pub;
       document.getElementById('rsa-dec-key').value = keys.priv;
+      AchievementSystem.unlock('rsa_master');
     } catch (e) { alert('RSA Generation Failed: ' + e.message); }
     btn.disabled = false; btn.innerText = 'GENERATE NEW RSA KEY PAIR';
   },
@@ -660,7 +704,10 @@ const App = {
   },
 
   showNextBtn: nextIdx => {
-    if(App.S.story.maxStep<nextIdx) App.S.story.maxStep=nextIdx;
+    if(App.S.story.maxStep<nextIdx) {
+      App.S.story.maxStep=nextIdx;
+      localStorage.setItem('nix_story_max', nextIdx);
+    }
     App.renderStoryMap();
     const zone=document.getElementById('story-next-zone');
     zone.innerHTML='';
@@ -1452,6 +1499,7 @@ const App = {
       document.getElementById('ecdsa-sig-out').innerText = res.signatureHex;
       document.getElementById('ecdsa-res-area').style.display = 'block';
       document.getElementById('ecdsa-verify-status').innerText = '';
+      AchievementSystem.unlock('the_forger');
     } catch (e) { alert('Signing Failed: ' + e.message); }
   },
 
@@ -1512,6 +1560,7 @@ const App = {
       document.getElementById('cert-notafter').innerText = info.notAfter;
       document.getElementById('cert-serial').innerText = info.serial;
       resEl.style.display = 'block';
+      AchievementSystem.unlock('trust_no_one');
     } catch(e) {
       errEl.innerText = e.message;
       errEl.style.display = 'block';
@@ -1586,6 +1635,7 @@ const App = {
         document.getElementById('bd-hash').innerText = data.collision.hash;
         
         document.getElementById('bd-result-area').style.display = 'block';
+        AchievementSystem.unlock('collision_course');
       } else if (data.type === 'error') {
         document.getElementById('btn-bd-start').innerText = 'START ATTACK';
         document.getElementById('btn-bd-start').disabled = false;
@@ -1829,6 +1879,7 @@ const App = {
       
       document.getElementById('ecdh-step-2').style.display = 'none';
       document.getElementById('ecdh-step-3').style.display = 'block';
+      AchievementSystem.unlock('ghost_channel');
     } catch (e) {
       alert("Derivation Failed: " + e.message);
     }
@@ -1884,6 +1935,24 @@ const App = {
     let intVal = parseInt(lastChar, 16) ^ 1;
     cipherEl.value = hex.substring(0, hex.length-1) + intVal.toString(16);
     App.flash('ecdh-cipher-out');
+  },
+
+  showAchievements: () => {
+    const grid = document.getElementById('achievements-grid');
+    grid.innerHTML = '';
+    Object.keys(AchievementSystem.badges).forEach(id => {
+      const badge = AchievementSystem.badges[id];
+      const isUnlocked = AchievementSystem.unlocked.includes(id);
+      const card = document.createElement('div');
+      card.className = 'panel';
+      card.style.opacity = isUnlocked ? '1' : '0.4';
+      card.style.filter = isUnlocked ? 'none' : 'grayscale(100%)';
+      card.innerHTML = `<div style="font-size:32px; margin-bottom:8px;">${badge.icon}</div>
+        <div style="color:var(--c); margin-bottom:4px; font-weight:bold;">${badge.name}</div>
+        <div style="font-size:11px; color:var(--muted);">${isUnlocked ? badge.desc : '???'}</div>`;
+      grid.appendChild(card);
+    });
+    document.getElementById('achievements-modal').style.display = 'block';
   }
 };
 
