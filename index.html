@@ -188,7 +188,14 @@
         <div class="algo-card selected" id="lab-SHA-256" onclick="App.setLabAlgo('SHA-256')" tabindex="0" role="button"><div class="algo-dot"></div><div><div class="algo-name">SHA-256</div><div class="algo-tag">256-BIT (SECURE)</div></div></div>
         <div class="algo-card" id="lab-SHA-512" onclick="App.setLabAlgo('SHA-512')" tabindex="0" role="button"><div class="algo-dot"></div><div><div class="algo-name">SHA-512</div><div class="algo-tag">512-BIT (SECURE)</div></div></div>
       </div>
-      <button class="btn btn-primary btn-full" onclick="App.runLabHash()">EXECUTE HASH FUNCTION</button>
+      <div id="hash-progress-area" style="display:none; margin-bottom:16px;">
+        <span class="form-label" style="display:flex; justify-content:space-between;">
+          <span>PROCESSING FILE CHUNKS...</span>
+          <span id="hash-progress-text" style="color:var(--c4);">0% (0ms)</span>
+        </span>
+        <div class="progress-bar"><div class="progress-fill" id="hash-progress-fill" style="width:0%;"></div></div>
+      </div>
+      <button class="btn btn-primary btn-full" id="btn-run-hash" onclick="App.runLabHash()">EXECUTE HASH FUNCTION</button>
     </div>
     <div class="panel" id="lab-hash-result" style="display:none;">
       <div class="panel-title">

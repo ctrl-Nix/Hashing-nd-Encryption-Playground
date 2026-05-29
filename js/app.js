@@ -44,7 +44,7 @@ const App = {
   crackWorker: null,
   S: {
     alias: '',
-    lab: { algo: 'SHA-256', hmacAlgo: 'SHA-256', stegoImg: null, encMode: 'enc', fileBuffer: null, fileName: '' },
+    lab: { algo: 'SHA-256', hmacAlgo: 'SHA-256', stegoImg: null, encMode: 'enc', fileObj: null, fileName: '' },
     story: { step: 0, maxStep: parseInt(localStorage.getItem('nix_story_max')) || 0, algo: 'SHA-256', pwd: '', hashHex: '', hashBits: '', cipherData: null, tampered: false, score: 0 }
   },
 
@@ -57,7 +57,7 @@ const App = {
   resetState: () => {
     App.stopMD5Crack();
     App.S.alias = '';
-    App.S.lab = { algo: 'SHA-256', hmacAlgo: 'SHA-256', stegoImg: null, encMode: 'enc', fileBuffer: null, fileName: '' };
+    App.S.lab = { algo: 'SHA-256', hmacAlgo: 'SHA-256', stegoImg: null, encMode: 'enc', fileObj: null, fileName: '' };
     App.S.story = { step:0, maxStep: parseInt(localStorage.getItem('nix_story_max')) || 0, algo:'SHA-256', pwd:'', hashHex:'', hashBits:'', cipherData:null, tampered:false, score:0 };
     document.querySelectorAll('input:not([type=button]), textarea').forEach(el => el.value = '');
     ['lab-hash-result','lab-enc-result','rsa-keys-area','rsa-enc-res','rsa-dec-res','salt-demo-area','lab-hmac-result','lab-stego-result', 'crack-progress-area', 'crack-result-area'].forEach(id => { const el = document.getElementById(id); if(el) el.style.display='none'; });
@@ -185,25 +185,19 @@ const App = {
   },
 
   handleFile: (file) => {
-    const reader = new FileReader();
+    App.S.lab.fileObj = file;
+    App.S.lab.fileName = file.name;
     const nameEl = document.getElementById('drop-filename');
-    
-    nameEl.innerText = "READING FILE...";
-    reader.onload = (e) => {
-      App.S.lab.fileBuffer = e.target.result;
-      App.S.lab.fileName = file.name;
-      nameEl.innerText = `${file.name} (${(file.size/1024).toFixed(1)} KB)`;
-      const textIn = document.getElementById('lab-hash-in');
-      if(textIn) textIn.value = ""; 
-      const clearBtn = document.getElementById('btn-clear-file');
-      if(clearBtn) clearBtn.style.display = 'block';
-    };
-    reader.readAsArrayBuffer(file);
+    nameEl.innerText = `${file.name} (${(file.size/1024/1024).toFixed(2)} MB)`;
+    const textIn = document.getElementById('lab-hash-in');
+    if(textIn) textIn.value = ""; 
+    const clearBtn = document.getElementById('btn-clear-file');
+    if(clearBtn) clearBtn.style.display = 'block';
   },
 
   clearLabFile: (e) => {
     if(e) e.stopPropagation();
-    App.S.lab.fileBuffer = null;
+    App.S.lab.fileObj = null;
     App.S.lab.fileName = '';
     const nameEl = document.getElementById('drop-filename');
     if(nameEl) nameEl.innerText = '';
@@ -266,56 +260,71 @@ const App = {
     App.flash('lab-hash');
     const textInput = document.getElementById('lab-hash-in').value;
     const salt = document.getElementById('lab-hash-salt').value;
-    const data = App.S.lab.fileBuffer || textInput;
+    const fileObj = App.S.lab.fileObj;
     
-    if(!data) return alert('Enter plaintext or drop a file.');
+    if(!fileObj && !textInput) return alert('Enter plaintext or drop a file.');
     
-    let inputData = data;
-    if (salt) {
-      if (typeof data === 'string') {
-        inputData = data + salt;
-      } else {
-        const fileBytes = new Uint8Array(data);
-        const saltBytes = new TextEncoder().encode(salt);
-        const combined = new Uint8Array(fileBytes.length + saltBytes.length);
-        combined.set(fileBytes);
-        combined.set(saltBytes, fileBytes.length);
-        inputData = combined.buffer;
-      }
-    }
-    const r = await CE.hash(App.S.lab.algo, inputData);
-    const res = document.getElementById('lab-hash-result');
-    res.style.display = 'block';
-    
-    // Salt Comparison Demo
-    const saltDemo = document.getElementById('salt-demo-area');
-    if(salt && typeof data === 'string') {
-      saltDemo.style.display = 'block';
-      const rUnsalted = await CE.hash(App.S.lab.algo, data);
-      document.getElementById('res-unsalted').innerText = rUnsalted.hex;
-      document.getElementById('res-salted').innerText = r.hex;
-      document.getElementById('salt-viz').innerHTML = `
-        <span style="color:var(--bright); opacity:0.8;">"${data}"</span>
-        <span style="color:var(--muted);">+</span>
-        <span style="color:var(--c3); font-weight:700;">"${salt}"</span>
-      `;
-    } else {
-      saltDemo.style.display = 'none';
-    }
+    document.getElementById('btn-run-hash').disabled = true;
+    document.getElementById('btn-run-hash').innerText = 'PROCESSING...';
 
-    const label = App.S.lab.fileBuffer ? `FILE HASH: ${App.S.lab.fileName}` : (salt ? 'SALTED STRING HASH' : 'STRING HASH');
-    document.getElementById('lab-hash-out').innerText = r.hex;
-    document.getElementById('lab-hash-time').innerText = `${r.ms}ms`;
-    document.getElementById('lab-bit-count').innerText = r.bits.length;
-    
-    const grid = document.getElementById('lab-bit-grid'); 
-    grid.innerHTML = `<div style="font-family:var(--font-mono); font-size:10px; color:var(--c); margin-bottom:10px;">[ TYPE: ${label} ]</div>`;
-    
-    for(let i=0; i<Math.min(r.bits.length,512); i++){
-      const b = document.createElement('div'); b.className = 'bit'+(r.bits[i]==='1'?' on':''); grid.appendChild(b);
+    const renderResult = async (r, label) => {
+      const res = document.getElementById('lab-hash-result');
+      res.style.display = 'block';
+      
+      const saltDemo = document.getElementById('salt-demo-area');
+      if(salt && typeof textInput === 'string' && textInput) {
+        saltDemo.style.display = 'block';
+        const rUnsalted = await CE.hash(App.S.lab.algo, textInput);
+        document.getElementById('res-unsalted').innerText = rUnsalted.hex;
+        document.getElementById('res-salted').innerText = r.hex;
+        document.getElementById('salt-viz').innerHTML = `
+          <span style="color:var(--bright); opacity:0.8;">"${textInput}"</span>
+          <span style="color:var(--muted);">+</span>
+          <span style="color:var(--c3); font-weight:700;">"${salt}"</span>
+        `;
+      } else {
+        saltDemo.style.display = 'none';
+      }
+
+      document.getElementById('lab-hash-out').innerText = r.hex;
+      document.getElementById('lab-hash-time').innerText = `${r.ms}ms`;
+      document.getElementById('lab-bit-count').innerText = r.bits.length;
+      
+      const grid = document.getElementById('lab-bit-grid'); 
+      grid.innerHTML = `<div style="font-family:var(--font-mono); font-size:10px; color:var(--c); margin-bottom:10px;">[ TYPE: ${label} ]</div>`;
+      for(let i=0; i<Math.min(r.bits.length,512); i++){
+        const b = document.createElement('div'); b.className = 'bit'+(r.bits[i]==='1'?' on':''); grid.appendChild(b);
+      }
+      res.scrollIntoView({ behavior:'smooth', block:'nearest' });
+      AchievementSystem.unlock('first_hash');
+      
+      document.getElementById('btn-run-hash').disabled = false;
+      document.getElementById('btn-run-hash').innerText = 'EXECUTE HASH FUNCTION';
+      document.getElementById('hash-progress-area').style.display = 'none';
+    };
+
+    if (fileObj) {
+      document.getElementById('hash-progress-area').style.display = 'block';
+      const w = new Worker('js/hash-worker.js');
+      w.onmessage = (e) => {
+        if (e.data.type === 'progress') {
+          document.getElementById('hash-progress-fill').style.width = e.data.pct + '%';
+          document.getElementById('hash-progress-text').innerText = `${e.data.pct}% (${e.data.ms}ms)`;
+        } else if (e.data.type === 'done') {
+          renderResult(e.data.result, `FILE HASH: ${App.S.lab.fileName}`);
+          w.terminate();
+        } else if (e.data.type === 'error') {
+          alert("Worker Error: " + e.data.message);
+          w.terminate();
+        }
+      };
+      w.postMessage({ file: fileObj, algo: App.S.lab.algo });
+    } else {
+      let inputData = textInput;
+      if (salt) inputData = textInput + salt;
+      const r = await CE.hash(App.S.lab.algo, inputData);
+      renderResult(r, salt ? 'SALTED STRING HASH' : 'STRING HASH');
     }
-    res.scrollIntoView({ behavior:'smooth', block:'nearest' });
-    AchievementSystem.unlock('first_hash');
   },
 
   setLabEncMode: mode => {
