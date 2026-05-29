@@ -39,6 +39,19 @@ const AchievementSystem = {
 };
 AchievementSystem.init();
 
+const Leaderboard = {
+  stats: { toolsRun: 0, bytesHashed: 0, msgsEncrypted: 0 },
+  init: () => { const s = localStorage.getItem('nix_stats'); if(s) Leaderboard.stats = JSON.parse(s); },
+  save: () => { localStorage.setItem('nix_stats', JSON.stringify(Leaderboard.stats)); },
+  track: (type, val) => {
+    if(type === 'tool') Leaderboard.stats.toolsRun++;
+    if(type === 'hash') Leaderboard.stats.bytesHashed += val;
+    if(type === 'enc') Leaderboard.stats.msgsEncrypted++;
+    Leaderboard.save();
+  }
+};
+Leaderboard.init();
+
 const App = {
   compareTimeout: null,
   crackWorker: null,
@@ -301,6 +314,10 @@ const App = {
       document.getElementById('btn-run-hash').disabled = false;
       document.getElementById('btn-run-hash').innerText = 'EXECUTE HASH FUNCTION';
       document.getElementById('hash-progress-area').style.display = 'none';
+      
+      Leaderboard.track('tool');
+      if (fileObj) Leaderboard.track('hash', fileObj.size);
+      else Leaderboard.track('hash', new TextEncoder().encode(textInput + salt).length);
     };
 
     if (fileObj) {
@@ -363,6 +380,8 @@ const App = {
         dbgKey.innerText = r.key;
         document.getElementById('lab-btn-copy').style.display = 'flex';
         AchievementSystem.unlock('crypto_ninja');
+        Leaderboard.track('tool');
+        Leaderboard.track('enc');
       } else {
         try {
           const r = await CE.decrypt(data, pass);
@@ -411,6 +430,8 @@ const App = {
       const r = await CE.rsaEncrypt(plain, pubKey);
       document.getElementById('rsa-cipher-out').innerText = r.cipher;
       document.getElementById('rsa-enc-res').style.display = 'block';
+      Leaderboard.track('tool');
+      Leaderboard.track('enc');
     } catch (e) { alert('RSA Encryption Failed: Check Public Key format.'); }
   },
 
@@ -1911,6 +1932,7 @@ const App = {
       bundle.set(new Uint8Array(ciphertext), 12);
       
       document.getElementById('ecdh-cipher-out').value = CE.bufToHex(bundle);
+      Leaderboard.track('enc');
     } catch (e) { alert("Encrypt failed: " + e.message); }
   },
 
@@ -1944,6 +1966,13 @@ const App = {
     let intVal = parseInt(lastChar, 16) ^ 1;
     cipherEl.value = hex.substring(0, hex.length-1) + intVal.toString(16);
     App.flash('ecdh-cipher-out');
+  },
+
+  showStats: () => {
+    document.getElementById('stat-tools').innerText = Leaderboard.stats.toolsRun;
+    document.getElementById('stat-bytes').innerText = Leaderboard.stats.bytesHashed.toLocaleString();
+    document.getElementById('stat-msgs').innerText = Leaderboard.stats.msgsEncrypted;
+    document.getElementById('stats-modal').style.display = 'block';
   },
 
   showAchievements: () => {

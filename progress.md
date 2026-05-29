@@ -66,6 +66,7 @@
 
 - [x] **Two-user demo: add a "Tamper the ciphertext" button**: Completed. A bit-flipper modifies the AES-GCM ciphertext payload and attempts to decrypt it with the shared key, visually demonstrating an authentication failure.
 - [x] **Session export encrypted mode**: Completed. Appends an AES-GCM passphrase step to the session exporter, actively leveraging the lab's own cryptographic routines to protect the serialized state.
+- [x] **Leaderboard (Local Stats)**: Completed. Implemented `Leaderboard` to track total tools executed, bytes hashed, and messages encrypted using `localStorage` and a new stats HUD overlay.
 
 ## Verification & Build Status
 

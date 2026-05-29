@@ -96,6 +96,7 @@
       <div class="hud-module">TACTICAL SANDBOX</div>
     </div>
     <div class="hud-right">
+      <button class="btn" style="padding:4px 8px; font-size:10px; margin-right:8px;" onclick="App.showStats()">📊 STATS</button>
       <button class="btn" style="padding:4px 8px; font-size:10px; margin-right:8px;" onclick="App.showAchievements()">🏆 ACHIEVEMENTS</button>
       <span class="status-tag st-ok">LOGGING DISABLED</span>
     </div>
@@ -812,6 +813,19 @@
   </div>
   <div id="achievements-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap:16px;">
     <!-- Badges rendered here -->
+  </div>
+</div>
+
+<!-- STATS MODAL -->
+<div id="stats-modal" style="display:none; position:fixed; top:20%; left:20%; right:20%; z-index:1000; background:var(--bg); border:2px solid var(--c); padding:24px; box-shadow:0 0 30px rgba(0,0,0,0.8);">
+  <div style="display:flex; justify-content:space-between; margin-bottom:24px;">
+    <div class="panel-title"><span>LOCAL LEADERBOARD & STATS</span></div>
+    <button class="btn" onclick="document.getElementById('stats-modal').style.display='none'">CLOSE</button>
+  </div>
+  <div style="font-family:var(--font-mono); color:var(--c); font-size:18px; line-height:2.0;">
+    <div><strong>TOOLS EXECUTED:</strong> <span id="stat-tools" style="color:var(--bright);">0</span></div>
+    <div><strong>TOTAL DATA HASHED:</strong> <span id="stat-bytes" style="color:var(--bright);">0</span> BYTES</div>
+    <div><strong>MESSAGES ENCRYPTED:</strong> <span id="stat-msgs" style="color:var(--bright);">0</span></div>
   </div>
 </div>
 
