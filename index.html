@@ -109,6 +109,7 @@
     <div class="lab-tab" id="btn-tab-cert" onclick="App.switchLabTab('cert')" tabindex="0" role="button">Cert Inspector</div>
     <div class="lab-tab" id="btn-tab-entropy" onclick="App.switchLabTab('entropy')" tabindex="0" role="button">Entropy Analyzer</div>
     <div class="lab-tab" id="btn-tab-birthday" onclick="App.switchLabTab('birthday')" tabindex="0" role="button">Birthday Attack</div>
+    <div class="lab-tab" id="btn-tab-ecdh" onclick="App.switchLabTab('ecdh')" tabindex="0" role="button" style="color:var(--c4); border-color:var(--c4);">ECDH Exchange Demo</div>
   </div>
 
   <!-- HASH TAB -->
@@ -727,6 +728,57 @@
           <div class="readout" id="bd-hash" style="color:var(--c2); font-size:14px; margin-top:4px;"></div>
         </div>
         <button class="btn btn-full" style="margin-top:16px;" onclick="App.exportBirthdayProof()">EXPORT PROOF CARD (JSON)</button>
+      </div>
+    </div>
+  <div id="lab-ecdh" class="lab-panel">
+    <div class="panel" style="border-color:var(--c4);">
+      <div class="panel-title" style="color:var(--c4);"><span>TWO-USER ECDH KEY EXCHANGE (END-TO-END)</span></div>
+      <p style="font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-bottom:24px;line-height:1.8;">Elliptic Curve Diffie-Hellman allows two parties to establish a shared secret over an insecure channel. No server is used here. Send your public key link to a friend, or scan the QR code to connect.</p>
+      
+      <div id="ecdh-step-1">
+        <button class="btn btn-primary btn-full" style="border-color:var(--c4); color:var(--c4);" onclick="App.startECDHExchange()">1. START KEY EXCHANGE (GENERATE P-256 PAIR)</button>
+      </div>
+
+      <div id="ecdh-step-2" style="display:none; margin-top:24px;">
+        <span class="form-label" style="color:var(--c4);">Your Public Key Link (Send this to your partner)</span>
+        <div style="display:flex; gap:8px; margin-bottom:16px;">
+          <input type="text" id="ecdh-my-link" class="form-input" readonly>
+          <button class="btn" onclick="App.copyToClipboard('ecdh-my-link')">COPY</button>
+        </div>
+        <div style="text-align:center; margin-bottom:24px; background:#fff; padding:16px; display:inline-block; border-radius:4px;" id="ecdh-qr-container"></div>
+        
+        <span class="form-label">Partner's Public Key Link (Paste what they send you)</span>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="ecdh-partner-link" class="form-input" placeholder="https://...#ecdh=...">
+          <button class="btn btn-primary" onclick="App.deriveECDHSecret()">2. DERIVE SHARED SECRET</button>
+        </div>
+      </div>
+
+      <div id="ecdh-step-3" style="display:none; margin-top:24px; border-top:1px solid var(--border); padding-top:24px;">
+        <div class="panel-title"><span class="status-tag" style="background:var(--c4); color:#000;">SECURE CHANNEL ESTABLISHED</span></div>
+        <div style="margin-bottom:16px; text-align:center;">
+          <span style="color:var(--muted); font-size:9px;">SHARED SECRET FINGERPRINT (SHA-256)</span>
+          <div class="readout" id="ecdh-fingerprint" style="color:var(--c4); font-size:14px; margin-top:4px;"></div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+          <div>
+            <span class="form-label">Encrypt Message (Send)</span>
+            <textarea id="ecdh-msg-out" class="form-input" rows="3" placeholder="Type a secret message..."></textarea>
+            <button class="btn btn-full" style="margin-top:8px;" onclick="App.encryptECDHMessage()">ENCRYPT (AES-GCM)</button>
+            <textarea id="ecdh-cipher-out" class="form-input" rows="3" readonly style="margin-top:8px; font-size:11px;" placeholder="Ciphertext will appear here..."></textarea>
+            <div style="display:flex; gap:8px; margin-top:8px;">
+              <button class="btn btn-full" onclick="App.copyToClipboard('ecdh-cipher-out')">COPY</button>
+              <button class="btn btn-full" style="border-color:var(--c2); color:var(--c2);" onclick="App.tamperECDHCipher()">TAMPER</button>
+            </div>
+          </div>
+          <div>
+            <span class="form-label">Decrypt Message (Receive)</span>
+            <textarea id="ecdh-cipher-in" class="form-input" rows="3" placeholder="Paste partner's ciphertext here..."></textarea>
+            <button class="btn btn-full" style="margin-top:8px;" onclick="App.decryptECDHMessage()">DECRYPT (AES-GCM)</button>
+            <textarea id="ecdh-msg-in" class="form-input" rows="3" readonly style="margin-top:8px;" placeholder="Decrypted plaintext..."></textarea>
+          </div>
+        </div>
       </div>
     </div>
   </div>

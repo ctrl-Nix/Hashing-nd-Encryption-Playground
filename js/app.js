@@ -1614,5 +1614,137 @@ const App = {
     a.download = `collision_proof_${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
+  },
+
+  /* ─── ECDH KEY EXCHANGE LAB ─── */
+  startECDHExchange: async () => {
+    try {
+      const keys = await CE.generateECDH();
+      App.S.lab.ecdhKeys = keys;
+      
+      const payload = btoa(JSON.stringify(keys.pubJwk)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      const link = window.location.origin + window.location.pathname + '#ecdh=' + payload;
+      
+      document.getElementById('ecdh-my-link').value = link;
+      document.getElementById('ecdh-step-1').style.display = 'none';
+      document.getElementById('ecdh-step-2').style.display = 'block';
+      
+      const qrContainer = document.getElementById('ecdh-qr-container');
+      qrContainer.innerHTML = '';
+      new QRCode(qrContainer, {
+        text: link,
+        width: 150,
+        height: 150,
+        colorDark : "#000000",
+        colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.L
+      });
+    } catch (e) { alert('ECDH Error: ' + e.message); }
+  },
+
+  parseECDHFragment: async () => {
+    const hash = window.location.hash;
+    if (hash.startsWith('#ecdh=')) {
+      try {
+        let b64Url = hash.substring(6);
+        let b64 = b64Url.replace(/-/g, '+').replace(/_/g, '/');
+        while (b64.length % 4) { b64 += '='; }
+        const jwkStr = atob(b64);
+        const jwk = JSON.parse(jwkStr);
+        
+        App.S.lab.ecdhPartnerJwk = jwk;
+        document.getElementById('ecdh-partner-link').value = window.location.href;
+        
+        // Auto-start step 1 if not done
+        if (!App.S.lab.ecdhKeys) {
+          await App.startECDHExchange();
+        }
+      } catch (e) {
+        console.error("Invalid ECDH fragment", e);
+      }
+    }
+  },
+
+  deriveECDHSecret: async () => {
+    let partnerStr = document.getElementById('ecdh-partner-link').value;
+    if (!partnerStr) return alert("Paste partner link first.");
+    try {
+      if (partnerStr.includes('#ecdh=')) {
+        let b64Url = partnerStr.split('#ecdh=')[1];
+        let b64 = b64Url.replace(/-/g, '+').replace(/_/g, '/');
+        while (b64.length % 4) { b64 += '='; }
+        App.S.lab.ecdhPartnerJwk = JSON.parse(atob(b64));
+      }
+      
+      const partnerKey = await CE.importPublicKeyECDH(App.S.lab.ecdhPartnerJwk);
+      const derived = await CE.deriveKeyECDH(App.S.lab.ecdhKeys.pair.privateKey, partnerKey);
+      
+      App.S.lab.ecdhSharedSecret = derived.derivedKey;
+      document.getElementById('ecdh-fingerprint').innerText = derived.fingerprint;
+      
+      document.getElementById('ecdh-step-2').style.display = 'none';
+      document.getElementById('ecdh-step-3').style.display = 'block';
+    } catch (e) {
+      alert("Derivation Failed: " + e.message);
+    }
+  },
+
+  encryptECDHMessage: async () => {
+    const msg = document.getElementById('ecdh-msg-out').value;
+    if (!msg || !App.S.lab.ecdhSharedSecret) return;
+    try {
+      const encoded = new TextEncoder().encode(msg);
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const ciphertext = await crypto.subtle.encrypt(
+        { name: 'AES-GCM', iv: iv },
+        App.S.lab.ecdhSharedSecret,
+        encoded
+      );
+      // Bundle IV + Ciphertext
+      const bundle = new Uint8Array(12 + ciphertext.byteLength);
+      bundle.set(iv, 0);
+      bundle.set(new Uint8Array(ciphertext), 12);
+      
+      document.getElementById('ecdh-cipher-out').value = CE.bufToHex(bundle);
+    } catch (e) { alert("Encrypt failed: " + e.message); }
+  },
+
+  decryptECDHMessage: async () => {
+    const hex = document.getElementById('ecdh-cipher-in').value.trim();
+    if (!hex || !App.S.lab.ecdhSharedSecret) return;
+    try {
+      const bytes = new Uint8Array(hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+      const iv = bytes.slice(0, 12);
+      const data = bytes.slice(12);
+      
+      const decrypted = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv: iv },
+        App.S.lab.ecdhSharedSecret,
+        data
+      );
+      document.getElementById('ecdh-msg-in').value = new TextDecoder().decode(decrypted);
+      document.getElementById('ecdh-msg-in').style.color = "var(--c3)";
+    } catch (e) {
+      document.getElementById('ecdh-msg-in').value = "ERROR: Decryption Failed (Authentication Tag Mismatch)";
+      document.getElementById('ecdh-msg-in').style.color = "var(--c2)";
+    }
+  },
+
+  tamperECDHCipher: () => {
+    const cipherEl = document.getElementById('ecdh-cipher-out');
+    let hex = cipherEl.value;
+    if(!hex) return;
+    // flip last bit
+    let lastChar = hex[hex.length-1];
+    let intVal = parseInt(lastChar, 16) ^ 1;
+    cipherEl.value = hex.substring(0, hex.length-1) + intVal.toString(16);
+    App.flash('ecdh-cipher-out');
   }
 };
+
+setTimeout(() => {
+  if (window.location.hash.startsWith('#ecdh=')) {
+    App.switchLabTab('ecdh');
+    App.parseECDHFragment();
+  }
+}, 500);
