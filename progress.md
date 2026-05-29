@@ -26,3 +26,23 @@
 - **Development Server**: Verified locally.
 - **Console Errors**: None.
 - **Web Worker drag responsiveness test**: Success. The UI remains fully smooth during dictionary search.
+
+---
+
+# Progress Log — Hashing & Encryption Playground v2
+
+## Core Spec & Checklist Status
+
+- [x] **New sandbox tool — ECDSA Digital Signature**: Completed. Generates P-256 key pair, signs message, displays Base64 signature, and verifies tampering. Private keys are securely contained.
+- [x] **New sandbox tool — Certificate Inspector**: Completed. Parses pasted PEM X.509 certificates to extract Issuer, Subject, Validity, Serial Number, and calculates SHA-256 fingerprint without third-party libraries.
+- [x] **New sandbox tool — Entropy Analyzer**: Completed. Calculates Shannon Entropy bits-per-character in real-time, displays total entropy bits, and features an interactive strength gauge.
+- [x] **New sandbox tool — Birthday Attack Visualizer**: Completed. Uses a dedicated Web Worker (`birthday-worker.js`) to rapidly find collisions on truncated SHA-256 hashes (8 to 20 bits) and visualizes the collision probability curve in real-time.
+- [x] **Mobile Responsiveness overhaul**: Completed. Updated `ui.css` and `index.html` to fully support viewport widths down to 375px. Converted navigation tabs to a horizontal scrolling container and collapsed grids on mobile.
+- [x] **Touch-friendly UI pass**: Completed. Implemented `44x44px` minimum touch targets for tabs, buttons, inputs, and interactive cards. Replaced mouse-only `:hover` effects with focus and active states.
+
+## Verification & Build Status
+
+- **Development Server**: Verified locally.
+- **Console Errors**: None.
+- **Mobile Emulation**: Verified 375px, 480px, and 768px breakpoints.
+- **Web Worker**: Collision detection correctly offloaded, UI remains highly responsive during intense hash iteration loops.

@@ -25,14 +25,18 @@ An unrestricted technical environment for raw experimentation.
 - **HMAC Auth**: Generate Hash-based Message Authentication Codes to verify data integrity.
 - **LSB Steganography**: Hide and extract encrypted payloads within image pixels using Least Significant Bit encoding.
 - **MD5 Cracker**: Run off-main-thread dictionary cracking attacks to demonstrate MD5 vulnerabilities.
+- **ECDSA Signatures**: Generate P-256 keys, sign payloads securely, and observe cryptographic tampering detection.
+- **Certificate Inspector**: Parse PEM X.509 certificates to extract Issuer, Subject, Validity, and SHA-256 fingerprints without third-party libraries.
+- **Entropy Analyzer**: Calculate Shannon Entropy and measure bits-per-character density of input strings in real-time.
+- **Birthday Attack**: Visualize hash collision probability curves utilizing a high-performance Web Worker to brute-force truncated hashes.
 
 ---
 
 ## 🛠️ Technical Architecture
 - **Engine**: Built on the native **Web Crypto API** for high-performance, industry-standard cryptographic operations.
 - **Frontend**: Vanilla JavaScript (ES6+) with a modular architecture (`app.js`, `crypto.js`, `data.js`, `story-mode-v2.js`, `story-explain.js`).
-- **Web Workers**: Dedicated `md5-worker.js` for non-blocking UI during heavy dictionary attacks.
-- **Styling**: Cyber-themed "NIX" UI system using custom CSS variables, sticky navigation, CRT scanlines, and high-contrast typography (`theme.css`, `ui.css`, `story-enhance.css`).
+- **Web Workers**: Dedicated `md5-worker.js` and `birthday-worker.js` for non-blocking UI during intense hashing loops.
+- **Styling**: Fully mobile-responsive cyber-themed "NIX" UI system using CSS `clamp()`, flexible grids, CRT scanlines, and 44x44px touch targets.
 - **Compatibility**: Extensively audited and cross-browser tested on modern Chrome, Firefox, and Safari.
 
 ---
