@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/theme.css">
 <link rel="stylesheet" href="css/ui.css">
+<link rel="stylesheet" href="css/story-enhance.css">
 </head>
 <body>
 <div class="bg-ambient"></div>
@@ -24,13 +25,13 @@
   <div class="title-hero">CODE IT.<br>LOCK IT.<br>HASH IT.</div>
   <div class="title-sub">ADVANCED CRYPTOGRAPHY SANDBOX &amp; CYBER-DEFENSE SIMULATION</div>
   <div class="menu-grid">
-    <div class="menu-card mc-story" onclick="App.openAliasScreen()">
+    <div class="menu-card mc-story" onclick="App.openAliasScreen()" tabindex="0" role="button">
       <span class="mc-num">01 // MISSION</span>
       <div class="mc-title">Story Mode</div>
       <div class="mc-desc">Guided narrative simulation. Master cryptographic fundamentals under fire. Visualize avalanche effects. Defend against live breach attempts.</div>
       <div class="mc-arrow">ENTER →</div>
     </div>
-    <div class="menu-card mc-lab" onclick="App.startLab()">
+    <div class="menu-card mc-lab" onclick="App.startLab()" tabindex="0" role="button">
       <span class="mc-num">02 // SANDBOX</span>
       <div class="mc-title">Pro Sandbox</div>
       <div class="mc-desc">Unrestricted technical environment. Raw hashing engines, bit visualizers, and fully functional AES-256-GCM encryption utilities.</div>
@@ -97,12 +98,13 @@
     <div class="hud-right"><span class="status-tag st-ok">LOGGING DISABLED</span></div>
   </div>
   <div class="lab-tabs">
-    <div class="lab-tab active" id="btn-tab-hash" onclick="App.switchLabTab('hash')">Hash Engine</div>
-    <div class="lab-tab" id="btn-tab-compare" onclick="App.switchLabTab('compare')">Compare All Algos</div>
-    <div class="lab-tab" id="btn-tab-enc" onclick="App.switchLabTab('enc')">AES-GCM Utility</div>
-    <div class="lab-tab" id="btn-tab-rsa" onclick="App.switchLabTab('rsa')">RSA Asymmetric</div>
-    <div class="lab-tab" id="btn-tab-hmac" onclick="App.switchLabTab('hmac')">HMAC Auth</div>
-    <div class="lab-tab" id="btn-tab-stego" onclick="App.switchLabTab('stego')">Steganography</div>
+    <div class="lab-tab active" id="btn-tab-hash" onclick="App.switchLabTab('hash')" tabindex="0" role="button">Hash Engine</div>
+    <div class="lab-tab" id="btn-tab-compare" onclick="App.switchLabTab('compare')" tabindex="0" role="button">Compare All Algos</div>
+    <div class="lab-tab" id="btn-tab-enc" onclick="App.switchLabTab('enc')" tabindex="0" role="button">AES-GCM Utility</div>
+    <div class="lab-tab" id="btn-tab-rsa" onclick="App.switchLabTab('rsa')" tabindex="0" role="button">RSA Asymmetric</div>
+    <div class="lab-tab" id="btn-tab-hmac" onclick="App.switchLabTab('hmac')" tabindex="0" role="button">HMAC Auth</div>
+    <div class="lab-tab" id="btn-tab-stego" onclick="App.switchLabTab('stego')" tabindex="0" role="button">Steganography</div>
+    <div class="lab-tab" id="btn-tab-cracker" onclick="App.switchLabTab('cracker')" tabindex="0" role="button">MD5 Cracker</div>
   </div>
 
   <!-- HASH TAB -->
@@ -118,7 +120,7 @@
             <span class="form-label" style="color:var(--c3);">Security Salt (Optional)</span>
             <div style="display:flex; gap:8px;">
               <input type="text" id="lab-hash-salt" class="form-input" placeholder="e.g. 7f9a2b..." style="flex:1;">
-              <button class="btn" onclick="App.genRandomSalt()" title="Generate Random Salt">
+              <button class="btn" onclick="App.genRandomSalt()" title="Generate Random Salt" aria-label="Generate Random Salt">
                 <span style="font-size:10px; letter-spacing:1px;">[ RNG_GEN ]</span>
               </button>
             </div>
@@ -138,6 +140,7 @@
             <div id="drop-filename" class="drop-filename"></div>
             <input type="file" id="file-input" style="display:none;">
           </div>
+          <button id="btn-clear-file" class="btn" style="display:none; margin-top:8px; width:100%; font-size:11px;" onclick="App.clearLabFile(event)">[ CLEAR SELECTED FILE ]</button>
         </div>
       </div>
 
@@ -164,10 +167,10 @@
 
       <span class="form-label" style="margin-top:24px;">Select Hash Algorithm</span>
       <div class="algo-grid" id="lab-algo-grid">
-        <div class="algo-card" id="lab-MD5" onclick="App.setLabAlgo('MD5')"><div class="algo-dot"></div><div><div class="algo-name">MD5</div><div class="algo-tag">128-BIT (BROKEN)</div></div></div>
-        <div class="algo-card" id="lab-SHA-1" onclick="App.setLabAlgo('SHA-1')"><div class="algo-dot"></div><div><div class="algo-name">SHA-1</div><div class="algo-tag">160-BIT (DEPREC)</div></div></div>
-        <div class="algo-card selected" id="lab-SHA-256" onclick="App.setLabAlgo('SHA-256')"><div class="algo-dot"></div><div><div class="algo-name">SHA-256</div><div class="algo-tag">256-BIT (SECURE)</div></div></div>
-        <div class="algo-card" id="lab-SHA-512" onclick="App.setLabAlgo('SHA-512')"><div class="algo-dot"></div><div><div class="algo-name">SHA-512</div><div class="algo-tag">512-BIT (SECURE)</div></div></div>
+        <div class="algo-card" id="lab-MD5" onclick="App.setLabAlgo('MD5')" tabindex="0" role="button"><div class="algo-dot"></div><div><div class="algo-name">MD5</div><div class="algo-tag">128-BIT (BROKEN)</div></div></div>
+        <div class="algo-card" id="lab-SHA-1" onclick="App.setLabAlgo('SHA-1')" tabindex="0" role="button"><div class="algo-dot"></div><div><div class="algo-name">SHA-1</div><div class="algo-tag">160-BIT (DEPREC)</div></div></div>
+        <div class="algo-card selected" id="lab-SHA-256" onclick="App.setLabAlgo('SHA-256')" tabindex="0" role="button"><div class="algo-dot"></div><div><div class="algo-name">SHA-256</div><div class="algo-tag">256-BIT (SECURE)</div></div></div>
+        <div class="algo-card" id="lab-SHA-512" onclick="App.setLabAlgo('SHA-512')" tabindex="0" role="button"><div class="algo-dot"></div><div><div class="algo-name">SHA-512</div><div class="algo-tag">512-BIT (SECURE)</div></div></div>
       </div>
       <button class="btn btn-primary btn-full" onclick="App.runLabHash()">EXECUTE HASH FUNCTION</button>
     </div>
@@ -393,15 +396,15 @@
       <span class="form-label">Shared Secret Key</span>
       <div style="display:flex; gap:8px;">
         <input type="password" id="hmac-key" class="form-input" placeholder="Enter secret signing key..." style="flex:1;">
-        <button class="btn" onclick="App.genHMACKey()" title="Generate Random Key">
+        <button class="btn" onclick="App.genHMACKey()" title="Generate Random Key" aria-label="Generate Random Key">
           <span style="font-size:10px; letter-spacing:1px;">[ RNG_KEY ]</span>
         </button>
       </div>
 
       <span class="form-label" style="margin-top:24px;">HMAC Algorithm</span>
       <div class="algo-grid" id="hmac-algo-grid">
-        <div class="algo-card selected" id="hmac-SHA-256" onclick="App.setHMACAlgo('SHA-256')"><div class="algo-dot"></div><div><div class="algo-name">HMAC-SHA-256</div><div class="algo-tag">RECOMMENDED</div></div></div>
-        <div class="algo-card" id="hmac-SHA-512" onclick="App.setHMACAlgo('SHA-512')"><div class="algo-dot"></div><div><div class="algo-name">HMAC-SHA-512</div><div class="algo-tag">EXTREME</div></div></div>
+        <div class="algo-card selected" id="hmac-SHA-256" onclick="App.setHMACAlgo('SHA-256')" tabindex="0" role="button"><div class="algo-dot"></div><div><div class="algo-name">HMAC-SHA-256</div><div class="algo-tag">RECOMMENDED</div></div></div>
+        <div class="algo-card" id="hmac-SHA-512" onclick="App.setHMACAlgo('SHA-512')" tabindex="0" role="button"><div class="algo-dot"></div><div><div class="algo-name">HMAC-SHA-512</div><div class="algo-tag">EXTREME</div></div></div>
       </div>
 
       <button class="btn btn-primary btn-full" onclick="App.runLabHMAC()">GENERATE AUTHENTICATION CODE</button>
@@ -430,7 +433,7 @@
   <div id="lab-stego" class="lab-panel">
     <div class="panel">
       <div class="panel-title"><span>IMAGE STEGANOGRAPHY (LSB ENGINE)</span></div>
-      <p style="font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-bottom:24px;line-height:1.8;">Hide encrypted data inside the pixels of an image. We use the **Least Significant Bit** of the Red, Green, and Blue channels. The visual difference is so small it is undetectable by the human eye.</p>
+      <p style="font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-bottom:24px;line-height:1.8;">Hide encrypted data inside the pixels of an image. We use the <strong>Least Significant Bit</strong> of the Red, Green, and Blue channels. The visual difference is so small it is undetectable by the human eye.</p>
       
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px;">
         <div>
@@ -473,12 +476,94 @@
       </div>
     </div>
   </div>
+
+  <!-- MD5 CRACKER TAB -->
+  <div id="lab-cracker" class="lab-panel">
+    <div class="panel">
+      <div class="panel-title"><span>MD5 PASSWORD CRACKER SIMULATION</span></div>
+      <p style="font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-bottom:24px;line-height:1.8;">This simulation demonstrates why <strong style="color:var(--c2);">MD5 is broken</strong> for password storage. A <strong style="color:var(--c);">Web Worker</strong> runs a dictionary attack against an MD5 hash using 2000 common passwords — and the UI stays fully responsive because all computation happens off the main thread.</p>
+      
+      <span class="form-label">Select Target Password</span>
+      <select id="crack-password-select" class="form-input" style="min-height:auto; padding:12px 16px; cursor:pointer;" onchange="App.updateCrackTargetHash()">
+        <option value="password">password</option>
+        <option value="123456">123456</option>
+        <option value="monkey" selected>monkey</option>
+        <option value="dragon">dragon</option>
+        <option value="master">master</option>
+        <option value="qwerty">qwerty</option>
+        <option value="login">login</option>
+        <option value="abc123">abc123</option>
+        <option value="letmein">letmein</option>
+        <option value="welcome">welcome</option>
+      </select>
+
+      <div style="margin-top:16px;">
+        <span class="form-label">Target MD5 Hash</span>
+        <div class="readout readout-red" id="crack-target-hash" style="font-size:12px;">—</div>
+      </div>
+
+      <div class="btn-group" style="margin-top:16px;">
+        <button class="btn btn-danger" id="btn-crack-start" onclick="App.startMD5Crack()" style="flex:1;">⚡ INITIATE DICTIONARY ATTACK</button>
+        <button class="btn" id="btn-crack-stop" onclick="App.stopMD5Crack()" style="display:none;">◼ ABORT</button>
+      </div>
+    </div>
+
+    <div id="crack-progress-area" style="display:none;">
+      <div class="panel">
+        <div class="crack-progress-wrap">
+          <div class="crack-progress-bar"><div class="crack-progress-fill" id="crack-fill"></div></div>
+          <div class="crack-progress-text">
+            <span id="crack-progress-count">0 / 2000</span>
+            <span id="crack-progress-pct">0%</span>
+          </div>
+        </div>
+        <div class="crack-terminal" id="crack-terminal"></div>
+      </div>
+    </div>
+
+    <div id="crack-result-area" style="display:none;">
+      <div class="panel">
+        <div class="crack-found">
+          <div class="status-tag st-err" style="font-size:11px;">PASSWORD CRACKED</div>
+          <div class="crack-password" id="crack-result-password">—</div>
+          <div style="margin-top:12px;">
+            <span style="font-family:var(--font-mono);font-size:10px;color:var(--muted);letter-spacing:2px;">CRACK TIME: </span>
+            <span class="crack-timer" id="crack-result-time">—</span>
+          </div>
+          <div style="margin-top:8px;">
+            <span style="font-family:var(--font-mono);font-size:10px;color:var(--muted);letter-spacing:2px;">ATTEMPTS: </span>
+            <span style="font-family:var(--font-display);font-size:18px;color:var(--c);" id="crack-result-attempts">—</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title"><span style="color:var(--c2);">WHY MD5 IS BROKEN FOR PASSWORDS</span></div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--muted);line-height:2;">
+          <div style="margin-bottom:12px;">
+            <span style="color:var(--c2);">1.</span> <strong style="color:var(--bright);">Speed is the enemy.</strong> MD5 was designed to be fast — a modern GPU can compute <span style="color:var(--c2);">billions</span> of MD5 hashes per second.
+          </div>
+          <div style="margin-bottom:12px;">
+            <span style="color:var(--c2);">2.</span> <strong style="color:var(--bright);">No salt by default.</strong> The same password always produces the same hash, enabling pre-computed rainbow table attacks.
+          </div>
+          <div style="margin-bottom:12px;">
+            <span style="color:var(--c2);">3.</span> <strong style="color:var(--bright);">Collision vulnerability.</strong> Two different inputs can produce the same MD5 hash, undermining integrity guarantees.
+          </div>
+          <div>
+            <span style="color:var(--c3);">// FIX:</span> Use purpose-built password hashing like <strong style="color:var(--c3);">bcrypt</strong>, <strong style="color:var(--c3);">scrypt</strong>, or <strong style="color:var(--c3);">Argon2</strong> — they are intentionally slow and include built-in salting.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 </div><!-- /.app -->
 
 <script src="js/data.js"></script>
+<script src="js/story-explain.js"></script>
 <script src="js/crypto.js"></script>
 <script src="js/app.js"></script>
+<script src="js/story-mode-v2.js"></script>
 </body>
 </html>

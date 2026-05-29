@@ -44,7 +44,7 @@ const StoryData = {
     {
       title: '04: INCIDENT ZERO',
       module: 'MODULE 04',
-      dialogue: 'HCK',
+      dialogue: 'HACK',
       text: 'Perimeter breached. Extracting data. Let\'s see what you\'re hiding behind those hashes...'
     },
     {
@@ -60,8 +60,20 @@ const StoryData = {
       text: 'The enemy is smart. They aren\'t just attacking our servers; they are trying to sneak data out right under our noses using <span class="hl">Steganography</span>.<br><br>By hiding encrypted ciphertext in the <strong>Least Significant Bits</strong> of image pixels, a secret message can be sent inside an innocent-looking photo. The change is invisible to the human eye.'
     },
     {
-      title: '07: FINAL EVALUATION',
+      title: '07: THE FORGER',
       module: 'MODULE 07',
+      dialogue: 'NIX',
+      text: 'Hashing proves data hasn\'t changed. Encryption hides it. But how do you prove <strong>who</strong> sent a message?<br><br><span class="hl">Digital Signatures</span> solve this. Using <strong>ECDSA P-256</strong>, the sender signs a message with their private key. Anyone with the public key can verify it — but nobody can forge the signature without the private key.<br><br>Type a message, sign it, then watch what happens when a single bit is tampered with.'
+    },
+    {
+      title: '08: THE CERTIFICATE AUTHORITY',
+      module: 'MODULE 08',
+      dialogue: 'SRV',
+      text: 'Digital signatures prove identity. But how does your browser trust a server it has <strong>never met before</strong>?<br><br>The answer is <span class="hl">Public Key Infrastructure (PKI)</span>. A trusted <strong>Certificate Authority</strong> signs a server\'s certificate. Your browser checks the chain: Server Cert → CA Signature → Trusted Root. If any link breaks, the padlock turns red.<br><br>Now you are the CA. Issue a certificate, verify it, and see what happens when someone tampers with the chain.'
+    },
+    {
+      title: '09: FINAL EVALUATION',
+      module: 'MODULE 09',
       dialogue: 'NIX',
       text: (alias) => `All modules cleared. Threat actors expelled. You have mastered the fundamentals of the Matrix Protocol, ${alias}.<br><br>Complete this final assessment to secure your operational clearance.`
     }
@@ -87,6 +99,16 @@ const StoryData = {
       q: 'What happened when the AES-GCM ciphertext was tampered with?',
       o: ['The server silently decrypted a corrupted message', 'The server crashed with a timeout error', 'AES-GCM threw an Authentication Tag Mismatch and safely blocked it'],
       c: 2
+    },
+    {
+      q: 'What does a digital signature (ECDSA) prove about a message?',
+      o: ['That the data is encrypted and unreadable by third parties', 'That the message was sent by the holder of the private key and was not tampered with', 'That the message was transmitted over a secure HTTPS connection'],
+      c: 1
+    },
+    {
+      q: 'Why does your browser trust a website\'s HTTPS certificate?',
+      o: ['Because the URL starts with https://', 'Because a trusted Certificate Authority signed it, forming a verifiable chain of trust', 'Because the server uses AES-256 encryption for all data'],
+      c: 1
     }
   ]
 };

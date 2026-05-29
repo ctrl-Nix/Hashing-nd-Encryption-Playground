@@ -6,7 +6,7 @@ const CE = {
   hexToBuf: h => new Uint8Array(h.match(/.{1,2}/g).map(b => parseInt(b, 16))),
   hexToBits: h => h.split('').map(c => parseInt(c,16).toString(2).padStart(4,'0')).join(''),
 
-  md5: str => {
+  md5: input => {
     function safeAdd(x,y){const l=(x&0xFFFF)+(y&0xFFFF),m=(x>>16)+(y>>16)+(l>>16);return(m<<16)|(l&0xFFFF);}
     function rol(n,c){return(n<<c)|(n>>>(32-c));}
     function cmn(q,a,b,x,s,t){return safeAdd(rol(safeAdd(safeAdd(a,q),safeAdd(x,t)),s),b);}
@@ -14,8 +14,14 @@ const CE = {
     function gg(a,b,c,d,x,s,t){return cmn((b&d)|(c&~d),a,b,x,s,t);}
     function hh(a,b,c,d,x,s,t){return cmn(b^c^d,a,b,x,s,t);}
     function ii(a,b,c,d,x,s,t){return cmn(c^(b|~d),a,b,x,s,t);}
-    const bytes=[];
-    for(let i=0;i<str.length;i++){const c=str.charCodeAt(i);if(c<128)bytes.push(c);else if(c<2048)bytes.push(192|(c>>6),128|(c&63));else bytes.push(224|(c>>12),128|((c>>6)&63),128|(c&63));}
+    // Accept both string and Uint8Array/ArrayBuffer for binary-safe MD5
+    let bytes;
+    if (typeof input === 'string') {
+      bytes = [];
+      for(let i=0;i<input.length;i++){const c=input.charCodeAt(i);if(c<128)bytes.push(c);else if(c<2048)bytes.push(192|(c>>6),128|(c&63));else bytes.push(224|(c>>12),128|((c>>6)&63),128|(c&63));}
+    } else {
+      bytes = Array.from(input instanceof ArrayBuffer ? new Uint8Array(input) : (ArrayBuffer.isView(input) ? new Uint8Array(input.buffer, input.byteOffset, input.byteLength) : new Uint8Array(input)));
+    }
     const len8=bytes.length,len16=(len8+72)>>6;
     const M=new Array(len16*16).fill(0);
     for(let i=0;i<len8;i++)M[i>>2]|=bytes[i]<<((i%4)*8);
@@ -55,10 +61,8 @@ const CE = {
     const buffer = (typeof data === 'string') ? new TextEncoder().encode(data) : data;
     
     if(algo === 'MD5') {
-      // MD5 implementation still expects a string for its internal byte processing
-      // so we convert back if needed, but for files we'll use a string-safe approach
-      const str = (typeof data === 'string') ? data : new TextDecoder().decode(data);
-      hex = CE.md5(str);
+      // MD5 now accepts both string and ArrayBuffer/Uint8Array directly
+      hex = CE.md5(typeof data === 'string' ? data : buffer);
     } else {
       const hashBuf = await crypto.subtle.digest(algo, buffer);
       hex = CE.bufToHex(hashBuf);
@@ -187,5 +191,52 @@ const CE = {
     
     const plain = new TextDecoder().decode(new Uint8Array(bytes));
     return { plain, ms: (performance.now() - t0).toFixed(2) };
+  },
+
+  /* ─── ECDSA DIGITAL SIGNATURES ─── */
+  generateECDSA: async () => {
+    const pair = await crypto.subtle.generateKey(
+      { name: 'ECDSA', namedCurve: 'P-256' },
+      false, // Private key is NOT exportable — never serialized or logged
+      ['sign', 'verify']
+    );
+    // Export public key only for display
+    const pubRaw = await crypto.subtle.exportKey('spki', pair.publicKey);
+    return {
+      keyPair: pair,
+      publicKeyHex: CE.bufToHex(pubRaw)
+    };
+  },
+
+  signECDSA: async (privateKey, message) => {
+    const t0 = performance.now();
+    const encoded = new TextEncoder().encode(message);
+    const signature = await crypto.subtle.sign(
+      { name: 'ECDSA', hash: 'SHA-256' },
+      privateKey,
+      encoded
+    );
+    return {
+      signature: signature,
+      signatureHex: CE.bufToHex(signature),
+      ms: (performance.now() - t0).toFixed(2)
+    };
+  },
+
+  verifyECDSA: async (publicKey, signature, message) => {
+    const t0 = performance.now();
+    const encoded = new TextEncoder().encode(message);
+    const valid = await crypto.subtle.verify(
+      { name: 'ECDSA', hash: 'SHA-256' },
+      publicKey,
+      signature,
+      encoded
+    );
+    return { valid, ms: (performance.now() - t0).toFixed(2) };
+  },
+
+  exportPublicKeyECDSA: async (publicKey) => {
+    const raw = await crypto.subtle.exportKey('spki', publicKey);
+    return CE.bufToHex(raw);
   }
 };

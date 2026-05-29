@@ -1,7 +1,7 @@
-/* ══════════════════════════════════════════════════════════
-   APP CONTROLLER
-══════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════ */
 const App = {
+  compareTimeout: null,
+  crackWorker: null,
   S: {
     alias: '',
     lab: { algo: 'SHA-256', hmacAlgo: 'SHA-256', stegoImg: null, encMode: 'enc', fileBuffer: null, fileName: '' },
@@ -15,13 +15,15 @@ const App = {
   },
 
   resetState: () => {
+    App.stopMD5Crack();
     App.S.alias = '';
     App.S.lab = { algo: 'SHA-256', hmacAlgo: 'SHA-256', stegoImg: null, encMode: 'enc', fileBuffer: null, fileName: '' };
     App.S.story = { step:0, maxStep:0, algo:'SHA-256', pwd:'', hashHex:'', hashBits:'', cipherData:null, tampered:false, score:0 };
     document.querySelectorAll('input:not([type=button]), textarea').forEach(el => el.value = '');
-    ['lab-hash-result','lab-enc-result','rsa-keys-area','rsa-enc-res','rsa-dec-res','salt-demo-area','lab-hmac-result','lab-stego-result'].forEach(id => { const el = document.getElementById(id); if(el) el.style.display='none'; });
+    ['lab-hash-result','lab-enc-result','rsa-keys-area','rsa-enc-res','rsa-dec-res','salt-demo-area','lab-hmac-result','lab-stego-result', 'crack-progress-area', 'crack-result-area'].forEach(id => { const el = document.getElementById(id); if(el) el.style.display='none'; });
     const nz = document.getElementById('story-next-zone'); if(nz) nz.innerHTML = '';
     const nameEl = document.getElementById('drop-filename'); if(nameEl) nameEl.innerText = '';
+    const clearBtn = document.getElementById('btn-clear-file'); if(clearBtn) clearBtn.style.display = 'none';
   },
 
   goHome: () => { App.resetState(); App.show('screen-title'); },
@@ -62,6 +64,8 @@ const App = {
     App.show('screen-lab'); 
     App.setupDropZone();
     App.setupStegoDropZone();
+    App.updateCrackTargetHash();
+    App.setupKeyboardAccessibility();
   },
 
   exportTelemetry: (module) => {
@@ -129,6 +133,14 @@ const App = {
     input.onchange = (e) => {
       if(e.target.files.length) App.handleFile(e.target.files[0]);
     };
+    
+    const textIn = document.getElementById('lab-hash-in');
+    if (textIn) {
+      textIn.addEventListener('input', () => {
+        App.clearLabFile();
+      });
+    }
+    
     zone.dataset.init = "true";
   },
 
@@ -143,8 +155,22 @@ const App = {
       nameEl.innerText = `${file.name} (${(file.size/1024).toFixed(1)} KB)`;
       const textIn = document.getElementById('lab-hash-in');
       if(textIn) textIn.value = ""; 
+      const clearBtn = document.getElementById('btn-clear-file');
+      if(clearBtn) clearBtn.style.display = 'block';
     };
     reader.readAsArrayBuffer(file);
+  },
+
+  clearLabFile: (e) => {
+    if(e) e.stopPropagation();
+    App.S.lab.fileBuffer = null;
+    App.S.lab.fileName = '';
+    const nameEl = document.getElementById('drop-filename');
+    if(nameEl) nameEl.innerText = '';
+    const fileInput = document.getElementById('file-input');
+    if(fileInput) fileInput.value = '';
+    const clearBtn = document.getElementById('btn-clear-file');
+    if(clearBtn) clearBtn.style.display = 'none';
   },
 
   genRandomSalt: () => {
@@ -154,31 +180,39 @@ const App = {
 
   runCompare: async () => {
     const input = document.getElementById('cmp-input').value.trim();
-    const res = document.getElementById('cmp-results');
-    if (!input) { res.style.display = 'none'; return; }
-    res.style.display = 'block';
+    if (!input) {
+      if (App.compareTimeout) clearTimeout(App.compareTimeout);
+      document.getElementById('cmp-results').style.display = 'none';
+      return;
+    }
+    if (App.compareTimeout) clearTimeout(App.compareTimeout);
+    App.compareTimeout = setTimeout(async () => {
+      const res = document.getElementById('cmp-results');
+      res.style.display = 'block';
 
-    const fillAlgo = async (algo, outId, bitsId, lenId) => {
-      try {
-        const r = await CE.hash(algo, input);
-        if (document.getElementById('cmp-input').value !== input) return; 
-        document.getElementById(outId).innerText = r.hex;
-      document.getElementById(lenId).innerText = r.hex.length + ' chars';
-      const grid = document.getElementById(bitsId); grid.innerHTML = '';
-      for (let i = 0; i < Math.min(r.bits.length, 256); i++) {
-        const b = document.createElement('div');
-        b.className = 'bit' + (r.bits[i] === '1' ? ' on' : '');
+      const fillAlgo = async (algo, outId, bitsId, lenId) => {
+        try {
+          const r = await CE.hash(algo, input);
+          if (document.getElementById('cmp-input').value !== input) return; 
+          document.getElementById(outId).innerText = r.hex;
+          document.getElementById(lenId).innerText = r.hex.length + ' chars';
+          const grid = document.getElementById(bitsId); grid.innerHTML = '';
+          for (let i = 0; i < Math.min(r.bits.length, 256); i++) {
+            const b = document.createElement('div');
+            b.className = 'bit' + (r.bits[i] === '1' ? ' on' : '');
+            grid.appendChild(b);
+          }
+        } catch (e) {
+          document.getElementById(outId).innerText = "ERROR: " + e.message;
         }
-      } catch (e) {
-        document.getElementById(outId).innerText = "ERROR: " + e.message;
-      }
-    };
+      };
 
-    await Promise.all([
-      fillAlgo('MD5',     'cmp-md5-out',    'cmp-md5-bits',    'cmp-md5-len'),
-      fillAlgo('SHA-256', 'cmp-sha256-out', 'cmp-sha256-bits', 'cmp-sha256-len'),
-      fillAlgo('SHA-512', 'cmp-sha512-out', 'cmp-sha512-bits', 'cmp-sha512-len'),
-    ]);
+      await Promise.all([
+        fillAlgo('MD5',     'cmp-md5-out',    'cmp-md5-bits',    'cmp-md5-len'),
+        fillAlgo('SHA-256', 'cmp-sha256-out', 'cmp-sha256-bits', 'cmp-sha256-len'),
+        fillAlgo('SHA-512', 'cmp-sha512-out', 'cmp-sha512-bits', 'cmp-sha512-len'),
+      ]);
+    }, 150);
   },
 
   setLabAlgo: algo => {
@@ -195,7 +229,20 @@ const App = {
     
     if(!data) return alert('Enter plaintext or drop a file.');
     
-    const r = await CE.hash(App.S.lab.algo, salt ? (typeof data === 'string' ? data + salt : data) : data);
+    let inputData = data;
+    if (salt) {
+      if (typeof data === 'string') {
+        inputData = data + salt;
+      } else {
+        const fileBytes = new Uint8Array(data);
+        const saltBytes = new TextEncoder().encode(salt);
+        const combined = new Uint8Array(fileBytes.length + saltBytes.length);
+        combined.set(fileBytes);
+        combined.set(saltBytes, fileBytes.length);
+        inputData = combined.buffer;
+      }
+    }
+    const r = await CE.hash(App.S.lab.algo, inputData);
     const res = document.getElementById('lab-hash-result');
     res.style.display = 'block';
     
@@ -422,6 +469,7 @@ const App = {
     if(!alias) return alert('Alias required.');
     App.S.alias = alias;
     document.getElementById('hud-alias-display').innerText = alias;
+    App.setupKeyboardAccessibility();
     App.startStoryIntro();
   },
 
@@ -581,18 +629,28 @@ const App = {
       const r = await CE.hash('SHA-256', App.S.story.pwd);
       App.S.story.hashHex = r.hex; App.S.story.hashBits = r.bits;
     }
+    if(App.S.story.step === 7) {
+      await App.ensureCAKeys();
+    }
+  },
+
+  ensureCAKeys: async () => {
+    if(!App.S.story.caKeys) {
+      App.S.story.caKeys = await CE.generateECDSA();
+      App.S.story.serverKeys = await CE.generateECDSA();
+    }
   },
 
   renderStoryMap: () => {
-    const titles = ['Init','Avalanche','Auth','Breach','AES-GCM','Stego','Eval'];
+    const titles = ['Init','Avalanche','Auth','Breach','AES-GCM','Stego','Forger','Authority','Eval'];
     const S = App.S.story;
     let html='';
-    for(let i=0;i<7;i++){
+    for(let i=0;i<9;i++){
       const done=i<S.maxStep, active=i===S.step, unlocked=i<=S.maxStep;
-      html+=`<div class="cm-node${done?' done':''}${active?' active':''}${unlocked?' unlocked':''}" ${unlocked?`onclick="App.jumpToStory(${i})"`:''}>
+      html+=`<div class="cm-node${done?' done':''}${active?' active':''}${unlocked?' unlocked':''}" ${unlocked?`onclick="App.jumpToStory(${i})"`:''} tabindex="${unlocked?'0':'-1'}" role="button">
         <div class="cm-diamond"></div><div class="cm-lbl">${titles[i]}</div>
       </div>`;
-      if(i<6) html+=`<div class="cm-line${done?' done':''}"></div>`;
+      if(i<8) html+=`<div class="cm-line${done?' done':''}"></div>`;
     }
     document.getElementById('story-map').innerHTML=html;
   },
@@ -717,16 +775,6 @@ const App = {
       `;
     }
     else if(step===5){
-      let html='';
-      StoryData.quiz.forEach((q,qi)=>{
-        html+=`<div class="panel" style="padding:20px;margin-bottom:12px;"><div style="margin-bottom:14px;font-weight:600;font-size:15px;color:var(--bright);font-family:var(--font-ui);">${q.q}</div>`;
-        q.o.forEach((opt,oi)=>html+=`<button class="quiz-opt" id="q-${qi}-${oi}" onclick="App.ansQuiz(${qi},${oi},${q.c})">${opt}</button>`);
-        html+=`</div>`;
-      });
-      aBox.innerHTML=html+`<div id="s-quiz-res"></div>`;
-      App.S.story.score=0;
-    }
-    else if(step===5){
       aBox.innerHTML=`
         <div id="stego-story-zone" class="panel" style="padding:24px; background:rgba(0,0,0,0.4); border-style:dashed;">
           <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px;">
@@ -750,6 +798,62 @@ const App = {
         </div>
       `;
       App.setupStoryStegoDrop();
+    }
+    else if(step===6){
+      aBox.innerHTML=`
+        <div class="panel" style="padding:20px; background:rgba(0,0,0,0.3); border:1px dashed var(--border);">
+          <span class="form-label">Message to Sign</span>
+          <input type="text" class="form-input" id="s-ecdsa-msg" value="AUTHENTIC_FIRMWARE_V2.1" onkeydown="if(event.key==='Enter') App.runStoryECDSASign()">
+          <button class="btn btn-primary btn-full" style="margin-top:12px;" onclick="App.runStoryECDSASign()">GENERATE KEY PAIR & SIGN</button>
+        </div>
+        
+        <div id="s-ecdsa-res" style="display:none; margin-top:20px;">
+          <span class="form-label">Sender Public Key (Shareable)</span>
+          <div class="readout readout-cyan" style="font-size:10px; max-height:80px; overflow-y:auto; word-break:break-all;" id="s-ecdsa-pub"></div>
+          
+          <span class="form-label" style="margin-top:12px;">ECDSA Signature (Hex)</span>
+          <div class="sig-bytes" id="s-ecdsa-sig" style="max-height:80px; overflow-y:auto;"></div>
+          
+          <div style="display:flex; gap:8px; margin-top:16px;">
+            <button class="tamper-btn" onclick="App.runStoryECDSATamper()">[ TAMPER MESSAGE ]</button>
+            <button class="btn" onclick="App.runStoryECDSAVerifyOriginal()">VERIFY ORIGINAL</button>
+          </div>
+          
+          <div id="s-ecdsa-status-box" style="margin-top:16px;"></div>
+        </div>
+      `;
+    }
+    else if(step===7){
+      aBox.innerHTML=`
+        <div class="panel" style="padding:20px; background:rgba(0,0,0,0.3); border: 1px dashed var(--border);">
+          <span class="form-label">1. Certificate Subject (Domain)</span>
+          <input type="text" class="form-input" id="s-cert-domain" value="meridian.sys" onkeydown="if(event.key==='Enter') App.runStoryIssueCert()">
+          
+          <span class="form-label" style="margin-top:12px;">2. Validity Period</span>
+          <select id="s-cert-validity" class="form-input" style="min-height:auto; padding:12px; cursor:pointer;">
+            <option value="1 Year">1 Year</option>
+            <option value="5 Years" selected>5 Years</option>
+            <option value="10 Years">10 Years</option>
+          </select>
+          
+          <span class="form-label" style="margin-top:12px;">3. Server Public Key (Auto-Filled)</span>
+          <input type="text" class="form-input" id="s-cert-pub" value="${App.S.story.serverKeys.publicKeyHex.substring(0, 40)}..." disabled style="opacity:0.6;">
+          
+          <button class="btn btn-primary btn-full" style="margin-top:16px;" onclick="App.runStoryIssueCert()">ISSUE DIGITAL CERTIFICATE</button>
+        </div>
+        
+        <div id="s-cert-res" style="display:none; margin-top:20px;"></div>
+      `;
+    }
+    else if(step===8){
+      let html='';
+      StoryData.quiz.forEach((q,qi)=>{
+        html+=`<div class="panel" style="padding:20px;margin-bottom:12px;"><div style="margin-bottom:14px;font-weight:600;font-size:15px;color:var(--bright);font-family:var(--font-ui);">${q.q}</div>`;
+        q.o.forEach((opt,oi)=>html+=`<button class="quiz-opt" id="q-${qi}-${oi}" onclick="App.ansQuiz(${qi},${oi},${q.c})">${opt}</button>`);
+        html+=`</div>`;
+      });
+      aBox.innerHTML=html+`<div id="s-quiz-res"></div>`;
+      App.S.story.score=0;
     }
   },
 
@@ -783,7 +887,11 @@ const App = {
   },
 
   runStoryAvalanche: async (init) => {
-    const input = document.getElementById('s-av-in').value || '';
+    const inputEl = document.getElementById('s-av-in');
+    const input = inputEl ? inputEl.value : '';
+    if (!init && !input) {
+      init = true;
+    }
     const r = await CE.hash(App.S.story.algo, input);
     const grid = document.getElementById('s-av-grid');
     const res = document.getElementById('s-av-res');
@@ -1005,14 +1113,324 @@ const App = {
     const disabled=document.querySelectorAll('.quiz-opt:disabled').length;
     if(disabled===total){
       const s=App.S.story.score;
+      const qlen = StoryData.quiz.length;
       document.getElementById('s-quiz-res').innerHTML=`
         <div class="score-card">
-          <div class="score-big">${s}/4</div>
+          <div class="score-big">${s}/${qlen}</div>
           <div class="score-label">EVALUATION SCORE</div>
-          <div style="font-family:var(--font-mono);font-size:12px;color:var(--muted);margin-bottom:24px;">${s===4?'PERFECT SCORE. CLEARED FOR FIELD OPERATIONS.':s>=3?'STRONG PERFORMANCE. MINOR GAPS DETECTED.':'FURTHER TRAINING REQUIRED.'}</div>
+          <div style="font-family:var(--font-mono);font-size:12px;color:var(--muted);margin-bottom:24px;">${s===qlen?'PERFECT SCORE. CLEARED FOR FIELD OPERATIONS.':s>=Math.floor(qlen*0.7)?'STRONG PERFORMANCE. MINOR GAPS DETECTED.':'FURTHER TRAINING REQUIRED.'}</div>
           <button class="btn btn-success" onclick="App.goHome()">RETURN TO MAIN MENU</button>
         </div>
       `;
+    }
+  },
+
+  /* ─── NEW FEATURES AND RESTRUCTURED FUNCTIONS ─── */
+  
+  // Keyboard Accessibility Setup
+  setupKeyboardAccessibility: () => {
+    // Only setup once
+    if (window.keyboardAccessInit) return;
+    window.keyboardAccessInit = true;
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === ' ' || e.key === 'Enter') {
+        const target = e.target;
+        if (target && target.getAttribute('tabindex') === '0') {
+          if (e.key === ' ') e.preventDefault(); // Prevent page scroll
+          target.click();
+        }
+      }
+    });
+  },
+
+  // ECDSA Story Mode Actions
+  runStoryECDSASign: async () => {
+    const msg = document.getElementById('s-ecdsa-msg').value;
+    if(!msg) return alert('Enter a message to sign.');
+    
+    try {
+      const keys = await CE.generateECDSA();
+      App.S.story.ecdsaKeyPair = keys.keyPair;
+      App.S.story.ecdsaPubKeyHex = keys.publicKeyHex;
+      App.S.story.ecdsaMsg = msg;
+      
+      const sigObj = await CE.signECDSA(keys.keyPair.privateKey, msg);
+      App.S.story.ecdsaSig = sigObj.signature;
+      App.S.story.ecdsaSigHex = sigObj.signatureHex;
+      
+      document.getElementById('s-ecdsa-pub').innerText = keys.publicKeyHex;
+      document.getElementById('s-ecdsa-sig').innerText = sigObj.signatureHex;
+      document.getElementById('s-ecdsa-res').style.display = 'block';
+      
+      const statusBox = document.getElementById('s-ecdsa-status-box');
+      statusBox.innerHTML = `
+        <div class="sig-result sig-valid">
+          <div class="sig-status valid">✓ SIGNATURE VALID</div>
+          <p style="font-size:11px; color:var(--muted);">Verified against Public Key. The message is authentic and untampered.</p>
+        </div>
+      `;
+      App.S.story.sigVerifiedValid = true;
+      App.S.story.sigVerifiedInvalid = false; // reset tamper status
+    } catch(e) {
+      alert('ECDSA Signing Failed: ' + e.message);
+    }
+  },
+
+  runStoryECDSATamper: async () => {
+    if(!App.S.story.ecdsaKeyPair) return alert('Sign the message first.');
+    const msg = App.S.story.ecdsaMsg;
+    const tamperedMsg = msg + "_TAMPERED";
+    document.getElementById('s-ecdsa-msg').value = tamperedMsg;
+    
+    const r = await CE.verifyECDSA(App.S.story.ecdsaKeyPair.publicKey, App.S.story.ecdsaSig, tamperedMsg);
+    const statusBox = document.getElementById('s-ecdsa-status-box');
+    if(!r.valid) {
+      statusBox.innerHTML = `
+        <div class="sig-result sig-invalid">
+          <div class="sig-status invalid">✗ SIGNATURE INVALID</div>
+          <p style="font-size:11px; color:var(--muted);">Integrity Check Failed! The message has been altered after signing.</p>
+        </div>
+      `;
+      App.S.story.sigVerifiedInvalid = true;
+      App.flash('s-ecdsa-status-box');
+    }
+    
+    if (App.S.story.sigVerifiedValid && App.S.story.sigVerifiedInvalid) {
+      App.showNextBtn(7);
+    }
+  },
+
+  runStoryECDSAVerifyOriginal: async () => {
+    if(!App.S.story.ecdsaKeyPair) return alert('Sign the message first.');
+    const msg = App.S.story.ecdsaMsg;
+    document.getElementById('s-ecdsa-msg').value = msg;
+    
+    const r = await CE.verifyECDSA(App.S.story.ecdsaKeyPair.publicKey, App.S.story.ecdsaSig, msg);
+    const statusBox = document.getElementById('s-ecdsa-status-box');
+    if(r.valid) {
+      statusBox.innerHTML = `
+        <div class="sig-result sig-valid">
+          <div class="sig-status valid">✓ SIGNATURE VALID</div>
+          <p style="font-size:11px; color:var(--muted);">Verified against Public Key. The message is authentic and untampered.</p>
+        </div>
+      `;
+      App.S.story.sigVerifiedValid = true;
+    }
+    
+    if (App.S.story.sigVerifiedValid && App.S.story.sigVerifiedInvalid) {
+      App.showNextBtn(7);
+    }
+  },
+
+  // PKI Story Mode Actions
+  runStoryIssueCert: async () => {
+    const domain = document.getElementById('s-cert-domain').value.trim();
+    const validity = document.getElementById('s-cert-validity').value;
+    if(!domain) return alert('Enter a domain name.');
+    
+    const certObj = {
+      domain: domain,
+      validity: validity,
+      publicKey: App.S.story.serverKeys.publicKeyHex
+    };
+    const certStr = JSON.stringify(certObj);
+    App.S.story.certStr = certStr;
+    
+    const sigObj = await CE.signECDSA(App.S.story.caKeys.keyPair.privateKey, certStr);
+    App.S.story.certSig = sigObj.signature;
+    App.S.story.certSigHex = sigObj.signatureHex;
+    
+    App.S.story.certVerified = true;
+    App.S.story.certTampered = false;
+    App.renderStoryCertResult();
+  },
+
+  renderStoryCertResult: () => {
+    const res = document.getElementById('s-cert-res');
+    if(!res) return;
+    
+    res.style.display = 'block';
+    
+    const verified = App.S.story.certVerified;
+    const certObj = JSON.parse(App.S.story.certStr);
+    
+    res.innerHTML = `
+      <div class="cert-panel ${verified ? 'cert-valid' : 'cert-invalid'}">
+        <div class="cert-lock ${verified ? 'secure' : 'broken'}">
+          ${verified ? '🔒 SECURE CONNECTION // HTTPS ACTIVE' : '🔓 SECURITY ALERT // UNTRUSTED CERTIFICATE'}
+        </div>
+        
+        <div class="cert-chain">
+          <div class="cert-chain-node root">
+            <strong>ROOT CA</strong><br>
+            Trust Anchor
+          </div>
+          <div class="cert-chain-arrow">→</div>
+          <div class="cert-chain-node server">
+            <strong>${certObj.domain}</strong><br>
+            ${verified ? 'Verifiable chain' : 'INVALID CHAIN'}
+          </div>
+        </div>
+        
+        <div class="cert-field">
+          <span class="cert-field-label">Subject CN:</span>
+          <span class="cert-field-value">${certObj.domain}</span>
+          <span class="cert-field-label">Issuer O:</span>
+          <span class="cert-field-value">NIX Root Authority</span>
+          <span class="cert-field-label">Validity:</span>
+          <span class="cert-field-value">${certObj.validity}</span>
+          <span class="cert-field-label">Signature:</span>
+          <span class="cert-field-value" style="font-size:9px;">${App.S.story.certSigHex.substring(0, 30)}...</span>
+        </div>
+        
+        ${verified ? `
+          <div style="margin-top:20px; display:flex; gap:8px;">
+            <button class="tamper-btn" onclick="App.runStoryCertTamper()">[ TAMPER WITH CERTIFICATE ]</button>
+          </div>
+        ` : `
+          <div style="margin-top:20px; display:flex; gap:8px;">
+            <button class="btn" onclick="App.runStoryCertRestore()">RESTORE CERTIFICATE</button>
+          </div>
+        `}
+      </div>
+    `;
+    
+    if (App.S.story.certVerified && App.S.story.certTampered) {
+      App.showNextBtn(8);
+    }
+  },
+
+  runStoryCertTamper: async () => {
+    const certObj = {
+      domain: 'phishing.meridian.sys',
+      validity: '5 Years',
+      publicKey: App.S.story.serverKeys.publicKeyHex
+    };
+    const tamperedCertStr = JSON.stringify(certObj);
+    
+    const r = await CE.verifyECDSA(App.S.story.caKeys.keyPair.publicKey, App.S.story.certSig, tamperedCertStr);
+    
+    App.S.story.certStr = tamperedCertStr;
+    App.S.story.certVerified = r.valid;
+    App.S.story.certTampered = true;
+    App.renderStoryCertResult();
+    App.flash('s-cert-res');
+  },
+
+  runStoryCertRestore: async () => {
+    const domain = 'meridian.sys';
+    const certObj = {
+      domain: domain,
+      validity: '5 Years',
+      publicKey: App.S.story.serverKeys.publicKeyHex
+    };
+    const certStr = JSON.stringify(certObj);
+    App.S.story.certStr = certStr;
+    
+    const r = await CE.verifyECDSA(App.S.story.caKeys.keyPair.publicKey, App.S.story.certSig, certStr);
+    App.S.story.certVerified = r.valid;
+    App.renderStoryCertResult();
+  },
+
+  // MD5 password cracker sandbox tab
+  updateCrackTargetHash: () => {
+    const sel = document.getElementById('crack-password-select');
+    if (!sel) return;
+    const pwd = sel.value;
+    const hash = CE.md5(pwd);
+    const hashEl = document.getElementById('crack-target-hash');
+    if (hashEl) hashEl.innerText = hash;
+  },
+
+  startMD5Crack: () => {
+    const sel = document.getElementById('crack-password-select');
+    if (!sel) return;
+    const pwd = sel.value;
+    const targetHash = CE.md5(pwd);
+
+    App.stopMD5Crack();
+
+    const startBtn = document.getElementById('btn-crack-start');
+    const stopBtn = document.getElementById('btn-crack-stop');
+    const progArea = document.getElementById('crack-progress-area');
+    const resArea = document.getElementById('crack-result-area');
+    const terminal = document.getElementById('crack-terminal');
+    const fill = document.getElementById('crack-fill');
+
+    if (startBtn) startBtn.style.display = 'none';
+    if (stopBtn) stopBtn.style.display = 'block';
+    if (progArea) progArea.style.display = 'block';
+    if (resArea) resArea.style.display = 'none';
+    if (fill) fill.style.width = '0%';
+    if (terminal) {
+      terminal.innerHTML = `[SYS] INITIALIZING OFF-THREAD WEB WORKER...<br>[SYS] TARGET MD5 HASH: ${targetHash}<br>[SYS] LOADING 2000 PASSWORDS DICTIONARY...<br>`;
+    }
+
+    App.crackWorker = new Worker('js/md5-worker.js');
+    App.crackWorker.postMessage({ targetHash });
+
+    App.crackWorker.onmessage = (e) => {
+      const msg = e.data;
+      if (msg.type === 'progress') {
+        const pct = ((msg.index / msg.total) * 100).toFixed(0);
+        if (fill) fill.style.width = pct + '%';
+        const pctEl = document.getElementById('crack-progress-pct');
+        const countEl = document.getElementById('crack-progress-count');
+        if (pctEl) pctEl.innerText = pct + '%';
+        if (countEl) countEl.innerText = `${msg.index} / ${msg.total}`;
+        if (terminal) {
+          const logLine = `[TRY] "${msg.current}" -> ${msg.currentHash}<br>`;
+          terminal.innerHTML += logLine;
+          terminal.scrollTop = terminal.scrollHeight;
+        }
+      } else if (msg.type === 'found') {
+        if (fill) fill.style.width = '100%';
+        const pctEl = document.getElementById('crack-progress-pct');
+        const countEl = document.getElementById('crack-progress-count');
+        if (pctEl) pctEl.innerText = '100%';
+        if (countEl) countEl.innerText = `${msg.attempts} / ${msg.attempts}`;
+        
+        if (startBtn) startBtn.style.display = 'block';
+        if (stopBtn) stopBtn.style.display = 'none';
+        if (resArea) resArea.style.display = 'block';
+
+        document.getElementById('crack-result-password').innerText = msg.password;
+        document.getElementById('crack-result-time').innerText = `${msg.time} ms`;
+        document.getElementById('crack-result-attempts').innerText = msg.attempts;
+
+        if (terminal) {
+          terminal.innerHTML += `<span style="color:var(--c3);">[SUCCESS] PASSWORD CRACKED IN ${msg.time}ms! MATCH FOUND: "${msg.password}"</span><br>`;
+          terminal.scrollTop = terminal.scrollHeight;
+        }
+        App.crackWorker.terminate();
+        App.crackWorker = null;
+      } else if (msg.type === 'notfound') {
+        if (startBtn) startBtn.style.display = 'block';
+        if (stopBtn) stopBtn.style.display = 'none';
+        if (terminal) {
+          terminal.innerHTML += `<span style="color:var(--c2);">[FAIL] PASSWORD NOT FOUND IN DICTIONARY.</span><br>`;
+          terminal.scrollTop = terminal.scrollHeight;
+        }
+        App.crackWorker.terminate();
+        App.crackWorker = null;
+      }
+    };
+  },
+
+  stopMD5Crack: () => {
+    if (App.crackWorker) {
+      App.crackWorker.terminate();
+      App.crackWorker = null;
+    }
+    const startBtn = document.getElementById('btn-crack-start');
+    const stopBtn = document.getElementById('btn-crack-stop');
+    const terminal = document.getElementById('crack-terminal');
+    if (startBtn) startBtn.style.display = 'block';
+    if (stopBtn) stopBtn.style.display = 'none';
+    if (terminal) {
+      terminal.innerHTML += `<span style="color:var(--c2);">[SYS] DICTIONARY ATTACK ABORTED BY OPERATOR.</span><br>`;
+      terminal.scrollTop = terminal.scrollHeight;
     }
   }
 };
