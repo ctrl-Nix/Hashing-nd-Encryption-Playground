@@ -10,8 +10,12 @@ A hacker-themed, interactive playground designed to teach the fundamentals of mo
 ### 01 // MISSION (Story Mode)
 A guided narrative simulation. Step into the shoes of a network operative to master cryptographic concepts under fire.
 - **Visualize Avalanche Effects**: Watch how single-bit changes ripple through complex hash structures.
-- **Simulate Brute Force**: Experience how dictionary attacks exploit weak hashing protocols.
+- **Simulate Brute Force**: Experience how dictionary attacks exploit weak hashing protocols using a real-time Web Worker.
 - **Live Breach Response**: Defend virtual infrastructure using encryption protocols during simulated security incidents.
+- **Digital Signatures (ECDSA)**: Generate keys, sign payloads, and observe how tampering invalidates trust.
+- **Certificate Authority (PKI)**: Act as a Root CA, issue server certificates, and learn how HTTPS trust chains work.
+- **Interactive Overlays**: Concept briefs, key term glossaries, and mission progress tracking for deep learning.
+- **Accessible Design**: Full keyboard navigation across all interactive elements.
 
 ### 02 // SANDBOX (Pro Lab)
 An unrestricted technical environment for raw experimentation.
@@ -20,14 +24,16 @@ An unrestricted technical environment for raw experimentation.
 - **RSA Asymmetric**: Generate 2048-bit key pairs and simulate public-key encryption/decryption.
 - **HMAC Auth**: Generate Hash-based Message Authentication Codes to verify data integrity.
 - **LSB Steganography**: Hide and extract encrypted payloads within image pixels using Least Significant Bit encoding.
+- **MD5 Cracker**: Run off-main-thread dictionary cracking attacks to demonstrate MD5 vulnerabilities.
 
 ---
 
 ## 🛠️ Technical Architecture
 - **Engine**: Built on the native **Web Crypto API** for high-performance, industry-standard cryptographic operations.
-- **Frontend**: Vanilla JavaScript (ES6+) with a modular architecture (`app.js`, `crypto.js`, `data.js`).
-- **Styling**: Cyber-themed "NIX" UI system using custom CSS variables, sticky navigation, and high-contrast typography.
-- **Assets**: Dynamic bit-grids, matrix-rain canvases, and smooth transitions for a gamified UX.
+- **Frontend**: Vanilla JavaScript (ES6+) with a modular architecture (`app.js`, `crypto.js`, `data.js`, `story-mode-v2.js`, `story-explain.js`).
+- **Web Workers**: Dedicated `md5-worker.js` for non-blocking UI during heavy dictionary attacks.
+- **Styling**: Cyber-themed "NIX" UI system using custom CSS variables, sticky navigation, CRT scanlines, and high-contrast typography (`theme.css`, `ui.css`, `story-enhance.css`).
+- **Compatibility**: Extensively audited and cross-browser tested on modern Chrome, Firefox, and Safari.
 
 ---
 
