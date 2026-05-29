@@ -333,5 +333,45 @@ const CE = {
   exportPublicKeyECDSA: async (publicKey) => {
     const raw = await crypto.subtle.exportKey('spki', publicKey);
     return CE.bufToHex(raw);
+  },
+
+  /* ─── ECDH KEY EXCHANGE ─── */
+  generateECDH: async () => {
+    const pair = await crypto.subtle.generateKey(
+      { name: 'ECDH', namedCurve: 'P-256' },
+      true,
+      ['deriveKey', 'deriveBits']
+    );
+    const pubJwk = await crypto.subtle.exportKey('jwk', pair.publicKey);
+    return { pair, pubJwk };
+  },
+
+  importPublicKeyECDH: async (jwk) => {
+    return await crypto.subtle.importKey(
+      'jwk',
+      jwk,
+      { name: 'ECDH', namedCurve: 'P-256' },
+      true,
+      []
+    );
+  },
+
+  deriveKeyECDH: async (privateKey, publicKey) => {
+    const derivedKey = await crypto.subtle.deriveKey(
+      {
+        name: 'ECDH',
+        public: publicKey
+      },
+      privateKey,
+      { name: 'AES-GCM', length: 256 },
+      true,
+      ['encrypt', 'decrypt']
+    );
+    // Export raw key for fingerprint
+    const rawKey = await crypto.subtle.exportKey('raw', derivedKey);
+    const hashBuf = await crypto.subtle.digest('SHA-256', rawKey);
+    const fingerprint = CE.bufToHex(hashBuf).toUpperCase().match(/.{1,2}/g).join(':');
+
+    return { derivedKey, fingerprint, rawKeyHex: CE.bufToHex(rawKey) };
   }
 };
