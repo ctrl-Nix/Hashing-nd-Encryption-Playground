@@ -745,3 +745,70 @@ textarea.form-input { min-height: 90px; resize: vertical; line-height: 1.7; }
 }
 
 /* --- STORY ENHANCEMENT v2 — EXPLANATION PANELS, COPY BTNS, FACT CARDS --- */
+
+/* ------------------------------------------------------------------
+   MOBILE RESPONSIVENESS OVERRIDES (v2)
+------------------------------------------------------------------ */
+
+/* -- TOUCH TARGETS -- */
+.btn, .copy-btn, .lab-tab, .algo-card, .quiz-opt, .menu-card {
+  min-height: 44px;
+}
+.form-input {
+  min-height: 44px;
+}
+
+/* -- HOVER EQUIVALENTS FOR TOUCH (:focus, :active) -- */
+.btn:focus, .btn:active { background: rgba(255,255,255,0.03); border-color: var(--text); color: var(--bright); }
+.btn-primary:focus, .btn-primary:active { background: var(--c); color: #000; box-shadow: 0 0 30px rgba(0,245,255,0.3), 0 0 60px rgba(0,245,255,0.1); }
+.btn-danger:focus, .btn-danger:active { background: var(--c2); color: #fff; box-shadow: 0 0 30px rgba(255,0,60,0.3); }
+.btn-success:focus, .btn-success:active { background: var(--c3); color: #000; box-shadow: 0 0 30px rgba(0,255,136,0.3); }
+
+.copy-btn:focus, .copy-btn:active { border-color: var(--c); color: var(--c); background: rgba(0,245,255,0.05); }
+.copy-btn:focus .copy-icon, .copy-btn:active .copy-icon { transform: translateY(-1px); }
+
+.algo-card:focus, .algo-card:active { border-color: rgba(0,245,255,0.3); }
+.algo-card.algo-unsafe:focus, .algo-card.algo-unsafe:active { border-color: rgba(255, 40, 60, 0.6); background: rgba(255, 20, 40, 0.08); }
+.algo-card.algo-warn:focus, .algo-card.algo-warn:active { border-color: rgba(255, 160, 0, 0.5); background: rgba(255, 140, 0, 0.07); }
+
+.menu-card:focus, .menu-card:active { background: var(--panel); border-color: var(--border); transform: translateY(-4px); }
+.menu-card:focus::before, .menu-card:active::before { opacity: 1; }
+.menu-card:focus::after, .menu-card:active::after { transform: scaleX(1); }
+
+/* -- RESPONSIVE GRIDS & LAYOUTS -- */
+@media (max-width: 768px) {
+  .menu-grid { grid-template-columns: 1fr; }
+  .hud { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .algo-grid { grid-template-columns: 1fr !important; }
+  
+  /* Collapse explicit inline grid-template-columns to 1fr on mobile/tablet */
+  div[style*="grid-template-columns: 1fr 1fr"], 
+  div[style*="grid-template-columns:1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .app { padding: 0 12px 120px; }
+  
+  .title-hero {
+    font-size: clamp(32px, 12vw, 48px);
+    letter-spacing: -1px;
+  }
+  
+  .lab-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+    justify-content: flex-start;
+    scrollbar-width: none; /* Firefox */
+  }
+  .lab-tabs::-webkit-scrollbar { display: none; } /* Chrome */
+  
+  .lab-tab { flex-shrink: 0; }
+  
+  /* Story mode text comfortable width is handled by .app padding, but we can ensure fonts scale down */
+  .dialogue { padding: 20px 16px; }
+  .dlg-text { font-size: 13px !important; line-height: 1.6 !important; }
+}

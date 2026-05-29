@@ -105,6 +105,10 @@
     <div class="lab-tab" id="btn-tab-hmac" onclick="App.switchLabTab('hmac')" tabindex="0" role="button">HMAC Auth</div>
     <div class="lab-tab" id="btn-tab-stego" onclick="App.switchLabTab('stego')" tabindex="0" role="button">Steganography</div>
     <div class="lab-tab" id="btn-tab-cracker" onclick="App.switchLabTab('cracker')" tabindex="0" role="button">MD5 Cracker</div>
+    <div class="lab-tab" id="btn-tab-ecdsa" onclick="App.switchLabTab('ecdsa')" tabindex="0" role="button">ECDSA Signatures</div>
+    <div class="lab-tab" id="btn-tab-cert" onclick="App.switchLabTab('cert')" tabindex="0" role="button">Cert Inspector</div>
+    <div class="lab-tab" id="btn-tab-entropy" onclick="App.switchLabTab('entropy')" tabindex="0" role="button">Entropy Analyzer</div>
+    <div class="lab-tab" id="btn-tab-birthday" onclick="App.switchLabTab('birthday')" tabindex="0" role="button">Birthday Attack</div>
   </div>
 
   <!-- HASH TAB -->
@@ -552,6 +556,175 @@
           <div>
             <span style="color:var(--c3);">// FIX:</span> Use purpose-built password hashing like <strong style="color:var(--c3);">bcrypt</strong>, <strong style="color:var(--c3);">scrypt</strong>, or <strong style="color:var(--c3);">Argon2</strong> — they are intentionally slow and include built-in salting.
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ECDSA TAB -->
+  <div id="lab-ecdsa" class="lab-panel">
+    <div class="panel">
+      <div class="panel-title"><span>ECDSA DIGITAL SIGNATURES (P-256)</span></div>
+      <p style="font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-bottom:24px;line-height:1.8;">Elliptic Curve Digital Signature Algorithm. Generates a key pair to sign messages. A tiny change in the message will invalidate the signature.</p>
+      
+      <button class="btn btn-primary btn-full" onclick="App.runECDSAGen()">GENERATE P-256 KEY PAIR</button>
+      <div id="ecdsa-keys-area" style="display:none; margin-top:20px;">
+        <span class="form-label">Public Key (PEM / SPKI)</span>
+        <div class="copy-wrap">
+          <div class="readout readout-cyan" id="ecdsa-pub-out" style="font-size:10px; max-height:80px; overflow-y:auto;"></div>
+        </div>
+      </div>
+
+      <div style="margin-top:24px;">
+        <span class="form-label">Message Payload</span>
+        <textarea id="ecdsa-msg" class="form-input" style="min-height:60px;" placeholder="Type a message to sign..."></textarea>
+        <button class="btn btn-full" style="margin-top:12px;" onclick="App.runECDSASign()">SIGN MESSAGE</button>
+      </div>
+
+      <div id="ecdsa-res-area" style="display:none; margin-top:24px; padding-top:24px; border-top:1px solid var(--border);">
+        <span class="form-label">Signature (Base64)</span>
+        <div class="copy-wrap">
+          <div class="readout readout-dim" id="ecdsa-sig-out" style="word-break:break-all; font-size:11px;"></div>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
+          <button class="btn btn-danger" onclick="App.runECDSATamper()">⚡ TAMPER (FLIP 1 BIT)</button>
+          <button class="btn btn-success" onclick="App.runECDSAVerify()">VERIFY SIGNATURE</button>
+        </div>
+        <div id="ecdsa-verify-status" style="margin-top:20px; font-size:16px; font-weight:bold; text-align:center;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CERT INSPECTOR TAB -->
+  <div id="lab-cert" class="lab-panel">
+    <div class="panel">
+      <div class="panel-title"><span>X.509 CERTIFICATE INSPECTOR</span></div>
+      <p style="font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-bottom:24px;line-height:1.8;">Paste a PEM encoded certificate to extract its ASN.1/DER metadata (Issuer, Subject, Validity, Public Key).</p>
+      
+      <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+        <span class="form-label" style="margin:0;">PEM Certificate</span>
+        <button class="btn" style="padding:4px 8px; font-size:9px;" onclick="App.loadSampleCert()">LOAD SAMPLE</button>
+      </div>
+      <textarea id="cert-input" class="form-input" style="min-height:150px; font-size:10px; font-family:var(--font-mono);" placeholder="-----BEGIN CERTIFICATE-----..."></textarea>
+      
+      <button class="btn btn-primary btn-full" style="margin-top:16px;" onclick="App.runCertInspect()">PARSE CERTIFICATE</button>
+      
+      <div id="cert-error" style="display:none; color:var(--c2); font-size:11px; margin-top:16px; font-family:var(--font-mono);"></div>
+      
+      <div id="cert-results" style="display:none; margin-top:24px;">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+          <div>
+            <span class="form-label" style="color:var(--c3);">Subject</span>
+            <div class="readout readout-dim" id="cert-subject" style="font-size:10px; min-height:40px;"></div>
+          </div>
+          <div>
+            <span class="form-label" style="color:var(--c);">Issuer</span>
+            <div class="readout readout-dim" id="cert-issuer" style="font-size:10px; min-height:40px;"></div>
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:16px;">
+          <div>
+            <span class="form-label">Not Before</span>
+            <div class="readout readout-dim" id="cert-notbefore" style="font-size:10px;"></div>
+          </div>
+          <div>
+            <span class="form-label">Not After</span>
+            <div class="readout readout-dim" id="cert-notafter" style="font-size:10px;"></div>
+          </div>
+        </div>
+        <div style="margin-top:16px;">
+          <span class="form-label">Serial Number</span>
+          <div class="readout readout-dim" id="cert-serial" style="font-size:10px; word-break:break-all;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ENTROPY TAB -->
+  <div id="lab-entropy" class="lab-panel">
+    <div class="panel">
+      <div class="panel-title"><span>SHANNON ENTROPY ANALYZER</span></div>
+      <p style="font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-bottom:24px;line-height:1.8;">Calculates the information density (randomness) of a string. High entropy is harder to guess or brute-force.</p>
+      
+      <div style="display:flex; gap:8px; margin-bottom:16px;">
+        <button class="btn" style="flex:1; font-size:9px;" onclick="App.loadEntropyPreset('low')">PRESET: LOW</button>
+        <button class="btn" style="flex:1; font-size:9px;" onclick="App.loadEntropyPreset('medium')">PRESET: MED</button>
+        <button class="btn" style="flex:1; font-size:9px;" onclick="App.loadEntropyPreset('high')">PRESET: HIGH</button>
+      </div>
+
+      <span class="form-label">Input String</span>
+      <textarea id="entropy-input" class="form-input" style="min-height:80px;" placeholder="Type something..." oninput="App.runEntropy()"></textarea>
+
+      <div style="margin-top:24px; display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+        <div class="readout readout-cyan" style="text-align:center;">
+          <div style="font-size:9px; color:var(--muted); margin-bottom:8px;">BITS PER CHARACTER</div>
+          <div id="ent-bpc" style="font-family:var(--font-display); font-size:24px;">0.00</div>
+        </div>
+        <div class="readout readout-green" style="text-align:center;">
+          <div style="font-size:9px; color:var(--muted); margin-bottom:8px;">TOTAL ENTROPY BITS</div>
+          <div id="ent-total" style="font-family:var(--font-display); font-size:24px;">0</div>
+        </div>
+      </div>
+      
+      <div style="margin-top:24px;">
+        <div style="display:flex; justify-content:space-between; font-size:10px; font-family:var(--font-mono); margin-bottom:8px; color:var(--muted);">
+          <span>WEAK</span><span>STRONG</span>
+        </div>
+        <div style="width:100%; height:12px; background:rgba(255,255,255,0.05); border-radius:6px; overflow:hidden; position:relative;">
+          <div id="ent-gauge" style="width:0%; height:100%; background:linear-gradient(90deg, var(--c2), var(--c4), var(--c3)); transition:width 0.3s;"></div>
+        </div>
+        <div id="ent-eval" style="margin-top:16px; font-size:12px; line-height:1.6; color:var(--muted);"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BIRTHDAY TAB -->
+  <div id="lab-birthday" class="lab-panel">
+    <div class="panel">
+      <div class="panel-title"><span>BIRTHDAY ATTACK VISUALIZER</span></div>
+      <p style="font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-bottom:24px;line-height:1.8;">Demonstrates hash collisions on truncated SHA-256 hashes using a Web Worker. As the pool of hashes grows, the probability of a collision approaches 100%.</p>
+      
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:20px;">
+        <div>
+          <span class="form-label">Truncate Hash Size</span>
+          <select id="bd-bits" class="form-input" style="appearance:auto; cursor:pointer;">
+            <option value="8">8 bits (Fast)</option>
+            <option value="12">12 bits</option>
+            <option value="16" selected>16 bits</option>
+            <option value="20">20 bits (Slow)</option>
+          </select>
+        </div>
+        <div style="display:flex; align-items:flex-end;">
+          <button class="btn btn-primary btn-full" id="btn-bd-start" onclick="App.startBirthdayAttack()">START ATTACK</button>
+        </div>
+      </div>
+
+      <div id="bd-progress-area" style="display:none; margin-top:24px; border-top:1px solid var(--border); padding-top:24px;">
+        <div style="display:flex; justify-content:space-between; font-family:var(--font-display); margin-bottom:8px;">
+          <span style="color:var(--c);">ATTEMPTS: <span id="bd-attempts">0</span></span>
+          <span style="color:var(--c4);">PROBABILITY: <span id="bd-prob">0.00%</span></span>
+        </div>
+        <div style="width:100%; height:12px; background:rgba(255,255,255,0.05); border-radius:6px; overflow:hidden;">
+          <div id="bd-prob-bar" style="width:0%; height:100%; background:var(--c4); transition:width 0.1s;"></div>
+        </div>
+        <div id="bd-error" style="color:var(--c2); font-size:11px; font-family:var(--font-mono); margin-top:16px;"></div>
+      </div>
+
+      <div id="bd-result-area" style="display:none; margin-top:24px;">
+        <div class="panel-title"><span class="status-tag st-err">COLLISION DETECTED</span></div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:16px;">
+          <div class="readout readout-red" style="font-size:11px; word-break:break-all;">
+            <div style="color:var(--muted); font-size:9px; margin-bottom:4px;">INPUT A</div>
+            <div id="bd-input1"></div>
+          </div>
+          <div class="readout readout-red" style="font-size:11px; word-break:break-all;">
+            <div style="color:var(--muted); font-size:9px; margin-bottom:4px;">INPUT B</div>
+            <div id="bd-input2"></div>
+          </div>
+        </div>
+        <div style="margin-top:16px; text-align:center;">
+          <span style="color:var(--muted); font-size:9px;">SHARED HASH (HEX)</span>
+          <div class="readout" id="bd-hash" style="color:var(--c2); font-size:14px; margin-top:4px;"></div>
         </div>
       </div>
     </div>
