@@ -1432,5 +1432,150 @@ const App = {
       terminal.innerHTML += `<span style="color:var(--c2);">[SYS] DICTIONARY ATTACK ABORTED BY OPERATOR.</span><br>`;
       terminal.scrollTop = terminal.scrollHeight;
     }
+  },
+
+  /* ─── ECDSA LAB ─── */
+  runECDSAGen: async () => {
+    try {
+      App.S.lab.ecdsaKeys = await CE.generateECDSA();
+      document.getElementById('ecdsa-pub-out').innerText = App.S.lab.ecdsaKeys.publicKeyPem;
+      document.getElementById('ecdsa-keys-area').style.display = 'block';
+    } catch (e) { alert('ECDSA Generation Failed: ' + e.message); }
+  },
+  
+  runECDSASign: async () => {
+    const msg = document.getElementById('ecdsa-msg').value;
+    if(!msg || !App.S.lab.ecdsaKeys) return alert('Generate keys and enter a message first.');
+    try {
+      const res = await CE.signECDSA(App.S.lab.ecdsaKeys.keyPair.privateKey, msg);
+      App.S.lab.ecdsaLastSig = res.signature;
+      document.getElementById('ecdsa-sig-out').innerText = res.signatureHex;
+      document.getElementById('ecdsa-res-area').style.display = 'block';
+      document.getElementById('ecdsa-verify-status').innerText = '';
+    } catch (e) { alert('Signing Failed: ' + e.message); }
+  },
+
+  runECDSATamper: () => {
+    const msgEl = document.getElementById('ecdsa-msg');
+    let msg = msgEl.value;
+    if(!msg) return;
+    const last = msg.charCodeAt(msg.length-1);
+    msgEl.value = msg.substring(0, msg.length-1) + String.fromCharCode(last ^ 1);
+    App.flash('ecdsa-msg');
+  },
+
+  runECDSAVerify: async () => {
+    const msg = document.getElementById('ecdsa-msg').value;
+    const sig = App.S.lab.ecdsaLastSig;
+    if(!msg || !sig) return;
+    try {
+      const res = await CE.verifyECDSA(App.S.lab.ecdsaKeys.keyPair.publicKey, sig, msg);
+      const statusEl = document.getElementById('ecdsa-verify-status');
+      if (res.valid) {
+        statusEl.innerHTML = '<span style="color:var(--c3);">✓ SIGNATURE VALID (Authentic)</span>';
+      } else {
+        statusEl.innerHTML = '<span style="color:var(--c2);">✗ SIGNATURE INVALID (Tampered)</span>';
+        App.flash('ecdsa-verify-status');
+      }
+    } catch (e) { alert('Verify Failed: ' + e.message); }
+  },
+
+  /* ─── CERT INSPECTOR LAB ─── */
+  loadSampleCert: () => {
+    const sample = `-----BEGIN CERTIFICATE-----\nMIIDdTCCAl2gAwIBAgILBAAAAAABRE7wQvQwDQYJKoZIhvcNAQELBQAwVzELMAkG\nA1UEBhMCQkUxGTAXBgNVBAoTEEdsb2JhbFNpZ24gbnYtc2ExKzApBgNVBAMTIkds\nb2JhbFNpZ24gQ2xhc3MgMyBQdWJsaWMgUHJpbWFyeSBDQTAeFw0wNDAyMDEwMDAw\nMDBaFw0wNDAyMDEwMDAwMDBaMFcxCzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9i\nYWxTaWduIG52LXNhMSswKQYDVQQDEyJHbG9iYWxTaWduIENsYXNzIDMgUHVibGlj\nIFByaW1hcnkgQ0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCZ3Z7P\nm+N5y8b2wz9jYc1lYlGZ2r1E2vX9W6O3G7dZ9w+J4i0p6z7h4L4V6y6l1z2r5W3\n... truncated sample ...\n-----END CERTIFICATE-----`;
+    document.getElementById('cert-input').value = sample;
+  },
+
+  runCertInspect: async () => {
+    const pem = document.getElementById('cert-input').value;
+    const errEl = document.getElementById('cert-error');
+    const resEl = document.getElementById('cert-results');
+    errEl.style.display = 'none';
+    resEl.style.display = 'none';
+    if(!pem) return;
+    
+    try {
+      const info = await CE.parsePEMCertificate(pem);
+      document.getElementById('cert-subject').innerText = info.subject;
+      document.getElementById('cert-issuer').innerText = info.issuer;
+      document.getElementById('cert-notbefore').innerText = info.notBefore;
+      document.getElementById('cert-notafter').innerText = info.notAfter;
+      document.getElementById('cert-serial').innerText = info.serial;
+      resEl.style.display = 'block';
+    } catch(e) {
+      errEl.innerText = e.message;
+      errEl.style.display = 'block';
+    }
+  },
+
+  /* ─── ENTROPY LAB ─── */
+  loadEntropyPreset: (type) => {
+    const dict = {
+      'low': 'password123',
+      'medium': 'CorrectHorseBatteryStaple',
+      'high': 'xK9#mP$2vL@7nY!4cW&8qR*5'
+    };
+    document.getElementById('entropy-input').value = dict[type];
+    App.runEntropy();
+  },
+
+  runEntropy: () => {
+    const str = document.getElementById('entropy-input').value;
+    const res = CE.shannonEntropy(str);
+    document.getElementById('ent-bpc').innerText = res.bitsPerChar;
+    document.getElementById('ent-total').innerText = res.total;
+    
+    let pct = Math.min(100, (res.total / 128) * 100);
+    document.getElementById('ent-gauge').style.width = pct + '%';
+    
+    let evalStr = '';
+    if (res.total < 40) evalStr = '<span style="color:var(--c2);">Weak.</span> Highly vulnerable to brute-force or dictionary attacks.';
+    else if (res.total < 80) evalStr = '<span style="color:var(--c4);">Moderate.</span> Susceptible to targeted brute-force.';
+    else evalStr = '<span style="color:var(--c3);">Strong.</span> Sufficient entropy for most cryptographic keys.';
+    document.getElementById('ent-eval').innerHTML = evalStr;
+  },
+
+  /* ─── BIRTHDAY ATTACK LAB ─── */
+  startBirthdayAttack: () => {
+    if (App.bdWorker) App.bdWorker.terminate();
+    const bits = parseInt(document.getElementById('bd-bits').value);
+    
+    document.getElementById('bd-result-area').style.display = 'none';
+    document.getElementById('bd-progress-area').style.display = 'block';
+    document.getElementById('bd-attempts').innerText = '0';
+    document.getElementById('bd-prob').innerText = '0.00%';
+    document.getElementById('bd-prob-bar').style.width = '0%';
+    document.getElementById('btn-bd-start').innerText = 'RUNNING ATTACK...';
+    document.getElementById('btn-bd-start').disabled = true;
+
+    App.bdWorker = new Worker('js/birthday-worker.js');
+    
+    const space = Math.pow(2, bits);
+    
+    App.bdWorker.onmessage = (e) => {
+      const data = e.data;
+      if (data.type === 'progress') {
+        document.getElementById('bd-attempts').innerText = data.attempts;
+        let prob = 1 - Math.exp(-(data.attempts * (data.attempts - 1)) / (2 * space));
+        let probPct = Math.min(99.99, prob * 100);
+        document.getElementById('bd-prob').innerText = probPct.toFixed(2) + '%';
+        document.getElementById('bd-prob-bar').style.width = probPct + '%';
+      } else if (data.type === 'found') {
+        document.getElementById('btn-bd-start').innerText = 'START ATTACK';
+        document.getElementById('btn-bd-start').disabled = false;
+        
+        document.getElementById('bd-attempts').innerText = data.attempts;
+        document.getElementById('bd-prob').innerText = '100.00%';
+        document.getElementById('bd-prob-bar').style.width = '100%';
+        
+        document.getElementById('bd-input1').innerText = data.collision.input1;
+        document.getElementById('bd-input2').innerText = data.collision.input2;
+        document.getElementById('bd-hash').innerText = data.collision.hash;
+        
+        document.getElementById('bd-result-area').style.display = 'block';
+      }
+    };
+    
+    App.bdWorker.postMessage({ cmd: 'start', bits: bits });
   }
 };
