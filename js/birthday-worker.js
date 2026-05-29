@@ -43,3 +43,7 @@ self.onmessage = async (e) => {
     self.postMessage({ type: 'found', collision: collision, attempts: attempts });
   }
 };
+
+self.onerror = (e) => {
+  self.postMessage({ type: 'error', message: e.message || "Unknown worker error" });
+};

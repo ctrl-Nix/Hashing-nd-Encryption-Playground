@@ -20,7 +20,8 @@ Hashing-nd-Encryption-Playground/
 │   ├── crypto.js             # Crypto Engine (CE): Web Crypto wrapper & custom JS-based MD5
 │   ├── app.js                # Core controller: DOM renders, story handlers, cracker lifecycle
 │   ├── story-mode-v2.js      # Story rendering overrides introducing high-experience visual overlays
-│   └── md5-worker.js         # Dedicated Web Worker: runs password dictionary attacks off-main-thread
+│   ├── md5-worker.js         # Dedicated Web Worker: runs password dictionary attacks off-main-thread
+│   └── birthday-worker.js    # Dedicated Web Worker: simulates hash collisions for the Birthday Attack
 ├── index.html                # Single-page interface structure (Title, Alias, Cutscene, Story, Sandbox)
 ├── bug-log.md                # Full audit log tracking bug reports and verification statuses
 └── README.md                 # Project quickstart guide
@@ -58,7 +59,9 @@ The `CE` engine in [crypto.js](file:///c:/Users/KIIT/OneDrive/Desktop/play/Hashi
 | **AES-GCM (Symmetric)** | `crypto.subtle.importKey(...)`<br>`crypto.subtle.deriveKey(...)`<br>`crypto.subtle.encrypt(...)`<br>`crypto.subtle.decrypt(...)` | Derived via PBKDF2 (100k iterations, SHA-256)<br>Encryption: AES-GCM 256-bit with random 12-byte IV |
 | **RSA (Asymmetric)** | `crypto.subtle.generateKey(...)`<br>`crypto.subtle.exportKey(...)`<br>`crypto.subtle.importKey(...)`<br>`crypto.subtle.encrypt(...)`<br>`crypto.subtle.decrypt(...)` | Scheme: `RSA-OAEP` (2048-bit modulus, public exponent `65537`, SHA-256) |
 | **HMAC (Authentication)** | `crypto.subtle.importKey(...)`<br>`crypto.subtle.sign(...)` | Key derived from raw string. Supported: `SHA-256`, `SHA-512` |
-| **ECDSA (Signatures / CA)**| `crypto.subtle.generateKey(...)`<br>`crypto.subtle.sign(...)`<br>`crypto.subtle.verify(...)`<br>`crypto.subtle.exportKey(...)` | Curve: `P-256` (ECDSA), Hashing: `SHA-256`. Private key marked `extractable: false` |
+| **ECDSA (Signatures / CA)**| `crypto.subtle.generateKey(...)`<br>`crypto.subtle.sign(...)`<br>`crypto.subtle.verify(...)`<br>`crypto.subtle.exportKey(...)` | Curve: `P-256` (ECDSA), Hashing: `SHA-256`. Private key marked `extractable: false`. Exports SPKI (PEM) and JWK. |
+| **Certificate Inspector** | `crypto.subtle.digest(...)` | Calculates `SHA-256` fingerprint of parsed X.509 DER payload |
+| **Birthday Attack** | `crypto.subtle.digest(...)` | Fast iterative `SHA-256` hashing inside `birthday-worker.js` |
 
 ---
 
@@ -92,3 +95,7 @@ The Unrestricted Sandbox contains 7 standalone labs:
 5. **HMAC Auth**: Generates integrity tags using secret keys to demonstrate message authenticity checks.
 6. **Steganography**: Encodes payloads into the Least Significant Bits of pixel data of uploaded carrier images, or extracts them.
 7. **MD5 Cracker**: Run off-main-thread dictionary cracking attacks using a Web Worker to verify why weak hashes fail against precomputed lists.
+8. **ECDSA Signatures**: Generates P-256 keys, securely signs data, exports PEM/JWK, and features a bit-flip tampering demonstrator.
+9. **Certificate Inspector**: Uses a custom byte-level ASN.1 / DER parser to extract Subject, Issuer, Validity, and SHA-256 fingerprints from X.509 PEM certs without third-party libraries.
+10. **Entropy Analyzer**: Calculates real-time Shannon Entropy bits-per-character density with a dynamic strength gauge and presets (low/med/high).
+11. **Birthday Attack**: A visual collision generator offloaded to `birthday-worker.js` that truncates SHA-256 hashes (8-20 bits) and compares iterative probabilities against the theoretical 2^(N/2) bound.

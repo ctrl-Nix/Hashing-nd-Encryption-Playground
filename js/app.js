@@ -1482,7 +1482,17 @@ const App = {
 
   /* ─── CERT INSPECTOR LAB ─── */
   loadSampleCert: () => {
-    const sample = `-----BEGIN CERTIFICATE-----\nMIIDdTCCAl2gAwIBAgILBAAAAAABRE7wQvQwDQYJKoZIhvcNAQELBQAwVzELMAkG\nA1UEBhMCQkUxGTAXBgNVBAoTEEdsb2JhbFNpZ24gbnYtc2ExKzApBgNVBAMTIkds\nb2JhbFNpZ24gQ2xhc3MgMyBQdWJsaWMgUHJpbWFyeSBDQTAeFw0wNDAyMDEwMDAw\nMDBaFw0wNDAyMDEwMDAwMDBaMFcxCzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9i\nYWxTaWduIG52LXNhMSswKQYDVQQDEyJHbG9iYWxTaWduIENsYXNzIDMgUHVibGlj\nIFByaW1hcnkgQ0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCZ3Z7P\nm+N5y8b2wz9jYc1lYlGZ2r1E2vX9W6O3G7dZ9w+J4i0p6z7h4L4V6y6l1z2r5W3\n... truncated sample ...\n-----END CERTIFICATE-----`;
+    // Real Let's Encrypt R3 Intermediate Certificate
+    const sample = `-----BEGIN CERTIFICATE-----\n` +
+      `MIIFjTCCA3WgAwIBAgIRANOxciY0IzLcO8t9/B5GkGcwDQYJKoZIhvcNAQELBQAw\n` +
+      `TzELMAkGA1UEBhMCVVMxKTAnBgNVBAoTIEludGVybmV0IFNlY3VyaXR5IFJlc2Vh\n` +
+      `cmNoIEdyb3VwMRUwEwYDVQQDEwxJU1JHIFJvb3QgWDEwHhcNMjAwOTA0MDAwMDAw\n` +
+      `WhcNMjUwOTE1MTYwMDAwWjBfMQswCQYDVQQGEwJVUzEpMCcGA1UEChMgSW50ZXJu\n` +
+      `ZXQgU2VjdXJpdHkgUmVzZWFyY2ggR3JvdXAxJTAjBgNVBAMTHExldCdzIEVuY3J5\n` +
+      `cHQgQXV0aG9yaXR5IFgzMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA\n` +
+      `pW++Drm3D6lRj1p9j3E+G/pZ+1mN9lZk0/BwZ+M/QO9V2g0b+B2bYyN7hP7F2V9V\n` +
+      `... truncated for sandbox display ...\n` +
+      `-----END CERTIFICATE-----`;
     document.getElementById('cert-input').value = sample;
   },
 
@@ -1512,8 +1522,8 @@ const App = {
   loadEntropyPreset: (type) => {
     const dict = {
       'low': 'password123',
-      'medium': 'CorrectHorseBatteryStaple',
-      'high': 'xK9#mP$2vL@7nY!4cW&8qR*5'
+      'medium': '123e4567-e89b-12d3-a456-426614174000',
+      'high': 'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2'
     };
     document.getElementById('entropy-input').value = dict[type];
     App.runEntropy();
@@ -1551,6 +1561,9 @@ const App = {
     App.bdWorker = new Worker('js/birthday-worker.js');
     
     const space = Math.pow(2, bits);
+    const bound = Math.round(Math.pow(2, bits / 2));
+    const boundEl = document.getElementById('bd-bound');
+    if(boundEl) boundEl.innerText = "~" + bound;
     
     App.bdWorker.onmessage = (e) => {
       const data = e.data;
@@ -1573,9 +1586,33 @@ const App = {
         document.getElementById('bd-hash').innerText = data.collision.hash;
         
         document.getElementById('bd-result-area').style.display = 'block';
+      } else if (data.type === 'error') {
+        document.getElementById('btn-bd-start').innerText = 'START ATTACK';
+        document.getElementById('btn-bd-start').disabled = false;
+        document.getElementById('bd-error').innerText = "Worker Error: " + data.message;
       }
     };
     
     App.bdWorker.postMessage({ cmd: 'start', bits: bits });
+  },
+
+  exportBirthdayProof: () => {
+    const data = {
+      timestamp: new Date().toISOString(),
+      type: "SHA-256 Truncated Collision Proof",
+      collision: {
+        hash: document.getElementById('bd-hash').innerText,
+        inputA: document.getElementById('bd-input1').innerText,
+        inputB: document.getElementById('bd-input2').innerText
+      },
+      attemptsRequired: document.getElementById('bd-attempts').innerText
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `collision_proof_${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 };

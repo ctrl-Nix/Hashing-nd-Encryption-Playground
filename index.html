@@ -647,9 +647,9 @@
       <p style="font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-bottom:24px;line-height:1.8;">Calculates the information density (randomness) of a string. High entropy is harder to guess or brute-force.</p>
       
       <div style="display:flex; gap:8px; margin-bottom:16px;">
-        <button class="btn" style="flex:1; font-size:9px;" onclick="App.loadEntropyPreset('low')">PRESET: LOW</button>
-        <button class="btn" style="flex:1; font-size:9px;" onclick="App.loadEntropyPreset('medium')">PRESET: MED</button>
-        <button class="btn" style="flex:1; font-size:9px;" onclick="App.loadEntropyPreset('high')">PRESET: HIGH</button>
+        <button class="btn" style="flex:1; font-size:9px;" onclick="App.loadEntropyPreset('low')">password123</button>
+        <button class="btn" style="flex:1; font-size:9px;" onclick="App.loadEntropyPreset('medium')">UUID (Med)</button>
+        <button class="btn" style="flex:1; font-size:9px;" onclick="App.loadEntropyPreset('high')">32-byte Hex (High)</button>
       </div>
 
       <span class="form-label">Input String</span>
@@ -701,7 +701,7 @@
 
       <div id="bd-progress-area" style="display:none; margin-top:24px; border-top:1px solid var(--border); padding-top:24px;">
         <div style="display:flex; justify-content:space-between; font-family:var(--font-display); margin-bottom:8px;">
-          <span style="color:var(--c);">ATTEMPTS: <span id="bd-attempts">0</span></span>
+          <span style="color:var(--c);">ATTEMPTS: <span id="bd-attempts">0</span> <span style="font-size:9px;color:var(--muted);">(Bound: <span id="bd-bound">0</span>)</span></span>
           <span style="color:var(--c4);">PROBABILITY: <span id="bd-prob">0.00%</span></span>
         </div>
         <div style="width:100%; height:12px; background:rgba(255,255,255,0.05); border-radius:6px; overflow:hidden;">
@@ -726,6 +726,7 @@
           <span style="color:var(--muted); font-size:9px;">SHARED HASH (HEX)</span>
           <div class="readout" id="bd-hash" style="color:var(--c2); font-size:14px; margin-top:4px;"></div>
         </div>
+        <button class="btn btn-full" style="margin-top:16px;" onclick="App.exportBirthdayProof()">EXPORT PROOF CARD (JSON)</button>
       </div>
     </div>
   </div>
