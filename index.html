@@ -97,6 +97,14 @@
     </div>
     <div class="hud-right"><span class="status-tag st-ok">LOGGING DISABLED</span></div>
   </div>
+
+  <div style="display:flex; justify-content:flex-end; gap:8px; padding: 0 16px 8px 16px; background:var(--bg);">
+    <button class="btn btn-primary" onclick="App.shareActiveLab()" style="font-size:10px; padding:4px 8px;">SHARE LINK</button>
+    <button class="btn" onclick="App.exportSession()" style="font-size:10px; padding:4px 8px;">EXPORT SESSION</button>
+    <button class="btn" onclick="document.getElementById('session-import-file').click()" style="font-size:10px; padding:4px 8px;">IMPORT SESSION</button>
+    <input type="file" id="session-import-file" style="display:none;" accept=".json" onchange="App.importSession(event)">
+  </div>
+
   <div class="lab-tabs">
     <div class="lab-tab active" id="btn-tab-hash" onclick="App.switchLabTab('hash')" tabindex="0" role="button">Hash Engine</div>
     <div class="lab-tab" id="btn-tab-compare" onclick="App.switchLabTab('compare')" tabindex="0" role="button">Compare All Algos</div>

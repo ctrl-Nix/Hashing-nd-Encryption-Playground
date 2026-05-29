@@ -1616,6 +1616,151 @@ const App = {
     URL.revokeObjectURL(url);
   },
 
+  /* ─── SESSION MANAGER (EXPORT / IMPORT / SHARE) ─── */
+  shareActiveLab: () => {
+    const currentTab = document.querySelector('.lab-tab.active').id.replace('btn-tab-', '');
+    let payload = { tool: currentTab };
+    if (currentTab === 'hash') {
+      payload.input = document.getElementById('hash-input').value;
+      payload.salt = document.getElementById('hash-salt').value;
+    } else if (currentTab === 'enc') {
+      payload.plain = document.getElementById('enc-plain').value;
+      payload.pass = document.getElementById('enc-pass').value;
+    }
+    const b64 = btoa(JSON.stringify(payload)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    const link = window.location.origin + window.location.pathname + '#share=' + b64;
+    App.copyToClipboardRaw(link);
+    alert('Share Link Copied to Clipboard!');
+  },
+
+  copyToClipboardRaw: (text) => {
+    const el = document.createElement('textarea');
+    el.value = text;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+  },
+
+  exportSession: async () => {
+    const data = {
+      version: '3.0.0',
+      timestamp: new Date().toISOString(),
+      toolStates: {
+        hash: {
+          input: document.getElementById('hash-input').value,
+          salt: document.getElementById('hash-salt').value,
+          output: document.getElementById('hash-output').innerText
+        },
+        enc: {
+          mode: document.getElementById('btn-mode-enc').classList.contains('btn-primary') ? 'enc' : 'dec',
+          plain: document.getElementById('enc-plain').value,
+          pass: document.getElementById('enc-pass').value,
+          cipher: document.getElementById('enc-cipher').value
+        }
+      }
+    };
+    
+    let outStr = JSON.stringify(data, null, 2);
+    let filename = `nix_session_${Date.now()}.json`;
+
+    if (confirm("Encrypt this export using AES-GCM?")) {
+      const pass = prompt("Enter a passphrase for encryption:");
+      if (!pass) return alert("Export cancelled.");
+      
+      try {
+        const salt = crypto.getRandomValues(new Uint8Array(16));
+        const iv = crypto.getRandomValues(new Uint8Array(12));
+        const keyMaterial = await crypto.subtle.importKey(
+          'raw', new TextEncoder().encode(pass), { name: 'PBKDF2' }, false, ['deriveKey']
+        );
+        const key = await crypto.subtle.deriveKey(
+          { name: 'PBKDF2', salt: salt, iterations: 100000, hash: 'SHA-256' },
+          keyMaterial,
+          { name: 'AES-GCM', length: 256 },
+          false,
+          ['encrypt']
+        );
+        const cipher = await crypto.subtle.encrypt(
+          { name: 'AES-GCM', iv: iv },
+          key,
+          new TextEncoder().encode(outStr)
+        );
+        
+        const bundle = new Uint8Array(28 + cipher.byteLength);
+        bundle.set(salt, 0);
+        bundle.set(iv, 16);
+        bundle.set(new Uint8Array(cipher), 28);
+        
+        outStr = JSON.stringify({ encrypted: true, payloadHex: CE.bufToHex(bundle) });
+        filename = `nix_session_${Date.now()}.enc.json`;
+      } catch(e) {
+        return alert("Encryption failed: " + e.message);
+      }
+    }
+
+    const blob = new Blob([outStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  },
+
+  importSession: async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      try {
+        let data = JSON.parse(ev.target.result);
+        if (data.encrypted) {
+          const pass = prompt("This session is encrypted. Enter passphrase:");
+          if(!pass) return;
+          
+          const hex = data.payloadHex;
+          const bytes = new Uint8Array(hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+          const salt = bytes.slice(0, 16);
+          const iv = bytes.slice(16, 28);
+          const cipher = bytes.slice(28);
+          
+          const keyMaterial = await crypto.subtle.importKey(
+            'raw', new TextEncoder().encode(pass), { name: 'PBKDF2' }, false, ['deriveKey']
+          );
+          const key = await crypto.subtle.deriveKey(
+            { name: 'PBKDF2', salt: salt, iterations: 100000, hash: 'SHA-256' },
+            keyMaterial,
+            { name: 'AES-GCM', length: 256 },
+            false,
+            ['decrypt']
+          );
+          const plainBytes = await crypto.subtle.decrypt(
+            { name: 'AES-GCM', iv: iv },
+            key,
+            cipher
+          );
+          data = JSON.parse(new TextDecoder().decode(plainBytes));
+        }
+
+        if (!data.version || !data.toolStates) throw new Error("Missing schema fields (version or toolStates)");
+        
+        if (data.toolStates.hash) {
+          document.getElementById('hash-input').value = data.toolStates.hash.input || '';
+          document.getElementById('hash-salt').value = data.toolStates.hash.salt || '';
+          App.switchLabTab('hash');
+          App.runLabHash();
+        }
+        
+        alert("Session loaded successfully!");
+      } catch(err) {
+        alert("Session Import Error: " + err.message);
+      }
+      e.target.value = '';
+    };
+    reader.readAsText(file);
+  },
+
   /* ─── ECDH KEY EXCHANGE LAB ─── */
   startECDHExchange: async () => {
     try {
@@ -1746,5 +1891,22 @@ setTimeout(() => {
   if (window.location.hash.startsWith('#ecdh=')) {
     App.switchLabTab('ecdh');
     App.parseECDHFragment();
+  } else if (window.location.hash.startsWith('#share=')) {
+    try {
+      let b64Url = window.location.hash.substring(7);
+      let b64 = b64Url.replace(/-/g, '+').replace(/_/g, '/');
+      while (b64.length % 4) { b64 += '='; }
+      const payload = JSON.parse(atob(b64));
+      
+      App.switchLabTab(payload.tool);
+      if (payload.tool === 'hash') {
+        document.getElementById('hash-input').value = payload.input || '';
+        document.getElementById('hash-salt').value = payload.salt || '';
+        App.runLabHash();
+      } else if (payload.tool === 'enc') {
+        document.getElementById('enc-plain').value = payload.plain || '';
+        document.getElementById('enc-pass').value = payload.pass || '';
+      }
+    } catch(e) { console.error(e); }
   }
 }, 500);
