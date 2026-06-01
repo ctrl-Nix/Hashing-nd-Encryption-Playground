@@ -373,6 +373,20 @@ const App = {
     const data = document.getElementById('lab-enc-data').value;
     const pass = document.getElementById('lab-enc-key').value;
     if(!data||!pass) return alert('Provide data and passphrase.');
+
+    // Proactive Hint Intercept
+    if (App.S.lab.encMode === 'dec' && typeof window.DaisyContext !== 'undefined') {
+      const parts = data.split(':');
+      if (parts.length === 3 && parts[2].length % 2 !== 0) {
+        if (window.setDaisyState) window.setDaisyState('warn');
+        if (window.typewriteBubble) window.typewriteBubble("Hey! Hex strings need an even number of characters. Check your spacing!");
+        if (window.playAlert) window.playAlert();
+        
+        document.getElementById('lab-enc-data').classList.add('daisy-highlight');
+        setTimeout(() => document.getElementById('lab-enc-data').classList.remove('daisy-highlight'), 3000);
+        return; // Stop execution
+      }
+    }
     const action = document.getElementById('lab-enc-action');
     const resBox = document.getElementById('lab-enc-result');
     const outEl  = document.getElementById('lab-enc-out');
@@ -2163,5 +2177,7 @@ App.runBenchmark = async () => {
 
 window.addEventListener('unhandledrejection', event => {
   console.error("Unhandled Promise Rejection:", event.reason);
+  if (window.setDaisyState) window.setDaisyState('shock');
+  if (window.playAlert) window.playAlert();
   alert("Fatal Error: " + (event.reason?.message || "Cryptographic Operation Failed"));
 });

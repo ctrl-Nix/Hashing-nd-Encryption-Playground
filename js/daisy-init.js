@@ -59,7 +59,191 @@ function initDaisy() {
     });
   }
 
-  window.DaisyContext = {
+  
+  // --- AUDIO ENGINE ---
+  let audioCtx = null;
+  function getAudioCtx() {
+    if (!audioCtx) {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (AudioContext) audioCtx = new AudioContext();
+    }
+    return audioCtx;
+  }
+  
+  window.playBlip = function() {
+    try {
+      const ctx = getAudioCtx();
+      if (!ctx || ctx.state === 'suspended') return;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(800, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0.05, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.1);
+    } catch(e){}
+  };
+
+  window.playSuccess = function() {
+    try {
+      const ctx = getAudioCtx();
+      if (!ctx || ctx.state === 'suspended') return;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(600, ctx.currentTime);
+      osc.frequency.setValueAtTime(800, ctx.currentTime + 0.1);
+      osc.frequency.setValueAtTime(1200, ctx.currentTime + 0.2);
+      gain.gain.setValueAtTime(0.05, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.4);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.4);
+    } catch(e){}
+  };
+
+  window.playAlert = function() {
+    try {
+      const ctx = getAudioCtx();
+      if (!ctx || ctx.state === 'suspended') return;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(300, ctx.currentTime);
+      osc.frequency.setValueAtTime(200, ctx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.05, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.3);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.3);
+    } catch(e){}
+  };
+
+  window.playTypewriter = function() {
+    try {
+      const ctx = getAudioCtx();
+      if (!ctx || ctx.state === 'suspended') return;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(150 + Math.random()*50, ctx.currentTime);
+      gain.gain.setValueAtTime(0.02, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.05);
+    } catch(e){}
+  };
+
+  let typeInterval = null;
+  window.typewriteBubble = function(text) {
+    const textSpan = document.getElementById('daisy-bubble-text');
+    if (!textSpan) return;
+    textSpan.textContent = '';
+    let i = 0;
+    clearInterval(typeInterval);
+    typeInterval = setInterval(() => {
+      if (i < text.length) {
+        textSpan.textContent += text[i];
+        if (text[i] !== ' ' && i % 2 === 0) window.playTypewriter();
+        i++;
+      } else {
+        clearInterval(typeInterval);
+      }
+    }, 30);
+  };
+
+  // --- IDLE TRACKER ---
+  let idleTimer = null;
+  function resetIdle() {
+    clearTimeout(idleTimer);
+    if (getAudioCtx() && getAudioCtx().state === 'suspended') {
+      try { getAudioCtx().resume(); } catch(e){}
+    }
+    
+    if (widget.classList.contains('daisy-bored')) {
+      widget.classList.remove('daisy-bored');
+      if (window.setDaisyState) window.setDaisyState('idle');
+    }
+    
+    idleTimer = setTimeout(() => {
+      widget.classList.add('daisy-bored');
+      if (window.setDaisyState) window.setDaisyState('idle');
+      const bubble = document.getElementById('daisy-bubble');
+      if (bubble) {
+        bubble.classList.add('visible');
+        window.typewriteBubble("You still there? The encryption isn't going to crack itself!");
+        setTimeout(() => bubble.classList.remove('visible'), 5000);
+      }
+    }, 30000);
+  }
+  
+  window.addEventListener('mousemove', resetIdle);
+  window.addEventListener('keydown', resetIdle);
+  window.addEventListener('click', resetIdle);
+  resetIdle();
+
+  // --- SECRET KEYLOGGER ---
+  let keyBuffer = '';
+  window.addEventListener('keydown', (e) => {
+    if (e.key && e.key.length === 1) {
+      keyBuffer = (keyBuffer + e.key.toLowerCase()).slice(-20);
+      if (keyBuffer.endsWith('nix')) {
+        window.playSuccess();
+        document.body.style.backgroundImage = 'url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPgo8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMDcwYjE0Ii8+Cjx0ZXh0IHg9IjAiIHk9IjIwIiBmaWxsPSIjMDBmZjAwIiBvcGFjaXR5PSIwLjUiIGZvbnQtZmFtaWx5PSJtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMjAiPjEwMTExMDEwMDEwMTwvdGV4dD4KPC9zdmc+")';
+        if (window.setDaisyState) window.setDaisyState('celebrate', null);
+        const bubble = document.getElementById('daisy-bubble');
+        if (bubble) {
+          bubble.classList.add('visible');
+          window.typewriteBubble("Matrix mode engaged!");
+        }
+      }
+      if (keyBuffer.endsWith('crypto')) {
+        window.playSuccess();
+        const hackerGoggles = document.getElementById('daisy-accessory-hacker');
+        if (hackerGoggles) hackerGoggles.style.display = '';
+        if (window.setDaisyState) window.setDaisyState('celebrate', null);
+        const bubble = document.getElementById('daisy-bubble');
+        if (bubble) {
+          bubble.classList.add('visible');
+          window.typewriteBubble("Stealth mode activated!");
+        }
+      }
+      if (keyBuffer.endsWith('hash')) {
+        window.playSuccess();
+        document.documentElement.style.setProperty('--bg', '#000000');
+        document.documentElement.style.setProperty('--c', '#ff00ff');
+        if (window.setDaisyState) window.setDaisyState('celebrate', null);
+        const bubble = document.getElementById('daisy-bubble');
+        if (bubble) {
+          bubble.classList.add('visible');
+          window.typewriteBubble("Overclocking hashes!");
+        }
+      }
+    }
+  });
+
+  // Inject CSS highlighter
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes daisyGlow {
+      0% { box-shadow: 0 0 5px var(--c, #00f5ff); border-color: var(--c, #00f5ff); }
+      50% { box-shadow: 0 0 20px var(--c, #00f5ff), 0 0 10px inset var(--c, #00f5ff); border-color: #fff; }
+      100% { box-shadow: 0 0 5px var(--c, #00f5ff); border-color: var(--c, #00f5ff); }
+    }
+    .daisy-highlight {
+      animation: daisyGlow 1s infinite alternate !important;
+    }
+  `;
+  document.head.appendChild(style);
+\n  window.DaisyContext = {
     currentTool: 'hash',
     currentAlgo: 'none',
     lastAction: 'none'
@@ -86,13 +270,13 @@ function initDaisy() {
 
   let bubbleTimeout = null;
 
-  function setDaisyState(state, textKey) {
+  window.setDaisyState = function setDaisyState(state, textKey) {
     if (widget.classList.contains('daisy-drag')) return;
     
     if (widget.classList.contains('daisy-flower')) {
       if (textKey && DaisyDialogues[textKey]) {
         const textSpan = document.getElementById('daisy-bubble-text');
-        textSpan.textContent = DaisyDialogues[textKey];
+        window.typewriteBubble(DaisyDialogues[textKey]);
         bubble.classList.add('visible');
         clearTimeout(bubbleTimeout);
         bubbleTimeout = setTimeout(() => {
@@ -105,10 +289,13 @@ function initDaisy() {
     widget.classList.remove('daisy-idle', 'daisy-think', 'daisy-celebrate', 'daisy-warn', 'daisy-sleep', 'daisy-dizzy', 'daisy-shock', 'daisy-poke', 'daisy-dance');
     widget.classList.add(`daisy-${state}`);
     setDaisyExpression(state);
+    if (state === 'celebrate') window.playSuccess();
+    else if (state === 'warn' || state === 'shock') window.playAlert();
+    else if (state !== 'idle' && state !== 'sleep') window.playBlip();
 
     if (textKey && DaisyDialogues[textKey]) {
       const textSpan = document.getElementById('daisy-bubble-text');
-      textSpan.textContent = DaisyDialogues[textKey];
+      window.typewriteBubble(DaisyDialogues[textKey]);
       bubble.classList.add('visible');
 
       clearTimeout(bubbleTimeout);
