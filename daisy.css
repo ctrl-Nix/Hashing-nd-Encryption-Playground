@@ -1,0 +1,75 @@
+/* Daisy Widget Styles */
+#daisy-widget {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+  width: 100px;
+  height: 120px;
+  transform-origin: bottom center; /* For the idle sway */
+}
+
+/* 1. Gentle side sway loop */
+.daisy-idle {
+  animation: daisy-idle 3s ease-in-out infinite;
+}
+
+/* 2. Petals rotate 360 continuously */
+.daisy-think .daisy-petals {
+  animation: daisy-think 3s linear infinite;
+}
+
+/* 3. Quick jump — translateY up then down */
+.daisy-celebrate {
+  animation: daisy-celebrate 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* 4. Petals droop — rotate slightly downward */
+.daisy-warn .daisy-head {
+  animation: daisy-warn 0.5s ease-in-out forwards;
+}
+
+/* --- Keyframes --- */
+
+@keyframes daisy-idle {
+  0%, 100% {
+    transform: rotate(-4deg);
+  }
+  50% {
+    transform: rotate(4deg);
+  }
+}
+
+@keyframes daisy-think {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes daisy-celebrate {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-40px);
+  }
+}
+
+@keyframes daisy-warn {
+  0% {
+    transform: rotate(0deg) translateY(0);
+  }
+  100% {
+    /* Droops slightly down and to the side */
+    transform: rotate(20deg) translateY(8px);
+  }
+}
+
+/* Center of rotation for the petals and head */
+.daisy-petals,
+.daisy-head {
+  transform-origin: 50px 50px;
+}
