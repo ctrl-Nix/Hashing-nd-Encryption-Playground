@@ -243,7 +243,8 @@ function initDaisy() {
     }
   `;
   document.head.appendChild(style);
-\n  window.DaisyContext = {
+
+  window.DaisyContext = {
     currentTool: 'hash',
     currentAlgo: 'none',
     lastAction: 'none'
