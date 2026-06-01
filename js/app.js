@@ -172,10 +172,30 @@ const App = {
 
   switchLabTab: tab => {
     document.querySelectorAll('.lab-tab').forEach(b => b.classList.remove('active'));
-    document.getElementById('btn-tab-'+tab).classList.add('active');
+    const btn = document.getElementById('btn-tab-'+tab);
+    if(btn) btn.classList.add('active');
     document.querySelectorAll('.lab-panel').forEach(p => p.classList.remove('active'));
-    document.getElementById('lab-'+tab).classList.add('active');
-    window.scrollTo({ top: document.querySelector('.lab-tabs').offsetTop - 40, behavior: 'smooth' });
+    const panel = document.getElementById('lab-'+tab);
+    if(panel) panel.classList.add('active');
+    
+    const tabsEl = document.querySelector('.lab-tabs');
+    if (tabsEl) {
+      window.scrollTo({ top: tabsEl.offsetTop - 40, behavior: 'smooth' });
+    }
+    
+    if (['ecdh', 'ecdsa', 'rsa', 'hmac'].includes(tab) && !localStorage.getItem('explainer_' + tab)) {
+      if(window.showExplainer) window.showExplainer(tab);
+    }
+    
+    // Hacker Goggles Logic
+    const goggles = document.getElementById('daisy-accessory-hacker');
+    if (goggles) {
+      if (['rsa', 'stego', 'ecdsa', 'ecdh', 'cert'].includes(tab)) {
+        goggles.style.display = '';
+      } else {
+        goggles.style.display = 'none';
+      }
+    }
   },
 
   setupDropZone: () => {
