@@ -35,12 +35,14 @@ function initDaisy() {
         <ul style="padding-left:16px; display:flex; flex-direction:column; gap:8px;">
           <li><strong style="color:var(--c3, #00ff88);">💬 Local AI Chat:</strong> Click me to open the comms panel. My brain (Qwen2.5) runs 100% inside your browser!</li>
           <li><strong style="color:var(--c3, #00ff88);">✋ High Five:</strong> Click on the right side of my body (my right arm) for a quick high five.</li>
+          <li><strong style="color:var(--c3, #00ff88);">👉 Poke:</strong> Click directly on my face to poke me and make me flinch!</li>
           <li><strong style="color:var(--c3, #00ff88);">😵‍💫 Dizzy Spin:</strong> Click, drag me fast in circles around the screen, and drop me to make me dizzy!</li>
           <li><strong style="color:var(--c3, #00ff88);">😴 Snooze Mode:</strong> If you don't touch your mouse or keyboard for 60s, I will fall asleep.</li>
           <li><strong style="color:var(--c3, #00ff88);">🌸 Ticklish:</strong> Hover your mouse directly over my face/petals quickly to tickle me.</li>
           <li><strong style="color:var(--c3, #00ff88);">🕶️ Hacker Mode:</strong> Switch to advanced labs (like RSA or Steganography) and I'll put on my cyber-goggles.</li>
+          <li><strong style="color:var(--c3, #00ff88);">⚡ Shock:</strong> If a crypto tool throws an error, I get shocked!</li>
           <li><strong style="color:var(--c3, #00ff88);">⌨️ Active Listening:</strong> Type in my chat box and I'll type along with you.</li>
-          <li><strong style="color:var(--c3, #00ff88);">🪴 Level Up:</strong> Unlock an achievement to water me and make me grow!</li>
+          <li><strong style="color:var(--c3, #00ff88);">🪴 Level Up Dance:</strong> Unlock an achievement to water me and watch me do a 360° happy dance!</li>
           <li><strong style="color:var(--c3, #00ff88);">👀 Eye Tracking:</strong> Move your mouse around and watch my eyes follow your cursor.</li>
         </ul>
       </div>
@@ -63,7 +65,7 @@ function initDaisy() {
     lastAction: 'none'
   };
 
-  const EXPRESSIONS = ['idle', 'think', 'celebrate', 'warn', 'sleep', 'dizzy'];
+  const EXPRESSIONS = ['idle', 'think', 'celebrate', 'warn', 'sleep', 'dizzy', 'shock', 'poke'];
 
   function setDaisyExpression(expr) {
     EXPRESSIONS.forEach(e => {
@@ -100,7 +102,7 @@ function initDaisy() {
       return;
     }
 
-    widget.classList.remove('daisy-idle', 'daisy-think', 'daisy-celebrate', 'daisy-warn', 'daisy-sleep', 'daisy-dizzy');
+    widget.classList.remove('daisy-idle', 'daisy-think', 'daisy-celebrate', 'daisy-warn', 'daisy-sleep', 'daisy-dizzy', 'daisy-shock', 'daisy-poke', 'daisy-dance');
     widget.classList.add(`daisy-${state}`);
     setDaisyExpression(state);
 
@@ -125,14 +127,14 @@ function initDaisy() {
       }, 4000);
     } else if (!textKey) {
       bubble.classList.remove('visible');
-      if (state === 'celebrate' || state === 'warn') {
+      if (state === 'celebrate' || state === 'warn' || state === 'shock' || state === 'poke' || state === 'dance') {
         setTimeout(() => {
           if (!widget.classList.contains('daisy-sleep') && !widget.classList.contains('daisy-dizzy')) {
             widget.classList.remove(`daisy-${state}`);
             widget.classList.add('daisy-idle');
             setDaisyExpression('idle');
           }
-        }, 2000);
+        }, state === 'dance' ? 1500 : 2000);
       }
     }
   }
@@ -216,7 +218,7 @@ function initDaisy() {
         window.DaisyContext.lastAction = 'just hashed a string';
       } catch (e) {
         widget.classList.remove('daisy-munch');
-        if (!widget.classList.contains('daisy-sleep')) setDaisyState('warn', 'warn');
+        if (!widget.classList.contains('daisy-sleep')) setDaisyState('shock', 'warn');
         throw e;
       }
       widget.classList.remove('daisy-munch');
@@ -234,7 +236,7 @@ function initDaisy() {
         res = await orig.apply(App, arguments);
         window.DaisyContext.lastAction = 'generated RSA keys';
       } catch (e) {
-        if (!widget.classList.contains('daisy-sleep')) setDaisyState('warn', 'warn');
+        if (!widget.classList.contains('daisy-sleep')) setDaisyState('shock', 'warn');
         throw e;
       }
       if (!widget.classList.contains('daisy-sleep')) setDaisyState('celebrate', 'celebrate');
@@ -256,7 +258,7 @@ function initDaisy() {
     AchievementSystem.unlock = function(id) {
       orig.call(AchievementSystem, id);
       if (!widget.classList.contains('daisy-sleep')) {
-        setDaisyState('celebrate', 'celebrate');
+        setDaisyState('dance', 'celebrate'); // 360 Spin Dance!
         // Watering can grow animation
         widget.classList.add('daisy-grow');
         setTimeout(() => {
@@ -314,10 +316,24 @@ function initDaisy() {
     const rect = widget.getBoundingClientRect();
     const isRightSide = (e.clientX - rect.left) > (rect.width * 0.7) && (e.clientY - rect.top) > (rect.height * 0.4);
     
+    // Face click detection for poking
+    const faceCenterX = rect.width / 2;
+    const faceCenterY = rect.height * 0.4;
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
+    const distToFace = Math.sqrt((clickX - faceCenterX)**2 + (clickY - faceCenterY)**2);
+    const isFaceClick = distToFace < 30; // 30px radius around the face
+
     // High-Five Interaction
     if (isRightSide && widget.classList.contains('daisy-idle')) {
       widget.classList.add('daisy-highfive-slap');
       setTimeout(() => widget.classList.remove('daisy-highfive-slap'), 500);
+      return; // Stop here, don't open chat
+    }
+
+    // Poke Interaction
+    if (isFaceClick && widget.classList.contains('daisy-idle')) {
+      setDaisyState('poke');
       return; // Stop here, don't open chat
     }
 
@@ -475,6 +491,28 @@ function initDaisy() {
   document.addEventListener('keydown', resetActivity);
   document.addEventListener('click', resetActivity);
 
+  // Auto Blinking Logic
+  setInterval(() => {
+    if (widget.classList.contains('daisy-idle') || widget.classList.contains('daisy-think')) {
+      // 30% chance to double blink
+      if (Math.random() < 0.3) {
+        widget.classList.add('daisy-blink-auto');
+        setTimeout(() => {
+          widget.classList.remove('daisy-blink-auto');
+          setTimeout(() => {
+            widget.classList.add('daisy-blink-auto');
+            setTimeout(() => widget.classList.remove('daisy-blink-auto'), 150);
+          }, 100);
+        }, 150);
+      } else {
+        // Single blink
+        widget.classList.add('daisy-blink-auto');
+        setTimeout(() => widget.classList.remove('daisy-blink-auto'), 150);
+      }
+    }
+  }, 4000); // Check every 4s, animation handles it
+
+  // Sleep Inactivity Timer
   setInterval(() => {
     if (Date.now() - lastInteractionTime > 60000) {
       if (!widget.classList.contains('daisy-flower') && !widget.classList.contains('daisy-sleep') && !widget.classList.contains('daisy-dizzy')) {

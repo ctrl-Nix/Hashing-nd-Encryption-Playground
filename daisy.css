@@ -210,19 +210,19 @@
    STATE: IDLE (walking — legs & arms swing)
 ══════════════════════════════════════════════════════════ */
 .daisy-idle {
-  animation: daisy-walk-bob 0.35s ease-in-out infinite alternate;
+  animation: daisy-walk-bob 0.35s cubic-bezier(0.25, 1, 0.5, 1) infinite alternate;
 }
 .daisy-idle #daisy-left-leg {
-  animation: daisy-walk-leg 0.7s ease-in-out infinite alternate;
+  animation: daisy-walk-leg 0.7s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
 }
 .daisy-idle #daisy-right-leg {
-  animation: daisy-walk-leg 0.7s ease-in-out infinite alternate-reverse;
+  animation: daisy-walk-leg 0.7s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate-reverse;
 }
 .daisy-idle #daisy-left-arm {
-  animation: daisy-walk-arm 0.7s ease-in-out infinite alternate-reverse;
+  animation: daisy-walk-arm 0.7s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate-reverse;
 }
 .daisy-idle #daisy-right-arm {
-  animation: daisy-walk-arm 0.7s ease-in-out infinite alternate;
+  animation: daisy-walk-arm 0.7s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
 }
 
 @keyframes daisy-walk-leg {
@@ -234,8 +234,8 @@
   100% { transform: rotate(8deg); }
 }
 @keyframes daisy-walk-bob {
-  0%   { transform: translateY(0); }
-  100% { transform: translateY(-3px); }
+  0%   { transform: translateY(0) scale(1, 1); }
+  100% { transform: translateY(-4px) scale(0.97, 1.03); } /* Squash on land, stretch in air */
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -737,6 +737,86 @@
   100% { transform: scale(2.5); opacity: 0; }
 }
 
+
+/* ══════════════════════════════════════════════════════════
+   STATE: SHOCK (Error / Alert)
+══════════════════════════════════════════════════════════ */
+.daisy-shock {
+  animation: daisy-shock-shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) infinite;
+}
+.daisy-shock svg {
+  filter: drop-shadow(0 0 25px rgba(255, 100, 0, 0.9)) !important;
+}
+.daisy-shock .daisy-petals {
+  animation: daisy-shock-petals 0.1s infinite alternate;
+}
+@keyframes daisy-shock-shake {
+  0% { transform: translate(1px, 1px) rotate(0deg); }
+  10% { transform: translate(-1px, -2px) rotate(-1deg); }
+  20% { transform: translate(-3px, 0px) rotate(1deg); }
+  30% { transform: translate(3px, 2px) rotate(0deg); }
+  40% { transform: translate(1px, -1px) rotate(1deg); }
+  50% { transform: translate(-1px, 2px) rotate(-1deg); }
+  60% { transform: translate(-3px, 1px) rotate(0deg); }
+  70% { transform: translate(3px, 1px) rotate(-1deg); }
+  80% { transform: translate(-1px, -1px) rotate(1deg); }
+  90% { transform: translate(1px, 2px) rotate(0deg); }
+  100% { transform: translate(1px, -2px) rotate(-1deg); }
+}
+@keyframes daisy-shock-petals {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.15); }
+}
+
+/* ══════════════════════════════════════════════════════════
+   STATE: POKE (Flinch)
+══════════════════════════════════════════════════════════ */
+.daisy-poke {
+  animation: daisy-poke-flinch 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
+}
+.daisy-poke .daisy-petals {
+  transform: scale(0.9);
+  transition: transform 0.2s;
+}
+@keyframes daisy-poke-flinch {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  20% { transform: translate(-10px, -5px) rotate(-15deg); }
+  80% { transform: translate(-10px, -5px) rotate(-15deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+/* ══════════════════════════════════════════════════════════
+   STATE: DANCE (360 Spin Celebration)
+══════════════════════════════════════════════════════════ */
+.daisy-dance {
+  animation: daisy-dance-spin 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+}
+.daisy-dance #daisy-left-arm,
+.daisy-dance #daisy-right-arm {
+  animation: daisy-dance-arms 0.4s linear infinite !important;
+}
+@keyframes daisy-dance-spin {
+  0% { transform: translateY(0) rotate(0deg) scale(1); }
+  25% { transform: translateY(-40px) rotate(90deg) scale(1.1); }
+  50% { transform: translateY(-50px) rotate(180deg) scale(1.2); }
+  75% { transform: translateY(-40px) rotate(270deg) scale(1.1); }
+  100% { transform: translateY(0) rotate(360deg) scale(1); }
+}
+@keyframes daisy-dance-arms {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ══════════════════════════════════════════════════════════
+   AUTO BLINKING (JS Triggered)
+══════════════════════════════════════════════════════════ */
+.daisy-blink-auto .daisy-pupils {
+  animation: daisy-blink-eyes 0.15s ease-in-out;
+}
+@keyframes daisy-blink-eyes {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(0.1); }
+}
 
 /* ══════════════════════════════════════════════════════════
    MOBILE RESPONSIVENESS
