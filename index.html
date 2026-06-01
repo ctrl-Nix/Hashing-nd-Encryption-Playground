@@ -591,6 +591,29 @@
         </div>
       </div>
     </div>
+
+    <div id="crack-sha256-area" style="display:none; margin-top:24px;">
+      <div class="panel">
+        <div class="panel-title"><span style="color:var(--c);">THE SHA-256 + SALT DIFFERENCE</span></div>
+        <p style="font-family:var(--font-mono);font-size:11px;color:var(--muted);line-height:1.8;">If we ran the exact same dictionary attack against a salted SHA-256 hash of the same password, the attacker's precomputed MD5 hashes are completely useless.</p>
+        
+        <div style="margin-top:16px;">
+          <span class="form-label">Salted SHA-256 Hash Target</span>
+          <div class="readout readout-cyan" id="crack-sha256-target" style="font-size:12px;">—</div>
+        </div>
+
+        <div style="margin-top:16px; padding:12px; border:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.2);">
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+            <span style="font-family:var(--font-mono); font-size:10px; color:var(--muted);">DICTIONARY ATTEMPTS:</span>
+            <span style="font-family:var(--font-display); font-size:14px; color:var(--c);" id="crack-sha256-attempts">0 / 2000</span>
+          </div>
+          <div style="display:flex; justify-content:space-between;">
+            <span style="font-family:var(--font-mono); font-size:10px; color:var(--muted);">RESULT:</span>
+            <span class="status-tag st-ok">0 MATCHES FOUND</span>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- ECDSA TAB -->
@@ -686,6 +709,10 @@
 
       <span class="form-label">Input String</span>
       <textarea id="entropy-input" class="form-input" style="min-height:80px;" placeholder="Type something..." oninput="App.runEntropy()"></textarea>
+
+      <div id="ent-compromised-warn" style="display:none; margin-top:16px; padding:12px; background:rgba(255,0,60,0.1); border:1px solid var(--c2); color:var(--c2); font-family:var(--font-mono); font-size:11px;">
+        ⚠️ <strong>COMPROMISED PASSWORD DETECTED</strong><br>This password was found in the top 10,000 most common passwords list. Despite its mathematical complexity, its effective entropy is 0 because attackers will guess it instantly.
+      </div>
 
       <div style="margin-top:24px; display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
         <div class="readout readout-cyan" style="text-align:center;">
@@ -1076,6 +1103,7 @@
 <script src="js/story-explain.js"></script>
 <script src="js/crypto.js"></script>
 <script src="js/qrcode.min.js"></script>
+<script src="js/wordlist-10k.js"></script>
 <script src="js/app.js"></script>
 <script src="js/story-mode-v2.js"></script>
 <script src="js/daisy-dialogues.js"></script>

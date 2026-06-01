@@ -1420,13 +1420,19 @@ const App = {
   },
 
   // MD5 password cracker sandbox tab
-  updateCrackTargetHash: () => {
+  updateCrackTargetHash: async () => {
     const sel = document.getElementById('crack-password-select');
     if (!sel) return;
     const pwd = sel.value;
     const hash = CE.md5(pwd);
     const hashEl = document.getElementById('crack-target-hash');
     if (hashEl) hashEl.innerText = hash;
+    
+    const shaEl = document.getElementById('crack-sha256-target');
+    if (shaEl) {
+      const shaHash = await CE.hash('SHA-256', pwd + "somesalt");
+      shaEl.innerText = shaHash.hex;
+    }
   },
 
   startMD5Crack: () => {
@@ -1452,6 +1458,8 @@ const App = {
     if (terminal) {
       terminal.innerHTML = `[SYS] INITIALIZING OFF-THREAD WEB WORKER...<br>[SYS] TARGET MD5 HASH: ${targetHash}<br>[SYS] LOADING 2000 PASSWORDS DICTIONARY...<br>`;
     }
+    
+    document.getElementById('crack-sha256-area').style.display = 'none';
 
     App.crackWorker = new Worker('js/md5-worker.js');
     App.crackWorker.postMessage({ targetHash });
@@ -1480,6 +1488,16 @@ const App = {
         if (startBtn) startBtn.style.display = 'block';
         if (stopBtn) stopBtn.style.display = 'none';
         if (resArea) resArea.style.display = 'block';
+
+        // Start SHA-256 counter simulation
+        document.getElementById('crack-sha256-area').style.display = 'block';
+        let shaCounter = 0;
+        let shaInterval = setInterval(() => {
+          shaCounter += 140;
+          if (shaCounter > 2000) shaCounter = 2000;
+          document.getElementById('crack-sha256-attempts').innerText = `${shaCounter} / 2000`;
+          if (shaCounter >= 2000) clearInterval(shaInterval);
+        }, 80);
 
         document.getElementById('crack-result-password').innerText = msg.password;
         document.getElementById('crack-result-time').innerText = `${msg.time} ms`;
