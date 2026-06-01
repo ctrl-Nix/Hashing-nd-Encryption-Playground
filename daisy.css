@@ -17,6 +17,9 @@
 #daisy-widget:hover {
   filter: brightness(1.15);
 }
+#daisy-widget.daisy-drag {
+  cursor: grabbing;
+}
 
 /* Hover label */
 #daisy-widget::after {
@@ -74,10 +77,85 @@
 /* ══════════════════════════════════════════════════════════
    LIMB JOINTS
 ══════════════════════════════════════════════════════════ */
-#daisy-left-leg  { transform-origin: 90px 150px; }
-#daisy-right-leg { transform-origin: 110px 150px; }
-#daisy-left-arm  { transform-origin: 78px 138px; }
-#daisy-right-arm { transform-origin: 122px 138px; }
+#daisy-left-leg  { transform-origin: 90px 150px; transition: transform 0.2s ease; }
+#daisy-right-leg { transform-origin: 110px 150px; transition: transform 0.2s ease; }
+#daisy-left-arm  { transform-origin: 78px 138px; transition: transform 0.2s ease; }
+#daisy-right-arm { transform-origin: 122px 138px; transition: transform 0.2s ease; }
+
+/* ══════════════════════════════════════════════════════════
+   EYE TRACKING
+══════════════════════════════════════════════════════════ */
+.daisy-pupils {
+  transform: translate(var(--eye-x, 0px), var(--eye-y, 0px));
+  transition: transform 0.1s ease-out;
+}
+
+/* ══════════════════════════════════════════════════════════
+   STATE: TICKLE (Squish animation on hover)
+══════════════════════════════════════════════════════════ */
+.daisy-tickle svg {
+  animation: daisy-squish 0.4s ease-in-out;
+}
+@keyframes daisy-squish {
+  0%, 100% { transform: scale(1, 1); }
+  50%      { transform: scale(1.15, 0.85) translateY(10px); }
+}
+
+/* ══════════════════════════════════════════════════════════
+   STATE: DRAG (Dangling)
+══════════════════════════════════════════════════════════ */
+.daisy-drag .daisy-limb { animation: none !important; }
+.daisy-drag #daisy-left-leg { transform: rotate(-5deg); }
+.daisy-drag #daisy-right-leg { transform: rotate(5deg); }
+.daisy-drag #daisy-left-arm { transform: rotate(80deg); }
+.daisy-drag #daisy-right-arm { transform: rotate(-80deg); }
+
+/* ══════════════════════════════════════════════════════════
+   STATE: SLEEP (Snoozing)
+══════════════════════════════════════════════════════════ */
+.daisy-sleep .daisy-limb { animation: none !important; }
+.daisy-sleep svg {
+  filter: drop-shadow(0 0 3px rgba(0,245,255,0.1));
+}
+.daisy-sleep {
+  animation: daisy-breathe 4s ease-in-out infinite;
+}
+@keyframes daisy-breathe {
+  0%, 100% { transform: scale(1, 1) translateY(0); }
+  50%      { transform: scale(1.02, 0.98) translateY(2px); }
+}
+.daisy-zzz {
+  animation: daisy-zzz-float 3s linear infinite;
+  opacity: 0;
+}
+.daisy-zzz-2 { animation-delay: 1s; }
+.daisy-zzz-3 { animation-delay: 2s; }
+@keyframes daisy-zzz-float {
+  0% { transform: translate(0, 0) scale(0.8); opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 0.5; }
+  100% { transform: translate(10px, -20px) scale(1.5); opacity: 0; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   STATE: LISTEN (Typing)
+══════════════════════════════════════════════════════════ */
+.daisy-listen #daisy-left-arm {
+  animation: daisy-type-arm 0.15s ease-in-out infinite alternate !important;
+}
+.daisy-listen #daisy-right-arm {
+  animation: daisy-type-arm 0.15s ease-in-out infinite alternate-reverse !important;
+}
+.daisy-listen #daisy-left-leg {
+  animation: daisy-walk-leg 0.7s ease-in-out infinite alternate; /* Keep legs still or slightly moving */
+}
+.daisy-listen #daisy-right-leg {
+  animation: daisy-walk-leg 0.7s ease-in-out infinite alternate-reverse;
+}
+@keyframes daisy-type-arm {
+  0%   { transform: rotate(-30deg); }
+  100% { transform: rotate(10deg); }
+}
 
 /* ══════════════════════════════════════════════════════════
    STATE: FLOWER (default — cute still flower, gentle sway)

@@ -18,7 +18,7 @@ function initDaisy() {
   };
 
   // ─── EXPRESSION SWITCHING ───
-  const EXPRESSIONS = ['idle', 'think', 'celebrate', 'warn'];
+  const EXPRESSIONS = ['idle', 'think', 'celebrate', 'warn', 'sleep'];
 
   function setDaisyExpression(expr) {
     EXPRESSIONS.forEach(e => {
@@ -41,9 +41,11 @@ function initDaisy() {
   let bubbleTimeout = null;
 
   function setDaisyState(state, textKey) {
+    // Prevent state changes if dragging or sleeping (unless explicitly waking up)
+    if (widget.classList.contains('daisy-drag')) return;
+    
     // If still in flower mode, do not animate limbs
     if (widget.classList.contains('daisy-flower')) {
-      // Just show the bubble without changing state
       if (textKey && DaisyDialogues[textKey]) {
         const textSpan = document.getElementById('daisy-bubble-text');
         textSpan.textContent = DaisyDialogues[textKey];
@@ -56,11 +58,9 @@ function initDaisy() {
       return;
     }
 
-    // Reset animation class
-    widget.classList.remove('daisy-idle', 'daisy-think', 'daisy-celebrate', 'daisy-warn');
+    // Reset animation classes
+    widget.classList.remove('daisy-idle', 'daisy-think', 'daisy-celebrate', 'daisy-warn', 'daisy-sleep');
     widget.classList.add(`daisy-${state}`);
-
-    // Switch facial expression
     setDaisyExpression(state);
 
     // Show bubble text
@@ -75,9 +75,11 @@ function initDaisy() {
 
         if (state === 'celebrate' || state === 'warn') {
           setTimeout(() => {
-            widget.classList.remove(`daisy-${state}`);
-            widget.classList.add('daisy-idle');
-            setDaisyExpression('idle');
+            if (!widget.classList.contains('daisy-sleep')) {
+              widget.classList.remove(`daisy-${state}`);
+              widget.classList.add('daisy-idle');
+              setDaisyExpression('idle');
+            }
           }, 500);
         }
       }, 4000); // 4s auto-hide
@@ -85,9 +87,11 @@ function initDaisy() {
       bubble.classList.remove('visible');
       if (state === 'celebrate' || state === 'warn') {
         setTimeout(() => {
-          widget.classList.remove(`daisy-${state}`);
-          widget.classList.add('daisy-idle');
-          setDaisyExpression('idle');
+          if (!widget.classList.contains('daisy-sleep')) {
+            widget.classList.remove(`daisy-${state}`);
+            widget.classList.add('daisy-idle');
+            setDaisyExpression('idle');
+          }
         }, 2000);
       }
     }
@@ -96,6 +100,8 @@ function initDaisy() {
   // Helper for proactive bubbles
   let proactiveTimeout = null;
   function triggerProactiveBubble(state, textKey) {
+    // Don't trigger if sleeping
+    if (widget.classList.contains('daisy-sleep')) return;
     clearTimeout(proactiveTimeout);
     proactiveTimeout = setTimeout(() => {
       setDaisyState(state, textKey);
@@ -137,7 +143,7 @@ function initDaisy() {
         triggerProactiveBubble('think', algo);
         // Switch back to idle after thinking
         setTimeout(() => {
-          if (!widget.classList.contains('daisy-flower')) {
+          if (!widget.classList.contains('daisy-flower') && !widget.classList.contains('daisy-sleep')) {
             widget.classList.remove('daisy-think');
             widget.classList.add('daisy-idle');
             setDaisyExpression('idle');
@@ -150,16 +156,16 @@ function initDaisy() {
   if (window.App && App.runLabHash) {
     const orig = App.runLabHash;
     App.runLabHash = async function() {
-      setDaisyState('think');
+      if (!widget.classList.contains('daisy-sleep')) setDaisyState('think');
       let res;
       try {
         res = await orig.apply(App, arguments);
         window.DaisyContext.lastAction = 'just hashed a string';
       } catch (e) {
-        setDaisyState('warn', 'warn');
+        if (!widget.classList.contains('daisy-sleep')) setDaisyState('warn', 'warn');
         throw e;
       }
-      setDaisyState('celebrate', 'celebrate');
+      if (!widget.classList.contains('daisy-sleep')) setDaisyState('celebrate', 'celebrate');
       return res;
     };
   }
@@ -167,16 +173,16 @@ function initDaisy() {
   if (window.App && App.runRSAGen) {
     const orig = App.runRSAGen;
     App.runRSAGen = async function() {
-      setDaisyState('think');
+      if (!widget.classList.contains('daisy-sleep')) setDaisyState('think');
       let res;
       try {
         res = await orig.apply(App, arguments);
         window.DaisyContext.lastAction = 'generated RSA keys';
       } catch (e) {
-        setDaisyState('warn', 'warn');
+        if (!widget.classList.contains('daisy-sleep')) setDaisyState('warn', 'warn');
         throw e;
       }
-      setDaisyState('celebrate', 'celebrate');
+      if (!widget.classList.contains('daisy-sleep')) setDaisyState('celebrate', 'celebrate');
       return res;
     };
   }
@@ -184,7 +190,7 @@ function initDaisy() {
   if (window.App && App.startMD5Crack) {
     const orig = App.startMD5Crack;
     App.startMD5Crack = function() {
-      setDaisyState('think', 'cracker');
+      if (!widget.classList.contains('daisy-sleep')) setDaisyState('think', 'cracker');
       window.DaisyContext.lastAction = 'cracked MD5';
       orig.apply(App, arguments);
     };
@@ -194,7 +200,7 @@ function initDaisy() {
     const orig = AchievementSystem.unlock;
     AchievementSystem.unlock = function(id) {
       orig.call(AchievementSystem, id);
-      setDaisyState('celebrate', 'celebrate');
+      if (!widget.classList.contains('daisy-sleep')) setDaisyState('celebrate', 'celebrate');
     };
   }
 
@@ -214,7 +220,6 @@ function initDaisy() {
     <div id="daisy-chat-history">
       <div class="daisy-welcome">
         <strong>⌁ DAISY ONLINE ⌁</strong><br>
-        Nebula Crypto-Explorer v1.0<br>
         Type a message or switch tools — I'll keep up.
       </div>
     </div>
@@ -230,15 +235,29 @@ function initDaisy() {
   const sendBtn = document.getElementById('daisy-chat-send');
   const closeBtn = document.getElementById('daisy-chat-close');
 
-  // Toggle chat and wake up
-  widget.addEventListener('click', () => {
-    // Wake up from flower mode
-    if (widget.classList.contains('daisy-flower')) {
-      widget.classList.remove('daisy-flower');
+  // ─── TICKLE ANIMATION ───
+  let tickleTimeout;
+  widget.addEventListener('mouseenter', () => {
+    if (widget.classList.contains('daisy-sleep') || widget.classList.contains('daisy-drag') || widget.classList.contains('daisy-flower')) return;
+    widget.classList.add('daisy-tickle');
+    clearTimeout(tickleTimeout);
+    tickleTimeout = setTimeout(() => {
+      widget.classList.remove('daisy-tickle');
+    }, 400);
+  });
+
+  // ─── TOGGLE CHAT / WAKE UP ───
+  // We use a flag to separate drag from click
+  let isDragging = false;
+  widget.addEventListener('click', (e) => {
+    if (isDragging) return; // Prevent click if we were dragging
+
+    // Wake up from flower or sleep mode
+    if (widget.classList.contains('daisy-flower') || widget.classList.contains('daisy-sleep')) {
+      widget.classList.remove('daisy-flower', 'daisy-sleep');
       widget.classList.add('daisy-idle');
       setDaisyExpression('idle');
       
-      // Welcome speech bubble
       const textSpan = document.getElementById('daisy-bubble-text');
       textSpan.textContent = "Hi! Let's explore some crypto together!";
       bubble.classList.add('visible');
@@ -268,6 +287,119 @@ function initDaisy() {
     }
   });
 
+  // ─── DRAG AND DROP ───
+  let dragOffsetX = 0;
+  let dragOffsetY = 0;
+
+  widget.addEventListener('mousedown', (e) => {
+    // Only drag with left click, don't drag if input focused
+    if (e.button !== 0 || e.target.tagName === 'INPUT') return;
+    e.preventDefault(); // Prevent text selection
+    
+    isDragging = false;
+    const rect = widget.getBoundingClientRect();
+    dragOffsetX = e.clientX - rect.left;
+    dragOffsetY = e.clientY - rect.top;
+
+    function onMouseMove(moveEvent) {
+      isDragging = true;
+      widget.classList.add('daisy-drag');
+      // Calculate new position
+      let newX = moveEvent.clientX - dragOffsetX;
+      let newY = moveEvent.clientY - dragOffsetY;
+      
+      // Keep within bounds
+      newX = Math.max(0, Math.min(newX, window.innerWidth - widget.offsetWidth));
+      newY = Math.max(0, Math.min(newY, window.innerHeight - widget.offsetHeight));
+
+      widget.style.left = newX + 'px';
+      widget.style.top = newY + 'px';
+      widget.style.right = 'auto'; // Disable right/bottom positioning
+      widget.style.bottom = 'auto';
+    }
+
+    function onMouseUp() {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+      widget.classList.remove('daisy-drag');
+      // Reset isDragging after a short delay so click event doesn't fire
+      setTimeout(() => isDragging = false, 50);
+    }
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  });
+
+  // ─── EYE TRACKING AND INACTIVITY ───
+  let lastInteractionTime = Date.now();
+
+  function resetActivity() {
+    lastInteractionTime = Date.now();
+    if (widget.classList.contains('daisy-sleep')) {
+      widget.classList.remove('daisy-sleep');
+      widget.classList.add('daisy-idle');
+      setDaisyExpression('idle');
+    }
+  }
+
+  document.addEventListener('mousemove', (e) => {
+    resetActivity();
+
+    // Eye tracking logic (only when idle, think, or celebrate)
+    if (widget.classList.contains('daisy-flower') || widget.classList.contains('daisy-sleep')) return;
+
+    const rect = widget.getBoundingClientRect();
+    // Approximate center of Daisy's face in the SVG
+    const faceX = rect.left + rect.width / 2;
+    const faceY = rect.top + rect.height * 0.4;
+
+    const dx = e.clientX - faceX;
+    const dy = e.clientY - faceY;
+    
+    // Map full screen distance to a tiny pixel translation (-2.5px to +2.5px)
+    const distance = Math.sqrt(dx*dx + dy*dy);
+    const maxMove = 2.5;
+    
+    // Normalize and scale
+    let moveX = (dx / window.innerWidth) * maxMove * 2;
+    let moveY = (dy / window.innerHeight) * maxMove * 2;
+    
+    // Clamp
+    moveX = Math.max(-maxMove, Math.min(maxMove, moveX));
+    moveY = Math.max(-maxMove, Math.min(maxMove, moveY));
+
+    widget.style.setProperty('--eye-x', moveX + 'px');
+    widget.style.setProperty('--eye-y', moveY + 'px');
+  });
+
+  document.addEventListener('keydown', resetActivity);
+  document.addEventListener('click', resetActivity);
+
+  // Inactivity loop (60 seconds)
+  setInterval(() => {
+    if (Date.now() - lastInteractionTime > 60000) {
+      if (!widget.classList.contains('daisy-flower') && !widget.classList.contains('daisy-sleep')) {
+        widget.classList.remove('daisy-idle', 'daisy-think', 'daisy-celebrate', 'daisy-warn');
+        widget.classList.add('daisy-sleep');
+        setDaisyExpression('sleep');
+      }
+    }
+  }, 5000);
+
+  // ─── TYPING ANIMATION (LISTEN STATE) ───
+  let typingTimeout;
+  input.addEventListener('input', () => {
+    resetActivity();
+    if (widget.classList.contains('daisy-sleep') || widget.classList.contains('daisy-flower')) return;
+    
+    widget.classList.add('daisy-listen');
+    clearTimeout(typingTimeout);
+    typingTimeout = setTimeout(() => {
+      widget.classList.remove('daisy-listen');
+    }, 500);
+  });
+
+
   // ─── AI WORKER INTEGRATION ───
   let worker = new Worker('js/daisy.worker.js');
   let currentResponseDiv = null;
@@ -286,12 +418,10 @@ function initDaisy() {
       }
     } else if (type === 'token') {
       if (!currentResponseDiv) {
-        // Create new bubble for response
         currentResponseDiv = document.createElement('div');
         currentResponseDiv.className = 'daisy-msg daisy';
         history.appendChild(currentResponseDiv);
         
-        // Remove progress bar if it exists
         if (currentProgressDiv) {
           currentProgressDiv.remove();
           currentProgressDiv = null;
@@ -303,26 +433,25 @@ function initDaisy() {
       currentResponseDiv.textContent += text;
       history.scrollTop = history.scrollHeight;
       
-      // Put Daisy in think state while generating
-      widget.classList.remove('daisy-idle', 'daisy-celebrate', 'daisy-warn');
+      widget.classList.remove('daisy-idle', 'daisy-celebrate', 'daisy-warn', 'daisy-sleep');
       widget.classList.add('daisy-think');
       setDaisyExpression('think');
 
     } else if (type === 'done') {
-      // Generation finished
       widget.classList.remove('daisy-think');
       widget.classList.add('daisy-celebrate');
       setDaisyExpression('celebrate');
       
       setTimeout(() => {
-        widget.classList.remove('daisy-celebrate');
-        widget.classList.add('daisy-idle');
-        setDaisyExpression('idle');
+        if (!widget.classList.contains('daisy-sleep')) {
+          widget.classList.remove('daisy-celebrate');
+          widget.classList.add('daisy-idle');
+          setDaisyExpression('idle');
+        }
       }, 1500);
 
       currentResponseDiv = null;
       
-      // Process queue if any
       if (currentMessageQueue.length > 0) {
         const nextMsg = currentMessageQueue.shift();
         sendToWorker(nextMsg);
@@ -331,7 +460,6 @@ function initDaisy() {
     } else if (type === 'error') {
       console.warn("Daisy Worker Error:", e.data.error);
       
-      // Fallback silently to DaisyDialogues
       if (currentProgressDiv) {
         currentProgressDiv.remove();
         currentProgressDiv = null;
@@ -372,20 +500,21 @@ function initDaisy() {
   window.daisyChat = function(message) {
     if (!message.trim()) return;
 
-    // Append user message
     const userMsg = document.createElement('div');
     userMsg.className = 'daisy-msg user';
     userMsg.textContent = message;
     history.appendChild(userMsg);
     history.scrollTop = history.scrollHeight;
     input.value = '';
+    
+    // Remove typing state
+    widget.classList.remove('daisy-listen');
+    clearTimeout(typingTimeout);
 
-    // Think animation while waiting
-    widget.classList.remove('daisy-idle', 'daisy-celebrate', 'daisy-warn');
+    widget.classList.remove('daisy-idle', 'daisy-celebrate', 'daisy-warn', 'daisy-sleep');
     widget.classList.add('daisy-think');
     setDaisyExpression('think');
 
-    // First time call -> show progress bar inside history
     if (!modelLoaded && !modelLoading) {
       modelLoading = true;
       statusDot.className = 'loading'; // Red pulse
@@ -397,10 +526,8 @@ function initDaisy() {
       history.scrollTop = history.scrollHeight;
       sendToWorker(message);
     } else if (modelLoading || currentResponseDiv) {
-      // If already loading or generating, queue it
       currentMessageQueue.push(message);
     } else {
-      // Ready to generate immediately
       sendToWorker(message);
     }
   };

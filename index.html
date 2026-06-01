@@ -897,12 +897,14 @@
 
       <!-- ═══ EXPRESSION: IDLE (happy) ═══ -->
       <g id="daisy-expr-idle">
-        <ellipse cx="85" cy="92" rx="6" ry="9" fill="black"/>
-        <ellipse cx="115" cy="92" rx="6" ry="9" fill="black"/>
-        <circle cx="83" cy="88" r="2.5" fill="white"/>
-        <circle cx="113" cy="88" r="2.5" fill="white"/>
-        <circle cx="87" cy="95" r="1" fill="white"/>
-        <circle cx="117" cy="95" r="1" fill="white"/>
+        <g class="daisy-pupils">
+          <ellipse cx="85" cy="92" rx="6" ry="9" fill="black"/>
+          <ellipse cx="115" cy="92" rx="6" ry="9" fill="black"/>
+          <circle cx="83" cy="88" r="2.5" fill="white"/>
+          <circle cx="113" cy="88" r="2.5" fill="white"/>
+          <circle cx="87" cy="95" r="1" fill="white"/>
+          <circle cx="117" cy="95" r="1" fill="white"/>
+        </g>
         <path d="M 78 78 Q 85 73 92 80" fill="none" stroke="black" stroke-width="2.5" stroke-linecap="round"/>
         <path d="M 122 78 Q 115 73 108 80" fill="none" stroke="black" stroke-width="2.5" stroke-linecap="round"/>
         <path d="M 88 107 Q 100 122 112 107 Z" fill="#4a0e1b" stroke="black" stroke-width="2" stroke-linejoin="round"/>
@@ -943,6 +945,19 @@
         <path d="M 124 80 Q 118 73 107 82" fill="none" stroke="black" stroke-width="2.5" stroke-linecap="round"/>
         <path d="M 88 114 Q 94 109 100 113 Q 106 117 112 113" fill="none" stroke="black" stroke-width="2.5" stroke-linecap="round"/>
         <path d="M 131 78 Q 134 86 131 92 Q 128 86 131 78 Z" fill="rgba(100,210,255,0.7)" stroke="rgba(100,210,255,0.4)" stroke-width="1"/>
+      </g>
+
+      <!-- ═══ EXPRESSION: SLEEP (snoozing) ═══ -->
+      <g id="daisy-expr-sleep" style="display:none;">
+        <!-- Closed eyes -->
+        <path d="M 78 92 Q 85 95 92 92" fill="none" stroke="black" stroke-width="3" stroke-linecap="round"/>
+        <path d="M 108 92 Q 115 95 122 92" fill="none" stroke="black" stroke-width="3" stroke-linecap="round"/>
+        <!-- Soft smile -->
+        <path d="M 94 110 Q 100 114 106 110" fill="none" stroke="black" stroke-width="2.5" stroke-linecap="round"/>
+        <!-- Sleep bubble (Zzz) -->
+        <text x="125" y="75" font-size="12" fill="#00f5ff" class="daisy-zzz">Z</text>
+        <text x="135" y="65" font-size="9" fill="#00f5ff" class="daisy-zzz daisy-zzz-2">z</text>
+        <text x="142" y="58" font-size="6" fill="#00f5ff" class="daisy-zzz daisy-zzz-3">z</text>
       </g>
     </g>
   </svg>
