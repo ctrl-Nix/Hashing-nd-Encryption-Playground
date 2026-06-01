@@ -67,6 +67,15 @@ const App = {
     window.scrollTo(0, 0);
   },
 
+  showError: msg => {
+    const toast = document.getElementById('global-error-toast');
+    const msgEl = document.getElementById('global-error-msg');
+    if (!toast || !msgEl) return;
+    msgEl.textContent = msg;
+    toast.style.display = 'block';
+    setTimeout(() => { toast.style.display = 'none'; }, 4000);
+  },
+
   resetState: () => {
     App.stopMD5Crack();
     App.S.alias = '';
@@ -2017,3 +2026,58 @@ setTimeout(() => {
     } catch(e) { console.error(e); }
   }
 }, 500);
+
+window.addEventListener('unhandledrejection', event => {
+  if (event.reason instanceof DOMException) {
+    App.showError("Crypto Error: " + event.reason.message + " (e.g. invalid key size or corrupted payload).");
+  } else if (event.reason instanceof Error) {
+    App.showError("Error: " + event.reason.message);
+  } else {
+    App.showError("An unexpected cryptographic error occurred.");
+  }
+  event.preventDefault(); // Stop console spam
+});
+
+App.runDiagnostics = async () => {
+  App.show('screen-lab'); // Keep UI visible
+  const toast = document.getElementById('global-error-toast');
+  const msgEl = document.getElementById('global-error-msg');
+  toast.style.borderColor = '#00ff88';
+  toast.style.color = '#00ff88';
+  toast.style.boxShadow = '0 0 20px rgba(0,255,136,0.5)';
+  msgEl.innerHTML = 'RUNNING CRYPTO DIAGNOSTICS...<br>Testing SHA-256...';
+  toast.style.display = 'block';
+
+  try {
+    // 1. Hash Check
+    const h = await CE.hash('SHA-256', 'test');
+    if (h.hex !== '9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08') throw new Error("SHA-256 Failed");
+
+    // 2. AES-GCM Check
+    msgEl.innerHTML += '<br>Testing AES-GCM...';
+    const enc = await CE.encrypt('secret', 'password');
+    const dec = await CE.decrypt(enc.payload, 'password');
+    if (dec.plain !== 'secret') throw new Error("AES-GCM Failed");
+
+    // 3. ECDSA Check
+    msgEl.innerHTML += '<br>Testing ECDSA P-256...';
+    const keys = await CE.generateECDSA();
+    const sig = await CE.signECDSA(keys.keyPair.privateKey, 'message');
+    const verify = await CE.verifyECDSA(keys.keyPair.publicKey, sig.signature, 'message');
+    if (!verify.valid) throw new Error("ECDSA Signature Failed");
+
+    msgEl.innerHTML += '<br><br>[ ALL DIAGNOSTICS PASSED ]';
+    setTimeout(() => { 
+      toast.style.display = 'none'; 
+      // reset toast styles
+      toast.style.borderColor = '#ff003c';
+      toast.style.color = '#ff003c';
+      toast.style.boxShadow = '0 0 20px rgba(255,0,60,0.5)';
+    }, 3000);
+  } catch (e) {
+    toast.style.borderColor = '#ff003c';
+    toast.style.color = '#ff003c';
+    toast.style.boxShadow = '0 0 20px rgba(255,0,60,0.5)';
+    msgEl.innerHTML = '[ DIAGNOSTIC FAILED ]<br>' + e.message;
+  }
+};

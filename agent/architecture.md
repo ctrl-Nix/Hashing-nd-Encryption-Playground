@@ -99,3 +99,12 @@ The Unrestricted Sandbox contains 7 standalone labs:
 9. **Certificate Inspector**: Uses a custom byte-level ASN.1 / DER parser to extract Subject, Issuer, Validity, and SHA-256 fingerprints from X.509 PEM certs without third-party libraries.
 10. **Entropy Analyzer**: Calculates real-time Shannon Entropy bits-per-character density with a dynamic strength gauge and presets (low/med/high).
 11. **Birthday Attack**: A visual collision generator offloaded to `birthday-worker.js` that truncates SHA-256 hashes (8-20 bits) and compares iterative probabilities against the theoretical 2^(N/2) bound.
+
+---
+
+## 6. Global Error Handling & Diagnostics (v4)
+
+Version 4 introduced centralized cryptographic error management and automated self-testing capabilities to the engine.
+
+- **Unhandled Rejection Interceptor**: `app.js` binds to `window.addEventListener('unhandledrejection')` to catch all raw `DOMException` errors originating from `crypto.subtle` (e.g. malformed JWTs, corrupted AES-GCM tags, invalid RSA exponents). These are piped into `App.showError()` rather than crashing the browser console, rendering a user-friendly DOM toast notification (`#global-error-toast`).
+- **Cryptographic Diagnostics Suite**: A "Run Diagnostics" routine in `app.js` automatically executes known-plaintext attack vectors against the SHA-256, AES-GCM, and ECDSA implementations sequentially. This proves that the local browser's Web Crypto implementation is correctly mapped and fully functional before engaging in advanced encryption.

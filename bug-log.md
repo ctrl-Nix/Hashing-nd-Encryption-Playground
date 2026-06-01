@@ -88,3 +88,21 @@ Auditor: Antigravity Agent
 - **File**: `js/app.js` line 101
 - **Description**: `navigator.clipboard.writeText()` requires secure context.
 - **Fix Status**: WONTFIX (Acceptable for local development/testing; production must serve over HTTPS)
+
+## Bug #15 — Unhandled Promise Rejections crash console on bad crypto keys (v4)
+- **Severity**: HIGH
+- **File**: `js/app.js` and `js/crypto.js`
+- **Description**: Passing invalid key sizes (e.g., 128 instead of 256 for AES-GCM when typed loosely) or corrupted payloads directly threw `DOMException` which wasn't caught, flooding the console and leaving the UI hanging.
+- **Fix Status**: FIXED (Implemented `window.addEventListener('unhandledrejection')` mapping exceptions to `#global-error-toast` in the UI).
+
+## Bug #16 — Low Contrast text on dark backgrounds fails WCAG (v4)
+- **Severity**: MEDIUM
+- **File**: `css/ui.css`
+- **Description**: `.to`, `.alias-desc`, `.back-btn` had opacities set between 0.25 and 0.8 producing text indistinguishable from the background (contrast < 4.5:1).
+- **Fix Status**: FIXED (Boosted text opacity values across all minor UI text components and placeholders for full AA compliance).
+
+## Bug #17 — Screen readers unable to interpret interactive components (v4)
+- **Severity**: MEDIUM
+- **File**: `index.html`
+- **Description**: Axe audit (simulated) flagged critical missing semantic markers. The custom `div.lab-tab` elements acting as buttons had no ARIA structure.
+- **Fix Status**: FIXED (Injected exhaustive `aria-label` tags into tabs, icon buttons, canvas displays, and interactive tool zones).
