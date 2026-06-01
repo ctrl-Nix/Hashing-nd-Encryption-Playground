@@ -141,6 +141,9 @@
   <div id="lab-hash" class="lab-panel active">
     <div class="panel">
       <div class="panel-title"><span>CONFIGURATION</span></div>
+      <div style="background:rgba(255, 0, 60, 0.05); border-left:3px solid var(--c2, #ff003c); padding:12px 16px; margin-bottom:24px; font-size:12px; color:var(--muted); line-height:1.5;">
+        <strong style="color:var(--c2, #ff003c);">WHY THIS MATTERS:</strong> MD5 and SHA-1 were once the internet standard until catastrophic collisions were proven. In 2012, the <strong>Flame Malware</strong> exploited an MD5 collision to forge a Microsoft digital signature, allowing the virus to masquerade as a legitimate Windows Update. <a href="https://en.wikipedia.org/wiki/Flame_(malware)" target="_blank" style="color:var(--c);">[Read More]</a>
+      </div>
       
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px;">
         <div>
@@ -1110,5 +1113,17 @@
 <script src="js/daisy-dialogues.js"></script>
 <script src="js/daisy-init.js"></script>
 <script src="js/onboarding.js"></script>
+
+<!-- EXPLAINER MODAL -->
+<div id="explainer-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:99999; backdrop-filter:blur(4px); align-items:center; justify-content:center;">
+  <div style="background:#0a0a14; border:2px solid var(--c3, #00ff88); width:90%; max-width:600px; padding:32px; position:relative; font-family:var(--font-mono); color:#e2e8f0; box-shadow:0 0 30px rgba(0,255,136,0.2);">
+    <div id="explainer-title" style="font-family:var(--font-display); font-size:24px; color:var(--c3, #00ff88); margin-bottom:16px; letter-spacing:2px;">CONCEPT EXPLAINER</div>
+    <div id="explainer-content" style="font-size:14px; line-height:1.8; margin-bottom:32px; color:var(--muted);"></div>
+    <div style="text-align:right;">
+      <button class="btn btn-primary" style="background:var(--c3, #00ff88); border-color:var(--c3, #00ff88); color:#000;" onclick="window.dismissExplainer()">I UNDERSTAND</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

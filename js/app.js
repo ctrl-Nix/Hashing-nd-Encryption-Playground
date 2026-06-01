@@ -2181,3 +2181,29 @@ window.addEventListener('unhandledrejection', event => {
   if (window.playAlert) window.playAlert();
   alert("Fatal Error: " + (event.reason?.message || "Cryptographic Operation Failed"));
 });
+
+
+window.EXPLAINERS = {
+  'ecdh': "Imagine you and a friend each pick a secret color, mix it with a shared public color, then swap mixtures — but an eavesdropper can't reverse the mix to find your original secret colors. You mix your friend's mixture with your secret color, and you both get the exact same final color. That's Elliptic Curve Diffie-Hellman: math that lets two people agree on a shared secret over a public channel without ever sending the secret itself.",
+  'ecdsa': "Imagine a wax seal on an envelope. Anyone can look at the seal and verify it came from your unique signet ring (Public Key), but nobody else can create the seal without holding the physical ring (Private Key). ECDSA uses elliptic curves to sign digital documents so perfectly that forgery is mathematically impossible.",
+  'rsa': "Imagine a padlock that anyone can snap shut (encrypt with Public Key), but only you have the physical key to unlock (decrypt with Private Key). RSA relies on the fact that it's incredibly easy to multiply two massive prime numbers together, but almost impossible for computers to factor the result back into those two primes.",
+  'hmac': "Imagine sending a sealed letter to a bank teller. You both share a secret password. You hash the letter's contents combined with the password. The teller repeats the math. If the hashes match, they know the letter wasn't tampered with AND it definitely came from you (since only you two know the password). That's HMAC (Hash-based Message Authentication Code)."
+};
+window.currentExplainerTab = null;
+
+window.showExplainer = function(tab) {
+  window.currentExplainerTab = tab;
+  const title = document.getElementById('explainer-title');
+  const content = document.getElementById('explainer-content');
+  const modal = document.getElementById('explainer-modal');
+  if(title && content && modal) {
+    title.innerText = tab.toUpperCase() + " CONCEPT EXPLAINER";
+    content.innerText = window.EXPLAINERS[tab];
+    modal.style.display = 'flex';
+  }
+};
+window.dismissExplainer = function() {
+  localStorage.setItem('explainer_' + window.currentExplainerTab, 'true');
+  const modal = document.getElementById('explainer-modal');
+  if(modal) modal.style.display = 'none';
+};

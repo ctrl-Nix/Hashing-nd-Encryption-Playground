@@ -7,34 +7,55 @@
    OVERRIDE showNextBtn — fix step 8 = quiz, not "mission accomplished"
 ───────────────────────────────────────────────────────────────── */
 
+const CHALLENGES = {
+  1: { q: "What is the exact length (in characters) of a SHA-256 hash?", a: ["64"] },
+  2: { q: "If you change one character of the input, does the hash change completely? (Yes/No)", a: ["yes", "y"] },
+  3: { q: "What extra component does HMAC use to sign data that a normal hash doesn't have?", a: ["key", "secret key", "secret"] },
+  4: { q: "What type of attack tests every possible word in a list to guess a password?", a: ["dictionary", "dictionary attack"] },
+  5: { q: "In symmetric encryption (like AES), do you use the same key for both encryption and decryption? (Yes/No)", a: ["yes", "y"] },
+  6: { q: "In LSB Steganography, what does LSB stand for?", a: ["least significant bit"] },
+  7: { q: "If Alice signs a message with her Private Key, what key does Bob use to verify it?", a: ["public", "public key", "alice's public key"] }
+};
+
+window.checkMiniChallenge = function(idx) {
+  const input = document.getElementById('challenge-input-' + idx);
+  const val = input.value.trim().toLowerCase();
+  const challenge = CHALLENGES[idx];
+  const isValid = challenge.a.some(ans => val === ans);
+  
+  const res = document.getElementById('challenge-result-' + idx);
+  if (isValid) {
+    if (App.S.story.maxStep < idx + 1) App.S.story.maxStep = idx + 1;
+    App.renderStoryMap();
+    if (window.setDaisyState) window.setDaisyState('celebrate');
+    res.innerHTML = '<span style="color:var(--c3, #00ff88);">[✓] ACCESS GRANTED</span>';
+    
+    setTimeout(() => {
+      if (idx === 3) {
+        App.runStoryBreachCutscene();
+      } else if (idx === 7) {
+        App.jumpToStory(8);
+      } else {
+        App.jumpToStory(idx + 1);
+      }
+    }, 1000);
+  } else {
+    if (window.setDaisyState) window.setDaisyState('shock');
+    res.innerHTML = '<span style="color:var(--c2, #ff003c);">[X] INCORRECT. REVIEW MODULE.</span>';
+    input.value = '';
+    input.focus();
+  }
+};
+
 App.showNextBtn = (nextIdx) => {
-  if (App.S.story.maxStep < nextIdx) App.S.story.maxStep = nextIdx;
   App.renderStoryMap();
   const zone = document.getElementById('story-next-zone');
   zone.innerHTML = '';
   zone.style.cssText = 'margin-top:28px;border-top:1px solid var(--border);padding-top:24px;';
 
-  if (nextIdx === 4) {
-    zone.innerHTML = `
-      <div class="mission-complete" style="margin-bottom:16px;">
-        <div class="mc-badge">✓</div>
-        <div class="mc-text">
-          <div class="mc-text-title">PHASE COMPLETE</div>
-          <div class="mc-text-sub">Initiating emergency lockdown sequence...</div>
-        </div>
-      </div>
-      <button class="btn btn-primary btn-full" onclick="App.runStoryBreachCutscene()">▶ PROCEED TO NEXT PHASE</button>`;
-  } else if (nextIdx === 8) {
-    zone.innerHTML = `
-      <div class="mission-complete" style="margin-bottom:16px;">
-        <div class="mc-badge">✓</div>
-        <div class="mc-text">
-          <div class="mc-text-title">ALL MODULES CLEARED</div>
-          <div class="mc-text-sub">Proceed to the final assessment to earn operational clearance.</div>
-        </div>
-      </div>
-      <button class="btn btn-success btn-full" onclick="App.jumpToStory(8)">📋 PROCEED TO FINAL ASSESSMENT</button>`;
-  } else if (nextIdx > 8) {
+  const currentIdx = nextIdx - 1;
+
+  if (nextIdx > 8) {
     zone.innerHTML = `
       <div class="mission-complete" style="margin-bottom:16px;">
         <div class="mc-badge">🏆</div>
@@ -45,8 +66,31 @@ App.showNextBtn = (nextIdx) => {
       </div>
       <button class="btn btn-success btn-full" onclick="App.goHome()">↩ RETURN TO BASE</button>`;
   } else {
-    zone.innerHTML = `
-      <button class="btn btn-primary btn-full" onclick="App.jumpToStory(${nextIdx})">▶ PROCEED TO NEXT PHASE</button>`;
+    const challenge = CHALLENGES[currentIdx];
+    
+    // If user already passed this step, just show the proceed button
+    if (App.S.story.maxStep >= nextIdx) {
+      if (currentIdx === 3) {
+        zone.innerHTML = `<button class="btn btn-primary btn-full" onclick="App.runStoryBreachCutscene()">▶ PROCEED TO NEXT PHASE</button>`;
+      } else if (currentIdx === 7) {
+        zone.innerHTML = `<button class="btn btn-success btn-full" onclick="App.jumpToStory(8)">📋 PROCEED TO FINAL ASSESSMENT</button>`;
+      } else {
+        zone.innerHTML = `<button class="btn btn-primary btn-full" onclick="App.jumpToStory(${nextIdx})">▶ PROCEED TO NEXT PHASE</button>`;
+      }
+    } else {
+      // Require challenge
+      zone.innerHTML = `
+        <div style="background:rgba(0,0,0,0.4); border:1px solid var(--c); padding:16px; margin-bottom:16px;">
+          <div style="color:var(--c); font-family:var(--font-display); letter-spacing:1px; margin-bottom:8px;">SECURITY CLEARANCE REQUIRED</div>
+          <p style="font-size:12px; margin-bottom:12px; color:var(--text);">${challenge.q}</p>
+          <div style="display:flex; gap:8px;">
+            <input type="text" id="challenge-input-${currentIdx}" class="form-input" style="flex:1;" placeholder="Enter answer..." onkeydown="if(event.key==='Enter') window.checkMiniChallenge(${currentIdx})">
+            <button class="btn btn-primary" onclick="window.checkMiniChallenge(${currentIdx})">VERIFY</button>
+          </div>
+          <div id="challenge-result-${currentIdx}" style="margin-top:8px; font-size:12px;"></div>
+        </div>
+      `;
+    }
   }
   setTimeout(() => zone.scrollIntoView({ behavior: 'smooth', block: 'center' }), 120);
 };
