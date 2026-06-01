@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="css/theme.css">
 <link rel="stylesheet" href="css/ui.css">
 <link rel="stylesheet" href="css/story-enhance.css">
+<link rel="stylesheet" href="daisy.css">
 </head>
 <body>
 <div class="bg-ambient"></div>
@@ -829,11 +830,47 @@
   </div>
 </div>
 
+<div id="daisy-widget" class="daisy-idle">
+  <svg viewBox="0 0 100 120" width="100" height="120" xmlns="http://www.w3.org/2000/svg">
+    <!-- Legs -->
+    <line x1="50" y1="95" x2="40" y2="120" stroke="darkgreen" stroke-width="4" stroke-linecap="round"/>
+    <line x1="50" y1="95" x2="60" y2="120" stroke="darkgreen" stroke-width="4" stroke-linecap="round"/>
+    <!-- Stem/Body -->
+    <line x1="50" y1="50" x2="50" y2="95" stroke="darkgreen" stroke-width="4" stroke-linecap="round"/>
+    <!-- Arms -->
+    <line x1="50" y1="70" x2="25" y2="55" stroke="darkgreen" stroke-width="4" stroke-linecap="round"/>
+    <line x1="50" y1="70" x2="75" y2="55" stroke="darkgreen" stroke-width="4" stroke-linecap="round"/>
+    <!-- Head & Petals Group -->
+    <g class="daisy-head">
+      <!-- Petals -->
+      <g class="daisy-petals">
+        <ellipse cx="50" cy="15" rx="8" ry="18" fill="white" stroke="#ccc" stroke-width="1"/>
+        <ellipse cx="50" cy="85" rx="8" ry="18" fill="white" stroke="#ccc" stroke-width="1"/>
+        <ellipse cx="15" cy="50" rx="18" ry="8" fill="white" stroke="#ccc" stroke-width="1"/>
+        <ellipse cx="85" cy="50" rx="18" ry="8" fill="white" stroke="#ccc" stroke-width="1"/>
+        <ellipse cx="25" cy="25" rx="18" ry="8" fill="white" stroke="#ccc" stroke-width="1" transform="rotate(45 25 25)"/>
+        <ellipse cx="75" cy="75" rx="18" ry="8" fill="white" stroke="#ccc" stroke-width="1" transform="rotate(45 75 75)"/>
+        <ellipse cx="75" cy="25" rx="18" ry="8" fill="white" stroke="#ccc" stroke-width="1" transform="rotate(-45 75 25)"/>
+        <ellipse cx="25" cy="75" rx="18" ry="8" fill="white" stroke="#ccc" stroke-width="1" transform="rotate(-45 25 75)"/>
+      </g>
+      <!-- Face center -->
+      <circle cx="50" cy="50" r="18" fill="#ffd700"/>
+      <!-- Big Eyes -->
+      <circle cx="43" cy="45" r="3.5" fill="black"/>
+      <circle cx="57" cy="45" r="3.5" fill="black"/>
+      <!-- Smile -->
+      <path d="M 40 55 Q 50 64 60 55" stroke="black" stroke-width="2" fill="none" stroke-linecap="round"/>
+    </g>
+  </svg>
+</div>
+
 <script src="js/data.js"></script>
 <script src="js/story-explain.js"></script>
 <script src="js/crypto.js"></script>
 <script src="js/qrcode.min.js"></script>
 <script src="js/app.js"></script>
 <script src="js/story-mode-v2.js"></script>
+<script src="js/daisy-dialogues.js"></script>
+<script src="js/daisy-init.js"></script>
 </body>
 </html>
