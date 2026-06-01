@@ -2,6 +2,10 @@ function initDaisy() {
   const widget = document.getElementById('daisy-widget');
   if (!widget) return;
 
+  window.currentDaisyContext = 'idle';
+
+  widget.style.cursor = 'pointer';
+
   // Add a speech bubble to the widget if it doesn't exist
   let bubble = document.getElementById('daisy-bubble');
   if (!bubble) {
@@ -60,6 +64,7 @@ function initDaisy() {
     
     // Update text and show bubble
     if (textKey && DaisyDialogues[textKey]) {
+      window.currentDaisyContext = textKey;
       const textSpan = document.getElementById('daisy-bubble-text');
       textSpan.textContent = DaisyDialogues[textKey];
       bubble.style.opacity = '1';
@@ -171,6 +176,74 @@ function initDaisy() {
       setDaisyState('celebrate', 'celebrate');
     };
   }
+
+  // --- CHAT PANEL SETUP ---
+  const chatPanel = document.createElement('div');
+  chatPanel.id = 'daisy-chat';
+  chatPanel.innerHTML = `
+    <div id="daisy-chat-header">
+      <span>Daisy // SECURE COMMS</span>
+      <button id="daisy-chat-close">✖</button>
+    </div>
+    <div id="daisy-chat-history"></div>
+    <div id="daisy-chat-input-area">
+      <input type="text" id="daisy-chat-input" placeholder="Message Daisy..." autocomplete="off">
+      <button id="daisy-chat-send">SEND</button>
+    </div>
+  `;
+  document.body.appendChild(chatPanel);
+
+  const history = document.getElementById('daisy-chat-history');
+  const input = document.getElementById('daisy-chat-input');
+  const sendBtn = document.getElementById('daisy-chat-send');
+  const closeBtn = document.getElementById('daisy-chat-close');
+
+  // Toggle chat
+  widget.addEventListener('click', () => {
+    chatPanel.classList.toggle('open');
+    if (chatPanel.classList.contains('open')) {
+      input.focus();
+    }
+  });
+
+  closeBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    chatPanel.classList.remove('open');
+  });
+
+  // Chat logic
+  window.daisyChat = function(message) {
+    if (!message.trim()) return;
+    
+    // Add user message
+    const userMsg = document.createElement('div');
+    userMsg.className = 'daisy-msg user';
+    userMsg.textContent = message;
+    history.appendChild(userMsg);
+    
+    // Daisy reply
+    setTimeout(() => {
+      const reply = DaisyDialogues[window.currentDaisyContext] || DaisyDialogues['idle'];
+      const daisyMsg = document.createElement('div');
+      daisyMsg.className = 'daisy-msg daisy';
+      daisyMsg.textContent = reply;
+      history.appendChild(daisyMsg);
+      history.scrollTop = history.scrollHeight;
+    }, 300);
+
+    history.scrollTop = history.scrollHeight;
+    input.value = '';
+  };
+
+  sendBtn.addEventListener('click', () => {
+    window.daisyChat(input.value);
+  });
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      window.daisyChat(input.value);
+    }
+  });
 }
 
 // Initialize when DOM is ready

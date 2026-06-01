@@ -831,35 +831,82 @@
 </div>
 
 <div id="daisy-widget" class="daisy-idle">
-  <svg viewBox="0 0 100 120" width="100" height="120" xmlns="http://www.w3.org/2000/svg">
-    <!-- Legs -->
-    <line x1="50" y1="95" x2="40" y2="120" stroke="darkgreen" stroke-width="4" stroke-linecap="round"/>
-    <line x1="50" y1="95" x2="60" y2="120" stroke="darkgreen" stroke-width="4" stroke-linecap="round"/>
-    <!-- Stem/Body -->
-    <line x1="50" y1="50" x2="50" y2="95" stroke="darkgreen" stroke-width="4" stroke-linecap="round"/>
-    <!-- Arms -->
-    <line x1="50" y1="70" x2="25" y2="55" stroke="darkgreen" stroke-width="4" stroke-linecap="round"/>
-    <line x1="50" y1="70" x2="75" y2="55" stroke="darkgreen" stroke-width="4" stroke-linecap="round"/>
-    <!-- Head & Petals Group -->
+  <svg viewBox="0 0 200 250" width="150" height="180" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 0 8px rgba(0,255,255,0.6));">
+    <defs>
+      <radialGradient id="faceGrad" cx="50%" cy="35%" r="65%">
+        <stop offset="50%" stop-color="#ffe933"/>
+        <stop offset="90%" stop-color="#ffb700"/>
+        <stop offset="100%" stop-color="#e68a00"/>
+      </radialGradient>
+      <path id="petal" d="M 100 65 C 120 15, 115 5, 100 5 C 85 5, 80 15, 100 65" fill="white" stroke="black" stroke-width="2.5" stroke-linejoin="round"/>
+      <clipPath id="mouthClip">
+        <path d="M 88 105 Q 100 125 112 105 Z" />
+      </clipPath>
+    </defs>
+
+    <!-- Limbs Background/Stroke -->
+    <g stroke="black" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M 90 150 Q 75 200 85 235" fill="none" />
+      <path d="M 110 150 Q 120 190 105 235" fill="none" />
+      <path d="M 75 140 Q 30 160 40 105" fill="none" />
+      <path d="M 125 140 Q 170 160 160 200" fill="none" />
+    </g>
+    <!-- Limbs Foreground -->
+    <g stroke="#1a5c38" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M 90 150 Q 75 200 85 235" fill="none" />
+      <path d="M 110 150 Q 120 190 105 235" fill="none" />
+      <path d="M 75 140 Q 30 160 40 105" fill="none" />
+      <path d="M 125 140 Q 170 160 160 200" fill="none" />
+    </g>
+
+    <!-- Hands & Feet -->
+    <path d="M 85 230 C 95 230, 95 245, 85 245 C 70 245, 70 240, 85 230 Z" fill="#1a5c38" stroke="black" stroke-width="2.5"/>
+    <path d="M 105 230 C 115 230, 115 245, 105 245 C 90 245, 90 240, 105 230 Z" fill="#1a5c38" stroke="black" stroke-width="2.5"/>
+    <path d="M 38 102 C 48 95, 52 110, 42 115 C 32 120, 28 108, 38 102 Z" fill="#1a5c38" stroke="black" stroke-width="2.5"/>
+    <path d="M 158 198 C 168 192, 172 205, 162 210 C 152 215, 148 205, 158 198 Z" fill="#1a5c38" stroke="black" stroke-width="2.5"/>
+
+    <!-- Daisy Head -->
     <g class="daisy-head">
-      <!-- Petals -->
       <g class="daisy-petals">
-        <ellipse cx="50" cy="15" rx="8" ry="18" fill="white" stroke="#ccc" stroke-width="1"/>
-        <ellipse cx="50" cy="85" rx="8" ry="18" fill="white" stroke="#ccc" stroke-width="1"/>
-        <ellipse cx="15" cy="50" rx="18" ry="8" fill="white" stroke="#ccc" stroke-width="1"/>
-        <ellipse cx="85" cy="50" rx="18" ry="8" fill="white" stroke="#ccc" stroke-width="1"/>
-        <ellipse cx="25" cy="25" rx="18" ry="8" fill="white" stroke="#ccc" stroke-width="1" transform="rotate(45 25 25)"/>
-        <ellipse cx="75" cy="75" rx="18" ry="8" fill="white" stroke="#ccc" stroke-width="1" transform="rotate(45 75 75)"/>
-        <ellipse cx="75" cy="25" rx="18" ry="8" fill="white" stroke="#ccc" stroke-width="1" transform="rotate(-45 75 25)"/>
-        <ellipse cx="25" cy="75" rx="18" ry="8" fill="white" stroke="#ccc" stroke-width="1" transform="rotate(-45 25 75)"/>
+        <!-- 12 Petals -->
+        <use href="#petal" transform="rotate(0 100 100)"/>
+        <use href="#petal" transform="rotate(30 100 100)"/>
+        <use href="#petal" transform="rotate(60 100 100)"/>
+        <use href="#petal" transform="rotate(90 100 100)"/>
+        <use href="#petal" transform="rotate(120 100 100)"/>
+        <use href="#petal" transform="rotate(150 100 100)"/>
+        <use href="#petal" transform="rotate(180 100 100)"/>
+        <use href="#petal" transform="rotate(210 100 100)"/>
+        <use href="#petal" transform="rotate(240 100 100)"/>
+        <use href="#petal" transform="rotate(270 100 100)"/>
+        <use href="#petal" transform="rotate(300 100 100)"/>
+        <use href="#petal" transform="rotate(330 100 100)"/>
       </g>
-      <!-- Face center -->
-      <circle cx="50" cy="50" r="18" fill="#ffd700"/>
-      <!-- Big Eyes -->
-      <circle cx="43" cy="45" r="3.5" fill="black"/>
-      <circle cx="57" cy="45" r="3.5" fill="black"/>
-      <!-- Smile -->
-      <path d="M 40 55 Q 50 64 60 55" stroke="black" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+      <!-- Face -->
+      <circle cx="100" cy="100" r="45" fill="url(#faceGrad)" stroke="black" stroke-width="2.5"/>
+      
+      <!-- Eyes -->
+      <ellipse cx="85" cy="90" rx="6" ry="10" fill="black"/>
+      <ellipse cx="115" cy="90" rx="6" ry="10" fill="black"/>
+      
+      <!-- Eye Highlights -->
+      <circle cx="85" cy="85" r="2.5" fill="white"/>
+      <circle cx="115" cy="85" r="2.5" fill="white"/>
+      <circle cx="87" cy="94" r="1" fill="white"/>
+      <circle cx="117" cy="94" r="1" fill="white"/>
+      
+      <!-- Eyebrows -->
+      <path d="M 78 75 Q 85 70 92 78" fill="none" stroke="black" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M 122 75 Q 115 70 108 78" fill="none" stroke="black" stroke-width="2.5" stroke-linecap="round"/>
+
+      <!-- Blushes -->
+      <ellipse cx="73" cy="100" rx="6" ry="4" fill="#ff7da9" opacity="0.8"/>
+      <ellipse cx="127" cy="100" rx="6" ry="4" fill="#ff7da9" opacity="0.8"/>
+
+      <!-- Mouth -->
+      <path d="M 88 105 Q 100 125 112 105 Z" fill="#4a0e1b" stroke="black" stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="M 90 115 Q 100 105 110 115 Q 100 130 90 115 Z" fill="#ff4d79" clip-path="url(#mouthClip)"/>
     </g>
   </svg>
 </div>
