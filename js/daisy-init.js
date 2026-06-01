@@ -170,7 +170,7 @@ function initDaisy() {
       // Hacker Accessory Toggle
       const hackerGoggles = document.getElementById('daisy-accessory-hacker');
       if (hackerGoggles) {
-        if (['rsa', 'stegano', 'ecdsa', 'certs', 'ecdh'].includes(tabId)) {
+        if (['rsa', 'stego', 'ecdsa', 'cert', 'ecdh'].includes(tabId)) {
           hackerGoggles.style.display = '';
         } else {
           hackerGoggles.style.display = 'none';
