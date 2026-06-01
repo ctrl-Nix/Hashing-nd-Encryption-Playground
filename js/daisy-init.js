@@ -4,7 +4,17 @@ function initDaisy() {
 
   window.currentDaisyContext = 'idle';
 
-  // ─── SPEECH BUBBLE (CSS-driven, no inline styles) ───
+  // ─── EXPRESSION SWITCHING ───
+  const EXPRESSIONS = ['idle', 'think', 'celebrate', 'warn'];
+
+  function setDaisyExpression(expr) {
+    EXPRESSIONS.forEach(e => {
+      const el = document.getElementById(`daisy-expr-${e}`);
+      if (el) el.style.display = (e === expr) ? '' : 'none';
+    });
+  }
+
+  // ─── COMIC SPEECH BUBBLE (CSS-driven) ───
   let bubble = document.getElementById('daisy-bubble');
   if (!bubble) {
     bubble = document.createElement('div');
@@ -18,9 +28,14 @@ function initDaisy() {
   let bubbleTimeout = null;
 
   function setDaisyState(state, textKey) {
+    // Reset animation class
     widget.classList.remove('daisy-idle', 'daisy-think', 'daisy-celebrate', 'daisy-warn');
     widget.classList.add(`daisy-${state}`);
 
+    // Switch facial expression
+    setDaisyExpression(state);
+
+    // Show bubble text
     if (textKey && DaisyDialogues[textKey]) {
       window.currentDaisyContext = textKey;
       const textSpan = document.getElementById('daisy-bubble-text');
@@ -35,6 +50,7 @@ function initDaisy() {
           setTimeout(() => {
             widget.classList.remove(`daisy-${state}`);
             widget.classList.add('daisy-idle');
+            setDaisyExpression('idle');
           }, 500);
         }
       }, 5000);
@@ -44,6 +60,7 @@ function initDaisy() {
         setTimeout(() => {
           widget.classList.remove(`daisy-${state}`);
           widget.classList.add('daisy-idle');
+          setDaisyExpression('idle');
         }, 2000);
       }
     }
@@ -53,19 +70,18 @@ function initDaisy() {
 
   // 1. App.switchLabTab
   if (window.App && App.switchLabTab) {
-    const originalSwitch = App.switchLabTab;
+    const orig = App.switchLabTab;
     App.switchLabTab = function(tabId) {
-      originalSwitch.call(App, tabId);
+      orig.call(App, tabId);
       setDaisyState('idle', tabId);
     };
   }
 
   // 2. App.setLabAlgo
   if (window.App && App.setLabAlgo) {
-    const originalSetAlgo = App.setLabAlgo;
+    const orig = App.setLabAlgo;
     App.setLabAlgo = function(algo) {
-      originalSetAlgo.call(App, algo);
-
+      orig.call(App, algo);
       if (algo === 'MD5' || algo === 'SHA-1') {
         setDaisyState('warn', algo);
       } else {
@@ -73,6 +89,7 @@ function initDaisy() {
         setTimeout(() => {
           widget.classList.remove('daisy-think');
           widget.classList.add('daisy-idle');
+          setDaisyExpression('idle');
         }, 3000);
       }
     };
@@ -80,18 +97,16 @@ function initDaisy() {
 
   // 3. App.runLabHash
   if (window.App && App.runLabHash) {
-    const originalHash = App.runLabHash;
+    const orig = App.runLabHash;
     App.runLabHash = async function() {
       setDaisyState('think');
-
       let res;
       try {
-        res = await originalHash.apply(App, arguments);
+        res = await orig.apply(App, arguments);
       } catch (e) {
         setDaisyState('warn', 'warn');
         throw e;
       }
-
       setDaisyState('celebrate', 'celebrate');
       return res;
     };
@@ -99,18 +114,16 @@ function initDaisy() {
 
   // 4. App.runRSAGen
   if (window.App && App.runRSAGen) {
-    const originalRSAGen = App.runRSAGen;
+    const orig = App.runRSAGen;
     App.runRSAGen = async function() {
       setDaisyState('think');
-
       let res;
       try {
-        res = await originalRSAGen.apply(App, arguments);
+        res = await orig.apply(App, arguments);
       } catch (e) {
         setDaisyState('warn', 'warn');
         throw e;
       }
-
       setDaisyState('celebrate', 'celebrate');
       return res;
     };
@@ -118,23 +131,23 @@ function initDaisy() {
 
   // 5. App.startMD5Crack
   if (window.App && App.startMD5Crack) {
-    const originalCrack = App.startMD5Crack;
+    const orig = App.startMD5Crack;
     App.startMD5Crack = function() {
       setDaisyState('think', 'cracker');
-      originalCrack.apply(App, arguments);
+      orig.apply(App, arguments);
     };
   }
 
   // 6. AchievementSystem.unlock
   if (window.AchievementSystem && AchievementSystem.unlock) {
-    const originalUnlock = AchievementSystem.unlock;
+    const orig = AchievementSystem.unlock;
     AchievementSystem.unlock = function(id) {
-      originalUnlock.call(AchievementSystem, id);
+      orig.call(AchievementSystem, id);
       setDaisyState('celebrate', 'celebrate');
     };
   }
 
-  // ─── CHAT PANEL SETUP ───
+  // ─── CHAT PANEL ───
   const chatPanel = document.createElement('div');
   chatPanel.id = 'daisy-chat';
   chatPanel.innerHTML = `
@@ -161,13 +174,12 @@ function initDaisy() {
   const sendBtn = document.getElementById('daisy-chat-send');
   const closeBtn = document.getElementById('daisy-chat-close');
 
-  // Toggle chat on widget click
+  // Toggle chat
   widget.addEventListener('click', () => {
     chatPanel.classList.toggle('open');
     if (chatPanel.classList.contains('open')) {
-      // Re-trigger animation by removing and re-adding the class
       chatPanel.style.animation = 'none';
-      chatPanel.offsetHeight; // reflow
+      chatPanel.offsetHeight;
       chatPanel.style.animation = '';
       input.focus();
     }
@@ -178,7 +190,6 @@ function initDaisy() {
     chatPanel.classList.remove('open');
   });
 
-  // Close on Escape key
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && chatPanel.classList.contains('open')) {
       chatPanel.classList.remove('open');
@@ -207,12 +218,14 @@ function initDaisy() {
     history.scrollTop = history.scrollHeight;
     input.value = '';
 
-    // Typing indicator
+    // Daisy thinks while typing
+    setDaisyExpression('think');
     const typing = addTypingIndicator();
 
-    // Daisy reply after a short delay
+    // Reply
     setTimeout(() => {
       typing.remove();
+      setDaisyExpression('idle');
 
       const reply = DaisyDialogues[window.currentDaisyContext] || DaisyDialogues['idle'];
       const daisyMsg = document.createElement('div');

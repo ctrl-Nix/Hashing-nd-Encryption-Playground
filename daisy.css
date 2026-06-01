@@ -1,34 +1,32 @@
 /* ══════════════════════════════════════════════════════════
-   DAISY WIDGET — NIX THEME INTEGRATION
-   Matches: theme.css vars, scanlines, glows, cyber aesthetic
+   DAISY WIDGET — NIX THEME + WALK + EXPRESSIONS + COMIC
 ══════════════════════════════════════════════════════════ */
 
 /* ─── WIDGET CONTAINER ─── */
 #daisy-widget {
   position: fixed;
-  bottom: 16px;
+  bottom: 10px;
   right: 16px;
   z-index: 9999;
   width: 150px;
-  height: 180px;
+  height: 188px;
   transform-origin: bottom center;
   cursor: pointer;
-  transition: filter 0.3s var(--transition, ease);
+  transition: filter 0.3s ease;
 }
-
 #daisy-widget:hover {
-  filter: brightness(1.15) drop-shadow(0 0 14px rgba(0,245,255,0.5));
+  filter: brightness(1.12);
 }
 
-/* Hover tooltip label */
+/* Hover label */
 #daisy-widget::after {
   content: '[ DAISY ]';
   position: absolute;
-  bottom: -18px;
+  bottom: -14px;
   left: 50%;
   transform: translateX(-50%);
   font-family: var(--font-mono, 'Share Tech Mono', monospace);
-  font-size: 9px;
+  font-size: 8px;
   letter-spacing: 3px;
   color: var(--c, #00f5ff);
   opacity: 0;
@@ -36,144 +34,232 @@
   text-shadow: 0 0 6px rgba(0,245,255,0.5);
   pointer-events: none;
 }
-#daisy-widget:hover::after {
-  opacity: 1;
-}
+#daisy-widget:hover::after { opacity: 1; }
 
-/* ─── SVG GLOW & CYBER TREATMENT ─── */
+/* ─── SVG GLOW ─── */
 #daisy-widget svg {
-  filter: drop-shadow(0 0 6px rgba(0,245,255,0.35))
-          drop-shadow(0 4px 12px rgba(0,0,0,0.6));
+  filter: drop-shadow(0 0 6px rgba(0,245,255,0.3))
+          drop-shadow(0 3px 10px rgba(0,0,0,0.5));
   transition: filter 0.4s ease;
+  overflow: visible;
 }
 
-/* ─── ANIMATION STATES ─── */
+/* ══════════════════════════════════════════════════════════
+   LIMB JOINTS — transform-origin at hips/shoulders
+══════════════════════════════════════════════════════════ */
+#daisy-left-leg  { transform-origin: 90px 150px; }
+#daisy-right-leg { transform-origin: 110px 150px; }
+#daisy-left-arm  { transform-origin: 78px 138px; }
+#daisy-right-arm { transform-origin: 122px 138px; }
 
-/* 1. Idle — gentle floating bob + sway */
+/* ══════════════════════════════════════════════════════════
+   WALKING CYCLE — legs & arms swing from joints
+══════════════════════════════════════════════════════════ */
+.daisy-idle #daisy-left-leg {
+  animation: daisy-walk-leg 0.7s ease-in-out infinite alternate;
+}
+.daisy-idle #daisy-right-leg {
+  animation: daisy-walk-leg 0.7s ease-in-out infinite alternate-reverse;
+}
+.daisy-idle #daisy-left-arm {
+  animation: daisy-walk-arm 0.7s ease-in-out infinite alternate-reverse;
+}
+.daisy-idle #daisy-right-arm {
+  animation: daisy-walk-arm 0.7s ease-in-out infinite alternate;
+}
+
+@keyframes daisy-walk-leg {
+  0%   { transform: rotate(-12deg); }
+  100% { transform: rotate(12deg); }
+}
+@keyframes daisy-walk-arm {
+  0%   { transform: rotate(-8deg); }
+  100% { transform: rotate(8deg); }
+}
+
+/* Body bob while walking */
 .daisy-idle {
-  animation: daisy-idle 4s ease-in-out infinite;
+  animation: daisy-walk-bob 0.35s ease-in-out infinite alternate;
 }
 
-/* 2. Think — petals spin, face glows cyan */
+@keyframes daisy-walk-bob {
+  0%   { transform: translateY(0px); }
+  100% { transform: translateY(-3px); }
+}
+
+/* ══════════════════════════════════════════════════════════
+   STATE ANIMATIONS
+══════════════════════════════════════════════════════════ */
+
+/* THINK — petals spin, arms stop, cyan glow */
 .daisy-think .daisy-petals {
-  animation: daisy-think 2s linear infinite;
+  animation: daisy-spin 2s linear infinite;
 }
+.daisy-think .daisy-limb { animation: none !important; }
 .daisy-think svg {
-  filter: drop-shadow(0 0 12px rgba(0,245,255,0.6))
-          drop-shadow(0 0 25px rgba(0,245,255,0.25)) !important;
+  filter: drop-shadow(0 0 14px rgba(0,245,255,0.6))
+          drop-shadow(0 0 28px rgba(0,245,255,0.2)) !important;
+}
+.daisy-think {
+  animation: daisy-think-hover 2s ease-in-out infinite !important;
+}
+@keyframes daisy-think-hover {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
 }
 
-/* 3. Celebrate — bounce + glow burst */
+/* CELEBRATE — bounce + green glow */
+.daisy-celebrate .daisy-limb { animation: none !important; }
 .daisy-celebrate {
-  animation: daisy-celebrate 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: daisy-celebrate-bounce 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
 }
 .daisy-celebrate svg {
   filter: drop-shadow(0 0 18px rgba(0,255,136,0.7))
           drop-shadow(0 0 35px rgba(0,255,136,0.3)) !important;
 }
-
-/* 4. Warn — droop + red glow */
-.daisy-warn .daisy-head {
-  animation: daisy-warn 0.6s ease-in-out forwards;
-}
-.daisy-warn svg {
-  filter: drop-shadow(0 0 12px rgba(255,0,60,0.6))
-          drop-shadow(0 0 25px rgba(255,0,60,0.2)) !important;
-}
-
-/* ─── KEYFRAMES ─── */
-
-@keyframes daisy-idle {
-  0%, 100% {
-    transform: translateY(0px) rotate(-2deg);
-  }
-  25% {
-    transform: translateY(-5px) rotate(0deg);
-  }
-  50% {
-    transform: translateY(-8px) rotate(2deg);
-  }
-  75% {
-    transform: translateY(-4px) rotate(0deg);
-  }
-}
-
-@keyframes daisy-think {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
-
-@keyframes daisy-celebrate {
+@keyframes daisy-celebrate-bounce {
   0%   { transform: translateY(0) scale(1); }
   30%  { transform: translateY(-35px) scale(1.08); }
-  50%  { transform: translateY(-30px) scale(1.05); }
-  80%  { transform: translateY(-5px) scale(0.98); }
+  50%  { transform: translateY(-28px) scale(1.05); }
+  80%  { transform: translateY(-4px) scale(0.98); }
   100% { transform: translateY(0) scale(1); }
 }
 
-@keyframes daisy-warn {
-  0%   { transform: rotate(0deg) translateY(0); }
-  100% { transform: rotate(18deg) translateY(6px); }
+/* WARN — droop + red glow */
+.daisy-warn .daisy-head {
+  animation: daisy-droop 0.6s ease-in-out forwards;
+}
+.daisy-warn .daisy-limb { animation: none !important; }
+.daisy-warn svg {
+  filter: drop-shadow(0 0 14px rgba(255,0,60,0.6))
+          drop-shadow(0 0 28px rgba(255,0,60,0.2)) !important;
+}
+.daisy-warn {
+  animation: daisy-warn-shake 0.4s ease-in-out !important;
+}
+@keyframes daisy-warn-shake {
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-4px); }
+  40%      { transform: translateX(4px); }
+  60%      { transform: translateX(-3px); }
+  80%      { transform: translateX(2px); }
 }
 
-/* Petal / head rotation origin */
+/* Shared keyframes */
+@keyframes daisy-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes daisy-droop {
+  0%   { transform: rotate(0deg) translateY(0); }
+  100% { transform: rotate(16deg) translateY(5px); }
+}
+
+/* Rotation origins */
 .daisy-petals,
 .daisy-head {
   transform-origin: 50% 40%;
 }
 
-/* ─── SPEECH BUBBLE (auto-popup) ─── */
+/* ── Sparkle animation for celebrate expression ── */
+.daisy-sparkle {
+  animation: daisy-sparkle-pulse 0.8s ease-in-out infinite alternate;
+}
+.daisy-sparkle-2 { animation-delay: 0.25s; }
+.daisy-sparkle-3 { animation-delay: 0.5s; }
+
+@keyframes daisy-sparkle-pulse {
+  0%   { opacity: 0.3; transform: scale(0.8); }
+  100% { opacity: 1;   transform: scale(1.2); }
+}
+
+/* ══════════════════════════════════════════════════════════
+   COMIC-BOOK SPEECH BUBBLE
+══════════════════════════════════════════════════════════ */
 #daisy-bubble {
   position: absolute;
-  bottom: 165px;
-  right: -10px;
-  background: var(--surface, #080810);
+  bottom: 175px;
+  right: -20px;
+  background: var(--panel, #0c0c18);
   color: var(--c, #00f5ff);
-  padding: 10px 14px;
-  border-radius: 6px;
-  border: 1px solid var(--border-hi, rgba(0,245,255,0.35));
-  font-size: 11px;
+  padding: 12px 16px;
+  /* Comic-style rounded shape */
+  border-radius: 16px;
+  border: 2.5px solid var(--c, #00f5ff);
+  font-size: 12px;
   font-family: var(--font-mono, 'Share Tech Mono', monospace);
   letter-spacing: 0.3px;
-  max-width: 220px;
-  box-shadow: 0 0 15px rgba(0,245,255,0.15), inset 0 0 20px rgba(0,245,255,0.03);
+  max-width: 230px;
+  min-width: 120px;
+  line-height: 1.5;
+  /* Comic glow */
+  box-shadow:
+    0 0 12px rgba(0,245,255,0.2),
+    inset 0 0 20px rgba(0,245,255,0.04);
+  /* Entrance */
   opacity: 0;
-  transform: translateY(6px) scale(0.95);
-  transition: opacity 0.35s ease, transform 0.35s var(--transition, ease);
+  transform: translateY(8px) scale(0.85);
+  transition: opacity 0.3s ease, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
   pointer-events: none;
   z-index: 10000;
-  line-height: 1.5;
 }
 #daisy-bubble.visible {
   opacity: 1;
   transform: translateY(0) scale(1);
 }
 
-/* Bubble pointer */
+/* Comic bubble tail — two triangles for border + fill */
 #daisy-bubble::after {
   content: '';
   position: absolute;
-  bottom: -7px;
-  right: 24px;
-  border-width: 7px 6px 0;
-  border-style: solid;
-  border-color: var(--border-hi, rgba(0,245,255,0.35)) transparent transparent transparent;
+  bottom: -12px;
+  right: 30px;
+  width: 0; height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 12px solid var(--c, #00f5ff);
 }
 #daisy-bubble::before {
   content: '';
   position: absolute;
-  bottom: -5px;
-  right: 25px;
-  border-width: 6px 5px 0;
-  border-style: solid;
-  border-color: var(--surface, #080810) transparent transparent transparent;
+  bottom: -8px;
+  right: 32px;
+  width: 0; height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 9px solid var(--panel, #0c0c18);
   z-index: 1;
 }
 
-/* ══════════════════════════════════════════════════════════
-   DAISY CHAT PANEL — NIX TERMINAL STYLE
-══════════════════════════════════════════════════════════ */
+/* State-colored borders */
+.daisy-warn #daisy-bubble {
+  border-color: var(--c2, #ff003c);
+  color: var(--c2, #ff003c);
+  box-shadow: 0 0 12px rgba(255,0,60,0.2), inset 0 0 20px rgba(255,0,60,0.04);
+}
+.daisy-warn #daisy-bubble::after {
+  border-top-color: var(--c2, #ff003c);
+}
+.daisy-celebrate #daisy-bubble {
+  border-color: var(--c3, #00ff88);
+  color: var(--c3, #00ff88);
+  box-shadow: 0 0 12px rgba(0,255,136,0.2), inset 0 0 20px rgba(0,255,136,0.04);
+}
+.daisy-celebrate #daisy-bubble::after {
+  border-top-color: var(--c3, #00ff88);
+}
+.daisy-think #daisy-bubble {
+  border-color: var(--c4, #ffaa00);
+  color: var(--c4, #ffaa00);
+  box-shadow: 0 0 12px rgba(255,170,0,0.2), inset 0 0 20px rgba(255,170,0,0.04);
+}
+.daisy-think #daisy-bubble::after {
+  border-top-color: var(--c4, #ffaa00);
+}
 
+/* ══════════════════════════════════════════════════════════
+   DAISY CHAT PANEL — NIX TERMINAL
+══════════════════════════════════════════════════════════ */
 #daisy-chat {
   position: fixed;
   bottom: 210px;
@@ -192,39 +278,25 @@
     0 8px 32px rgba(0,0,0,0.7),
     inset 0 0 40px rgba(0,245,255,0.02);
   overflow: hidden;
-  /* Scanline overlay */
   background-image: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 3px,
-    rgba(0,0,0,0.04) 3px,
-    rgba(0,0,0,0.04) 4px
+    0deg, transparent, transparent 3px,
+    rgba(0,0,0,0.04) 3px, rgba(0,0,0,0.04) 4px
   );
   background-color: var(--surface, #080810);
-  /* Slide-in animation */
   transform: translateY(20px) scale(0.95);
   opacity: 0;
-  transition: transform 0.35s var(--transition, ease),
-              opacity 0.3s ease;
+  transition: transform 0.35s ease, opacity 0.3s ease;
 }
-
 #daisy-chat.open {
   display: flex;
-  animation: daisy-chat-in 0.35s var(--transition, ease) forwards;
+  animation: daisy-chat-in 0.35s ease forwards;
 }
-
 @keyframes daisy-chat-in {
-  from {
-    transform: translateY(20px) scale(0.95);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0) scale(1);
-    opacity: 1;
-  }
+  from { transform: translateY(20px) scale(0.95); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
 }
 
-/* ─── Chat Header ─── */
+/* Header */
 #daisy-chat-header {
   padding: 10px 14px;
   border-bottom: 1px solid var(--border, rgba(0,245,255,0.12));
@@ -234,29 +306,23 @@
   background: rgba(0,0,0,0.4);
   flex-shrink: 0;
 }
-
 #daisy-chat-header span {
   font-family: var(--font-display, 'Orbitron', sans-serif);
   font-size: 10px;
   letter-spacing: 3px;
   color: var(--c, #00f5ff);
-  text-transform: uppercase;
   text-shadow: 0 0 8px rgba(0,245,255,0.4);
 }
-
-/* Status dot */
 #daisy-chat-header span::before {
   content: '';
   display: inline-block;
-  width: 6px;
-  height: 6px;
+  width: 6px; height: 6px;
   border-radius: 50%;
   background: var(--c3, #00ff88);
   margin-right: 8px;
   box-shadow: 0 0 6px rgba(0,255,136,0.6);
   animation: pulse 2s ease-in-out infinite;
 }
-
 #daisy-chat-close {
   background: none;
   border: 1px solid rgba(255,0,60,0.3);
@@ -271,10 +337,9 @@
 #daisy-chat-close:hover {
   background: rgba(255,0,60,0.1);
   border-color: rgba(255,0,60,0.6);
-  box-shadow: 0 0 10px rgba(255,0,60,0.2);
 }
 
-/* ─── Chat History ─── */
+/* History */
 #daisy-chat-history {
   flex: 1;
   overflow-y: auto;
@@ -282,23 +347,14 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  /* Custom scrollbar */
   scrollbar-width: thin;
   scrollbar-color: rgba(0,245,255,0.2) transparent;
 }
+#daisy-chat-history::-webkit-scrollbar { width: 4px; }
+#daisy-chat-history::-webkit-scrollbar-track { background: transparent; }
+#daisy-chat-history::-webkit-scrollbar-thumb { background: rgba(0,245,255,0.2); border-radius: 2px; }
 
-#daisy-chat-history::-webkit-scrollbar {
-  width: 4px;
-}
-#daisy-chat-history::-webkit-scrollbar-track {
-  background: transparent;
-}
-#daisy-chat-history::-webkit-scrollbar-thumb {
-  background: rgba(0,245,255,0.2);
-  border-radius: 2px;
-}
-
-/* ─── Messages ─── */
+/* Messages */
 .daisy-msg {
   max-width: 85%;
   padding: 8px 12px;
@@ -307,21 +363,12 @@
   line-height: 1.55;
   word-wrap: break-word;
   letter-spacing: 0.3px;
-  position: relative;
   animation: daisy-msg-in 0.3s ease-out;
 }
-
 @keyframes daisy-msg-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-
 .daisy-msg.user {
   align-self: flex-end;
   background: rgba(0,245,255,0.06);
@@ -329,7 +376,6 @@
   border-left: 2px solid var(--c, #00f5ff);
   color: var(--text, #e2e8f0);
 }
-
 .daisy-msg.daisy {
   align-self: flex-start;
   background: rgba(0,255,136,0.04);
@@ -337,8 +383,6 @@
   border-left: 2px solid var(--c3, #00ff88);
   color: var(--c3, #00ff88);
 }
-
-/* Daisy message label */
 .daisy-msg.daisy::before {
   content: '⌁ DAISY';
   display: block;
@@ -348,7 +392,6 @@
   margin-bottom: 4px;
   font-family: var(--font-display, 'Orbitron', sans-serif);
 }
-
 .daisy-msg.user::before {
   content: 'YOU ⌁';
   display: block;
@@ -360,7 +403,7 @@
   font-family: var(--font-display, 'Orbitron', sans-serif);
 }
 
-/* ─── Input Area ─── */
+/* Input area */
 #daisy-chat-input-area {
   padding: 10px 12px;
   border-top: 1px solid var(--border, rgba(0,245,255,0.12));
@@ -369,7 +412,6 @@
   background: rgba(0,0,0,0.3);
   flex-shrink: 0;
 }
-
 #daisy-chat-input {
   flex: 1;
   background: var(--void, #000);
@@ -378,20 +420,15 @@
   padding: 8px 10px;
   font-family: var(--font-mono, 'Share Tech Mono', monospace);
   font-size: 11px;
-  letter-spacing: 0.5px;
   border-radius: 2px;
   outline: none;
   transition: border-color 0.25s ease, box-shadow 0.25s ease;
 }
-#daisy-chat-input::placeholder {
-  color: var(--muted, #a0aec0);
-  opacity: 0.5;
-}
+#daisy-chat-input::placeholder { color: var(--muted, #a0aec0); opacity: 0.5; }
 #daisy-chat-input:focus {
   border-color: var(--c, #00f5ff);
-  box-shadow: 0 0 10px rgba(0,245,255,0.15), inset 0 0 8px rgba(0,245,255,0.03);
+  box-shadow: 0 0 10px rgba(0,245,255,0.15);
 }
-
 #daisy-chat-send {
   background: transparent;
   color: var(--c, #00f5ff);
@@ -402,36 +439,27 @@
   letter-spacing: 2px;
   cursor: pointer;
   transition: all 0.25s ease;
-  text-transform: uppercase;
   border-radius: 2px;
 }
 #daisy-chat-send:hover {
   background: rgba(0,245,255,0.08);
   box-shadow: 0 0 12px rgba(0,245,255,0.2);
-  border-color: var(--c, #00f5ff);
 }
-#daisy-chat-send:active {
-  transform: scale(0.95);
-}
+#daisy-chat-send:active { transform: scale(0.95); }
 
-/* ─── Welcome message ─── */
+/* Welcome */
 .daisy-welcome {
   text-align: center;
   padding: 20px 16px;
   color: var(--muted, #a0aec0);
   font-size: 10px;
   line-height: 1.8;
-  letter-spacing: 0.5px;
   border: 1px dashed var(--border, rgba(0,245,255,0.12));
   border-radius: 4px;
-  margin-bottom: 4px;
 }
-.daisy-welcome strong {
-  color: var(--c3, #00ff88);
-  font-weight: normal;
-}
+.daisy-welcome strong { color: var(--c3, #00ff88); font-weight: normal; }
 
-/* ─── Typing indicator ─── */
+/* Typing dots */
 .daisy-typing {
   display: flex;
   gap: 4px;
@@ -439,8 +467,7 @@
   align-self: flex-start;
 }
 .daisy-typing span {
-  width: 5px;
-  height: 5px;
+  width: 5px; height: 5px;
   border-radius: 50%;
   background: var(--c3, #00ff88);
   opacity: 0.4;
@@ -450,12 +477,6 @@
 .daisy-typing span:nth-child(3) { animation-delay: 0.3s; }
 
 @keyframes daisy-dot-bounce {
-  0%, 60%, 100% {
-    transform: translateY(0);
-    opacity: 0.4;
-  }
-  30% {
-    transform: translateY(-6px);
-    opacity: 1;
-  }
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-6px); opacity: 1; }
 }
