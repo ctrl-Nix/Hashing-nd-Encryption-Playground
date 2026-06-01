@@ -34,17 +34,25 @@ function initDaisy() {
         <p><strong>Hi! I'm Daisy, your local AI companion.</strong> Here is how you can interact with me:</p>
         <ul style="padding-left:16px; display:flex; flex-direction:column; gap:8px;">
           <li><strong style="color:var(--c3, #00ff88);">💬 Local AI Chat:</strong> Click me to open the comms panel. My brain (Qwen2.5) runs 100% inside your browser!</li>
+          <li><strong style="color:var(--c3, #00ff88);">🔊 Synthetic Audio:</strong> I generate procedural blips, chimes, and typewriter sounds natively. Click anywhere to activate.</li>
+          <li><strong style="color:var(--c3, #00ff88);">😴 Idle State:</strong> If you leave the mouse alone for 30s, I get bored and will try to get your attention.</li>
+          <li><strong style="color:var(--c3, #00ff88);">🚨 Hex Validator:</strong> Make a mistake in the decryption labs and I'll proactively intercept the error and highlight the bad input!</li>
           <li><strong style="color:var(--c3, #00ff88);">✋ High Five:</strong> Click on the right side of my body (my right arm) for a quick high five.</li>
           <li><strong style="color:var(--c3, #00ff88);">👉 Poke:</strong> Click directly on my face to poke me and make me flinch!</li>
           <li><strong style="color:var(--c3, #00ff88);">😵‍💫 Dizzy Spin:</strong> Click, drag me fast in circles around the screen, and drop me to make me dizzy!</li>
-          <li><strong style="color:var(--c3, #00ff88);">😴 Snooze Mode:</strong> If you don't touch your mouse or keyboard for 60s, I will fall asleep.</li>
           <li><strong style="color:var(--c3, #00ff88);">🌸 Ticklish:</strong> Hover your mouse directly over my face/petals quickly to tickle me.</li>
           <li><strong style="color:var(--c3, #00ff88);">🕶️ Hacker Mode:</strong> Switch to advanced labs (like RSA or Steganography) and I'll put on my cyber-goggles.</li>
           <li><strong style="color:var(--c3, #00ff88);">⚡ Shock:</strong> If a crypto tool throws an error, I get shocked!</li>
-          <li><strong style="color:var(--c3, #00ff88);">⌨️ Active Listening:</strong> Type in my chat box and I'll type along with you.</li>
           <li><strong style="color:var(--c3, #00ff88);">🪴 Level Up Dance:</strong> Unlock an achievement to water me and watch me do a 360° happy dance!</li>
           <li><strong style="color:var(--c3, #00ff88);">👀 Eye Tracking:</strong> Move your mouse around and watch my eyes follow your cursor.</li>
         </ul>
+        <div style="margin-top:16px; border-top:1px solid var(--muted); padding-top:12px; color:var(--muted);">
+          <strong style="color:var(--c, #00f5ff);">CLASSIFIED SECRETS (EASTER EGGS):</strong><br>
+          Type the answers to these clues anywhere on the keyboard:<br>
+          - What is the name of this protocol? (3 letters) -> Matrix Rain<br>
+          - The study of secure communication? (6 letters) -> Stealth Mode<br>
+          - What do we do to plain text to make a fingerprint? (4 letters) -> Overclock Mode
+        </div>
       </div>
     `;
     document.body.appendChild(manualModal);
