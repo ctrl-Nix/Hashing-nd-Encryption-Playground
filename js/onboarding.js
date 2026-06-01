@@ -11,7 +11,10 @@
           <p style="line-height:1.6; margin-bottom:16px;">The NIX Crypto-Explorer is an advanced Cryptography Sandbox and Cyber-Defense Simulator.</p>
           <p style="line-height:1.6; color:var(--muted);">Whether you're here to learn the basics of Hashing, or simulate a live Birthday Attack, you have full unrestricted access to the engines.</p>
           <div style="margin-top:24px; text-align:center;">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Cyber_security_icon.svg/200px-Cyber_security_icon.svg.png" style="width:100px; filter:invert(1) drop-shadow(0 0 10px var(--c)); opacity:0.8;">
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="var(--c)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 10px var(--c));">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
           </div>
         </div>
 
@@ -35,10 +38,11 @@
           <div style="font-family:var(--font-display); font-size:24px; color:var(--c2, #ff003c); margin-bottom:16px; letter-spacing:2px;">MEET DAISY</div>
           <p style="line-height:1.6; margin-bottom:16px;">Daisy is your onboard AI companion. She lives in the bottom-right corner of your screen.</p>
           <ul style="line-height:1.6; padding-left:20px; color:var(--muted); font-size:14px;">
-            <li><strong>Proactive Hints:</strong> If you make a mistake (like invalid hex), she will warn you!</li>
-            <li><strong>Audio Cues:</strong> Make sure to click anywhere to enable her audio.</li>
-            <li><strong>Local Chat:</strong> Click her to open a fully local AI chat for assistance.</li>
-            <li><strong>Easter Eggs:</strong> She responds to hidden commands...</li>
+            <li><strong style="color:var(--c3, #00ff88);">Local AI Chat:</strong> Click her to chat! She uses the <strong>Qwen2.5</strong> AI model.</li>
+            <li><strong style="color:var(--c3, #00ff88);">100% Private:</strong> The model is downloaded directly into your browser cache. No data is sent to a server!</li>
+            <li><strong>Proactive Hints:</strong> If you make a mistake, she will warn you.</li>
+            <li><strong>Audio Cues:</strong> Click anywhere to enable her procedural audio.</li>
+            <li><strong>Easter Eggs:</strong> She responds to hidden keyboard commands.</li>
           </ul>
         </div>
 
