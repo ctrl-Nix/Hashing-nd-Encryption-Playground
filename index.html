@@ -131,8 +131,9 @@
     <div class="lab-tab" id="btn-tab-ecdsa" onclick="App.switchLabTab('ecdsa')" tabindex="0" role="button">ECDSA Signatures</div>
     <div class="lab-tab" id="btn-tab-cert" onclick="App.switchLabTab('cert')" tabindex="0" role="button">Cert Inspector</div>
     <div class="lab-tab" id="btn-tab-entropy" onclick="App.switchLabTab('entropy')" tabindex="0" role="button">Entropy Analyzer</div>
-    <div class="lab-tab" id="btn-tab-birthday" onclick="App.switchLabTab('birthday')" tabindex="0" role="button">Birthday Attack</div>
-    <div class="lab-tab" id="btn-tab-ecdh" onclick="App.switchLabTab('ecdh')" tabindex="0" role="button" style="color:var(--c4); border-color:var(--c4);">ECDH Exchange Demo</div>
+    <div class="lab-tab" id="btn-tab-birthday" onclick="App.switchLabTab('birthday')" tabindex="0" role="button" aria-label="Birthday Attack Lab">Birthday Attack</div>
+    <div class="lab-tab" id="btn-tab-ecdh" onclick="App.switchLabTab('ecdh')" tabindex="0" role="button" aria-label="ECDH Key Exchange Demo" style="color:var(--c4); border-color:var(--c4);">ECDH Exchange Demo</div>
+    <div class="lab-tab" id="btn-tab-benchmark" onclick="App.switchLabTab('benchmark')" tabindex="0" role="button" aria-label="Performance Benchmark Tool">Benchmark</div>
   </div>
 
   <!-- HASH TAB -->
@@ -807,6 +808,51 @@
             <textarea id="ecdh-cipher-in" class="form-input" rows="3" placeholder="Paste partner's ciphertext here..."></textarea>
             <button class="btn btn-full" style="margin-top:8px;" onclick="App.decryptECDHMessage()">DECRYPT (AES-GCM)</button>
             <textarea id="ecdh-msg-in" class="form-input" rows="3" readonly style="margin-top:8px;" placeholder="Decrypted plaintext..."></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BENCHMARK TAB -->
+  <div id="lab-benchmark" class="lab-panel">
+    <div class="panel">
+      <div class="panel-title"><span>CRYPTO PERFORMANCE BENCHMARK</span></div>
+      <p style="font-family:var(--font-mono); font-size:11px; color:var(--muted); line-height:1.6; margin-bottom:24px;">Run an intensive 10,000-hash iteration on your local CPU to compare the operational speed of modern hash algorithms. (UI might stutter slightly during execution)</p>
+      
+      <button class="btn btn-primary btn-full" id="btn-run-bench" onclick="App.runBenchmark()" style="margin-bottom:24px;">RUN 10K HASH BENCHMARK</button>
+
+      <div style="font-family:var(--font-mono); font-size:11px;">
+        <!-- MD5 -->
+        <div style="margin-bottom:12px;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+            <strong style="color:var(--c2);">MD5 (Weak)</strong>
+            <span id="bench-md5-ops" style="color:var(--muted);">0 ops/sec</span>
+          </div>
+          <div style="width:100%; height:12px; background:rgba(255,255,255,0.05); border-radius:2px; overflow:hidden;">
+            <div id="bench-md5-bar" class="benchmark-bar" style="width:0%; height:100%; background:var(--c2);"></div>
+          </div>
+        </div>
+
+        <!-- SHA-256 -->
+        <div style="margin-bottom:12px;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+            <strong style="color:var(--c);">SHA-256 (Standard)</strong>
+            <span id="bench-sha256-ops" style="color:var(--muted);">0 ops/sec</span>
+          </div>
+          <div style="width:100%; height:12px; background:rgba(255,255,255,0.05); border-radius:2px; overflow:hidden;">
+            <div id="bench-sha256-bar" class="benchmark-bar" style="width:0%; height:100%; background:var(--c);"></div>
+          </div>
+        </div>
+
+        <!-- SHA-512 -->
+        <div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+            <strong style="color:var(--c5);">SHA-512 (Strong)</strong>
+            <span id="bench-sha512-ops" style="color:var(--muted);">0 ops/sec</span>
+          </div>
+          <div style="width:100%; height:12px; background:rgba(255,255,255,0.05); border-radius:2px; overflow:hidden;">
+            <div id="bench-sha512-bar" class="benchmark-bar" style="width:0%; height:100%; background:var(--c5);"></div>
           </div>
         </div>
       </div>

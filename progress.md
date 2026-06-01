@@ -91,6 +91,7 @@
 ## Stretch Goals Attempted
 
 - [x] **Self-test suite (Diagnostics)**: Completed. "Run Diagnostics" button integrated into the Sandbox HUD. It executes a pre-defined test vector across SHA-256, AES-GCM, and ECDSA P-256 returning PASS/FAIL UI updates in real-time.
+- [x] **Performance benchmark panel**: Completed. Added a new BENCHMARK tab in the sandbox. It runs a 10,000 hash loop across MD5, SHA-256, and SHA-512 and visualizes their respective ops/sec throughput via animated CSS bar charts.
 
 ## Verification & Build Status
 

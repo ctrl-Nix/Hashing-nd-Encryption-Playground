@@ -2073,6 +2073,201 @@ App.runDiagnostics = async () => {
       toast.style.borderColor = '#ff003c';
       toast.style.color = '#ff003c';
       toast.style.boxShadow = '0 0 20px rgba(255,0,60,0.5)';
+    if (hash.startsWith('#ecdh=')) {
+      try {
+        let b64Url = hash.substring(6);
+        let b64 = b64Url.replace(/-/g, '+').replace(/_/g, '/');
+        while (b64.length % 4) { b64 += '='; }
+        const jwkStr = atob(b64);
+        const jwk = JSON.parse(jwkStr);
+        
+        App.S.lab.ecdhPartnerJwk = jwk;
+        document.getElementById('ecdh-partner-link').value = window.location.href;
+        
+        // Auto-start step 1 if not done
+        if (!App.S.lab.ecdhKeys) {
+          await App.startECDHExchange();
+        }
+      } catch (e) {
+        console.error("Invalid ECDH fragment", e);
+      }
+    }
+  },
+
+  deriveECDHSecret: async () => {
+    let partnerStr = document.getElementById('ecdh-partner-link').value;
+    if (!partnerStr) return alert("Paste partner link first.");
+    try {
+      if (partnerStr.includes('#ecdh=')) {
+        let b64Url = partnerStr.split('#ecdh=')[1];
+        let b64 = b64Url.replace(/-/g, '+').replace(/_/g, '/');
+        while (b64.length % 4) { b64 += '='; }
+        App.S.lab.ecdhPartnerJwk = JSON.parse(atob(b64));
+      }
+      
+      const partnerKey = await CE.importPublicKeyECDH(App.S.lab.ecdhPartnerJwk);
+      const derived = await CE.deriveKeyECDH(App.S.lab.ecdhKeys.pair.privateKey, partnerKey);
+      
+      App.S.lab.ecdhSharedSecret = derived.derivedKey;
+      document.getElementById('ecdh-fingerprint').innerText = derived.fingerprint;
+      
+      document.getElementById('ecdh-step-2').style.display = 'none';
+      document.getElementById('ecdh-step-3').style.display = 'block';
+      AchievementSystem.unlock('ghost_channel');
+    } catch (e) {
+      alert("Derivation Failed: " + e.message);
+    }
+  },
+
+  encryptECDHMessage: async () => {
+    const msg = document.getElementById('ecdh-msg-out').value;
+    if (!msg || !App.S.lab.ecdhSharedSecret) return;
+    try {
+      const encoded = new TextEncoder().encode(msg);
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const ciphertext = await crypto.subtle.encrypt(
+        { name: 'AES-GCM', iv: iv },
+        App.S.lab.ecdhSharedSecret,
+        encoded
+      );
+      // Bundle IV + Ciphertext
+      const bundle = new Uint8Array(12 + ciphertext.byteLength);
+      bundle.set(iv, 0);
+      bundle.set(new Uint8Array(ciphertext), 12);
+      
+      document.getElementById('ecdh-cipher-out').value = CE.bufToHex(bundle);
+      Leaderboard.track('enc');
+    } catch (e) { alert("Encrypt failed: " + e.message); }
+  },
+
+  decryptECDHMessage: async () => {
+    const hex = document.getElementById('ecdh-cipher-in').value.trim();
+    if (!hex || !App.S.lab.ecdhSharedSecret) return;
+    try {
+      const bytes = new Uint8Array(hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+      const iv = bytes.slice(0, 12);
+      const data = bytes.slice(12);
+      
+      const decrypted = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv: iv },
+        App.S.lab.ecdhSharedSecret,
+        data
+      );
+      document.getElementById('ecdh-msg-in').value = new TextDecoder().decode(decrypted);
+      document.getElementById('ecdh-msg-in').style.color = "var(--c3)";
+    } catch (e) {
+      document.getElementById('ecdh-msg-in').value = "ERROR: Decryption Failed (Authentication Tag Mismatch)";
+      document.getElementById('ecdh-msg-in').style.color = "var(--c2)";
+    }
+  },
+
+  tamperECDHCipher: () => {
+    const cipherEl = document.getElementById('ecdh-cipher-out');
+    let hex = cipherEl.value;
+    if(!hex) return;
+    // flip last bit
+    let lastChar = hex[hex.length-1];
+    let intVal = parseInt(lastChar, 16) ^ 1;
+    cipherEl.value = hex.substring(0, hex.length-1) + intVal.toString(16);
+    App.flash('ecdh-cipher-out');
+  },
+
+  showStats: () => {
+    document.getElementById('stat-tools').innerText = Leaderboard.stats.toolsRun;
+    document.getElementById('stat-bytes').innerText = Leaderboard.stats.bytesHashed.toLocaleString();
+    document.getElementById('stat-msgs').innerText = Leaderboard.stats.msgsEncrypted;
+    document.getElementById('stats-modal').style.display = 'block';
+  },
+
+  showAchievements: () => {
+    const grid = document.getElementById('achievements-grid');
+    grid.innerHTML = '';
+    Object.keys(AchievementSystem.badges).forEach(id => {
+      const badge = AchievementSystem.badges[id];
+      const isUnlocked = AchievementSystem.unlocked.includes(id);
+      const card = document.createElement('div');
+      card.className = 'panel';
+      card.style.opacity = isUnlocked ? '1' : '0.4';
+      card.style.filter = isUnlocked ? 'none' : 'grayscale(100%)';
+      card.innerHTML = `<div style="font-size:32px; margin-bottom:8px;">${badge.icon}</div>
+        <div style="color:var(--c); margin-bottom:4px; font-weight:bold;">${badge.name}</div>
+        <div style="font-size:11px; color:var(--muted);">${isUnlocked ? badge.desc : '???'}</div>`;
+      grid.appendChild(card);
+    });
+    document.getElementById('achievements-modal').style.display = 'block';
+  }
+};
+
+setTimeout(() => {
+  if (window.location.hash.startsWith('#ecdh=')) {
+    App.switchLabTab('ecdh');
+    App.parseECDHFragment();
+  } else if (window.location.hash.startsWith('#share=')) {
+    try {
+      let b64Url = window.location.hash.substring(7);
+      let b64 = b64Url.replace(/-/g, '+').replace(/_/g, '/');
+      while (b64.length % 4) { b64 += '='; }
+      const payload = JSON.parse(atob(b64));
+      
+      App.switchLabTab(payload.tool);
+      if (payload.tool === 'hash') {
+        document.getElementById('hash-input').value = payload.input || '';
+        document.getElementById('hash-salt').value = payload.salt || '';
+        App.runLabHash();
+      } else if (payload.tool === 'enc') {
+        document.getElementById('enc-plain').value = payload.plain || '';
+        document.getElementById('enc-pass').value = payload.pass || '';
+      }
+    } catch(e) { console.error(e); }
+  }
+}, 500);
+
+window.addEventListener('unhandledrejection', event => {
+  if (event.reason instanceof DOMException) {
+    App.showError("Crypto Error: " + event.reason.message + " (e.g. invalid key size or corrupted payload).");
+  } else if (event.reason instanceof Error) {
+    App.showError("Error: " + event.reason.message);
+  } else {
+    App.showError("An unexpected cryptographic error occurred.");
+  }
+  event.preventDefault(); // Stop console spam
+});
+
+App.runDiagnostics = async () => {
+  App.show('screen-lab'); // Keep UI visible
+  const toast = document.getElementById('global-error-toast');
+  const msgEl = document.getElementById('global-error-msg');
+  toast.style.borderColor = '#00ff88';
+  toast.style.color = '#00ff88';
+  toast.style.boxShadow = '0 0 20px rgba(0,255,136,0.5)';
+  msgEl.innerHTML = 'RUNNING CRYPTO DIAGNOSTICS...<br>Testing SHA-256...';
+  toast.style.display = 'block';
+
+  try {
+    // 1. Hash Check
+    const h = await CE.hash('SHA-256', 'test');
+    if (h.hex !== '9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08') throw new Error("SHA-256 Failed");
+
+    // 2. AES-GCM Check
+    msgEl.innerHTML += '<br>Testing AES-GCM...';
+    const enc = await CE.encrypt('secret', 'password');
+    const dec = await CE.decrypt(enc.payload, 'password');
+    if (dec.plain !== 'secret') throw new Error("AES-GCM Failed");
+
+    // 3. ECDSA Check
+    msgEl.innerHTML += '<br>Testing ECDSA P-256...';
+    const keys = await CE.generateECDSA();
+    const sig = await CE.signECDSA(keys.keyPair.privateKey, 'message');
+    const verify = await CE.verifyECDSA(keys.keyPair.publicKey, sig.signature, 'message');
+    if (!verify.valid) throw new Error("ECDSA Signature Failed");
+
+    msgEl.innerHTML += '<br><br>[ ALL DIAGNOSTICS PASSED ]';
+    setTimeout(() => { 
+      toast.style.display = 'none'; 
+      // reset toast styles
+      toast.style.borderColor = '#ff003c';
+      toast.style.color = '#ff003c';
+      toast.style.boxShadow = '0 0 20px rgba(255,0,60,0.5)';
     }, 3000);
   } catch (e) {
     toast.style.borderColor = '#ff003c';
@@ -2080,4 +2275,55 @@ App.runDiagnostics = async () => {
     toast.style.boxShadow = '0 0 20px rgba(255,0,60,0.5)';
     msgEl.innerHTML = '[ DIAGNOSTIC FAILED ]<br>' + e.message;
   }
+};
+
+App.runBenchmark = async () => {
+  const btn = document.getElementById('btn-run-bench');
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.innerText = 'BENCHMARKING... (PLEASE WAIT)';
+  
+  // Reset UI
+  ['md5', 'sha256', 'sha512'].forEach(algo => {
+    document.getElementById(`bench-${algo}-ops`).innerText = 'Running...';
+    document.getElementById(`bench-${algo}-bar`).style.width = '0%';
+  });
+
+  const iters = 10000;
+  const str = "The quick brown fox jumps over the lazy dog.";
+  
+  // We'll run them sequentially to not stall the main thread completely at once
+  // MD5
+  let t0 = performance.now();
+  for(let i=0; i<iters; i++) await CE.hash('MD5', str + i);
+  const md5Ms = performance.now() - t0;
+  const md5Ops = Math.round(iters / (md5Ms / 1000));
+  document.getElementById('bench-md5-ops').innerText = md5Ops.toLocaleString() + ' ops/sec';
+
+  // SHA-256
+  t0 = performance.now();
+  for(let i=0; i<iters; i++) await CE.hash('SHA-256', str + i);
+  const sha256Ms = performance.now() - t0;
+  const sha256Ops = Math.round(iters / (sha256Ms / 1000));
+  document.getElementById('bench-sha256-ops').innerText = sha256Ops.toLocaleString() + ' ops/sec';
+
+  // SHA-512
+  t0 = performance.now();
+  for(let i=0; i<iters; i++) await CE.hash('SHA-512', str + i);
+  const sha512Ms = performance.now() - t0;
+  const sha512Ops = Math.round(iters / (sha512Ms / 1000));
+  document.getElementById('bench-sha512-ops').innerText = sha512Ops.toLocaleString() + ' ops/sec';
+
+  // Calculate relative widths (max ops = 100% width)
+  const maxOps = Math.max(md5Ops, sha256Ops, sha512Ops);
+  
+  // Delay slightly to let the CSS transition fire nicely after reset
+  setTimeout(() => {
+    document.getElementById('bench-md5-bar').style.width = ((md5Ops / maxOps) * 100) + '%';
+    document.getElementById('bench-sha256-bar').style.width = ((sha256Ops / maxOps) * 100) + '%';
+    document.getElementById('bench-sha512-bar').style.width = ((sha512Ops / maxOps) * 100) + '%';
+  }, 100);
+
+  btn.innerText = 'RUN 10K HASH BENCHMARK';
+  btn.disabled = false;
 };
