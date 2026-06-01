@@ -1,190 +1,461 @@
-/* Daisy Widget Styles */
+/* ══════════════════════════════════════════════════════════
+   DAISY WIDGET — NIX THEME INTEGRATION
+   Matches: theme.css vars, scanlines, glows, cyber aesthetic
+══════════════════════════════════════════════════════════ */
+
+/* ─── WIDGET CONTAINER ─── */
 #daisy-widget {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
+  bottom: 16px;
+  right: 16px;
   z-index: 9999;
   width: 150px;
   height: 180px;
-  transform-origin: bottom center; /* For the idle sway */
+  transform-origin: bottom center;
   cursor: pointer;
+  transition: filter 0.3s var(--transition, ease);
 }
 
-/* 1. Gentle side sway loop */
+#daisy-widget:hover {
+  filter: brightness(1.15) drop-shadow(0 0 14px rgba(0,245,255,0.5));
+}
+
+/* Hover tooltip label */
+#daisy-widget::after {
+  content: '[ DAISY ]';
+  position: absolute;
+  bottom: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-mono, 'Share Tech Mono', monospace);
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: var(--c, #00f5ff);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  text-shadow: 0 0 6px rgba(0,245,255,0.5);
+  pointer-events: none;
+}
+#daisy-widget:hover::after {
+  opacity: 1;
+}
+
+/* ─── SVG GLOW & CYBER TREATMENT ─── */
+#daisy-widget svg {
+  filter: drop-shadow(0 0 6px rgba(0,245,255,0.35))
+          drop-shadow(0 4px 12px rgba(0,0,0,0.6));
+  transition: filter 0.4s ease;
+}
+
+/* ─── ANIMATION STATES ─── */
+
+/* 1. Idle — gentle floating bob + sway */
 .daisy-idle {
-  animation: daisy-idle 3s ease-in-out infinite;
+  animation: daisy-idle 4s ease-in-out infinite;
 }
 
-/* 2. Petals rotate 360 continuously */
+/* 2. Think — petals spin, face glows cyan */
 .daisy-think .daisy-petals {
-  animation: daisy-think 3s linear infinite;
+  animation: daisy-think 2s linear infinite;
+}
+.daisy-think svg {
+  filter: drop-shadow(0 0 12px rgba(0,245,255,0.6))
+          drop-shadow(0 0 25px rgba(0,245,255,0.25)) !important;
 }
 
-/* 3. Quick jump — translateY up then down */
+/* 3. Celebrate — bounce + glow burst */
 .daisy-celebrate {
-  animation: daisy-celebrate 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+  animation: daisy-celebrate 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.daisy-celebrate svg {
+  filter: drop-shadow(0 0 18px rgba(0,255,136,0.7))
+          drop-shadow(0 0 35px rgba(0,255,136,0.3)) !important;
 }
 
-/* 4. Petals droop — rotate slightly downward */
+/* 4. Warn — droop + red glow */
 .daisy-warn .daisy-head {
-  animation: daisy-warn 0.5s ease-in-out forwards;
+  animation: daisy-warn 0.6s ease-in-out forwards;
+}
+.daisy-warn svg {
+  filter: drop-shadow(0 0 12px rgba(255,0,60,0.6))
+          drop-shadow(0 0 25px rgba(255,0,60,0.2)) !important;
 }
 
-/* --- Keyframes --- */
+/* ─── KEYFRAMES ─── */
 
 @keyframes daisy-idle {
   0%, 100% {
-    transform: rotate(-4deg);
+    transform: translateY(0px) rotate(-2deg);
+  }
+  25% {
+    transform: translateY(-5px) rotate(0deg);
   }
   50% {
-    transform: rotate(4deg);
+    transform: translateY(-8px) rotate(2deg);
+  }
+  75% {
+    transform: translateY(-4px) rotate(0deg);
   }
 }
 
 @keyframes daisy-think {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 
 @keyframes daisy-celebrate {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-40px);
-  }
+  0%   { transform: translateY(0) scale(1); }
+  30%  { transform: translateY(-35px) scale(1.08); }
+  50%  { transform: translateY(-30px) scale(1.05); }
+  80%  { transform: translateY(-5px) scale(0.98); }
+  100% { transform: translateY(0) scale(1); }
 }
 
 @keyframes daisy-warn {
-  0% {
-    transform: rotate(0deg) translateY(0);
-  }
-  100% {
-    /* Droops slightly down and to the side */
-    transform: rotate(20deg) translateY(8px);
-  }
+  0%   { transform: rotate(0deg) translateY(0); }
+  100% { transform: rotate(18deg) translateY(6px); }
 }
 
-/* Center of rotation for the petals and head */
+/* Petal / head rotation origin */
 .daisy-petals,
 .daisy-head {
   transform-origin: 50% 40%;
 }
 
+/* ─── SPEECH BUBBLE (auto-popup) ─── */
+#daisy-bubble {
+  position: absolute;
+  bottom: 165px;
+  right: -10px;
+  background: var(--surface, #080810);
+  color: var(--c, #00f5ff);
+  padding: 10px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border-hi, rgba(0,245,255,0.35));
+  font-size: 11px;
+  font-family: var(--font-mono, 'Share Tech Mono', monospace);
+  letter-spacing: 0.3px;
+  max-width: 220px;
+  box-shadow: 0 0 15px rgba(0,245,255,0.15), inset 0 0 20px rgba(0,245,255,0.03);
+  opacity: 0;
+  transform: translateY(6px) scale(0.95);
+  transition: opacity 0.35s ease, transform 0.35s var(--transition, ease);
+  pointer-events: none;
+  z-index: 10000;
+  line-height: 1.5;
+}
+#daisy-bubble.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* Bubble pointer */
+#daisy-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -7px;
+  right: 24px;
+  border-width: 7px 6px 0;
+  border-style: solid;
+  border-color: var(--border-hi, rgba(0,245,255,0.35)) transparent transparent transparent;
+}
+#daisy-bubble::before {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  right: 25px;
+  border-width: 6px 5px 0;
+  border-style: solid;
+  border-color: var(--surface, #080810) transparent transparent transparent;
+  z-index: 1;
+}
+
+/* ══════════════════════════════════════════════════════════
+   DAISY CHAT PANEL — NIX TERMINAL STYLE
+══════════════════════════════════════════════════════════ */
+
 #daisy-chat {
   position: fixed;
-  bottom: 150px;
-  right: 20px;
+  bottom: 210px;
+  right: 16px;
   width: 320px;
   height: 420px;
-  background-color: #0a0f1a;
-  border: 1px solid #00f5ff;
-  border-radius: 8px;
+  background: var(--surface, #080810);
+  border: 1px solid var(--border-hi, rgba(0,245,255,0.35));
+  border-radius: 4px;
   z-index: 10000;
   display: none;
   flex-direction: column;
-  font-family: var(--font-mono, monospace);
-  box-shadow: 0 0 20px rgba(0, 245, 255, 0.2);
+  font-family: var(--font-mono, 'Share Tech Mono', monospace);
+  box-shadow:
+    0 0 20px rgba(0,245,255,0.12),
+    0 8px 32px rgba(0,0,0,0.7),
+    inset 0 0 40px rgba(0,245,255,0.02);
+  overflow: hidden;
+  /* Scanline overlay */
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(0,0,0,0.04) 3px,
+    rgba(0,0,0,0.04) 4px
+  );
+  background-color: var(--surface, #080810);
+  /* Slide-in animation */
+  transform: translateY(20px) scale(0.95);
+  opacity: 0;
+  transition: transform 0.35s var(--transition, ease),
+              opacity 0.3s ease;
 }
 
 #daisy-chat.open {
   display: flex;
+  animation: daisy-chat-in 0.35s var(--transition, ease) forwards;
 }
 
+@keyframes daisy-chat-in {
+  from {
+    transform: translateY(20px) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* ─── Chat Header ─── */
 #daisy-chat-header {
-  padding: 10px 16px;
-  border-bottom: 1px solid rgba(0, 245, 255, 0.3);
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border, rgba(0,245,255,0.12));
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: #00f5ff;
-  font-size: 14px;
+  background: rgba(0,0,0,0.4);
+  flex-shrink: 0;
+}
+
+#daisy-chat-header span {
+  font-family: var(--font-display, 'Orbitron', sans-serif);
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--c, #00f5ff);
+  text-transform: uppercase;
+  text-shadow: 0 0 8px rgba(0,245,255,0.4);
+}
+
+/* Status dot */
+#daisy-chat-header span::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--c3, #00ff88);
+  margin-right: 8px;
+  box-shadow: 0 0 6px rgba(0,255,136,0.6);
+  animation: pulse 2s ease-in-out infinite;
 }
 
 #daisy-chat-close {
   background: none;
-  border: none;
-  color: #ff003c;
+  border: 1px solid rgba(255,0,60,0.3);
+  color: var(--c2, #ff003c);
   cursor: pointer;
-  font-size: 16px;
+  font-size: 11px;
+  padding: 2px 8px;
+  font-family: var(--font-mono, monospace);
+  letter-spacing: 2px;
+  transition: all 0.2s ease;
 }
-
 #daisy-chat-close:hover {
-  color: #ff4d79;
+  background: rgba(255,0,60,0.1);
+  border-color: rgba(255,0,60,0.6);
+  box-shadow: 0 0 10px rgba(255,0,60,0.2);
 }
 
+/* ─── Chat History ─── */
 #daisy-chat-history {
   flex: 1;
   overflow-y: auto;
-  padding: 16px;
+  padding: 14px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
+  /* Custom scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,245,255,0.2) transparent;
 }
 
+#daisy-chat-history::-webkit-scrollbar {
+  width: 4px;
+}
+#daisy-chat-history::-webkit-scrollbar-track {
+  background: transparent;
+}
+#daisy-chat-history::-webkit-scrollbar-thumb {
+  background: rgba(0,245,255,0.2);
+  border-radius: 2px;
+}
+
+/* ─── Messages ─── */
 .daisy-msg {
   max-width: 85%;
   padding: 8px 12px;
-  border-radius: 8px;
-  font-size: 12px;
-  line-height: 1.4;
+  border-radius: 4px;
+  font-size: 11px;
+  line-height: 1.55;
   word-wrap: break-word;
+  letter-spacing: 0.3px;
+  position: relative;
+  animation: daisy-msg-in 0.3s ease-out;
+}
+
+@keyframes daisy-msg-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .daisy-msg.user {
   align-self: flex-end;
-  background: rgba(0, 245, 255, 0.1);
-  border: 1px solid rgba(0, 245, 255, 0.3);
-  color: #fff;
-  border-bottom-right-radius: 2px;
+  background: rgba(0,245,255,0.06);
+  border: 1px solid var(--border, rgba(0,245,255,0.12));
+  border-left: 2px solid var(--c, #00f5ff);
+  color: var(--text, #e2e8f0);
 }
 
 .daisy-msg.daisy {
   align-self: flex-start;
-  background: rgba(0, 255, 136, 0.1);
-  border: 1px solid rgba(0, 255, 136, 0.3);
-  color: #00ff88;
-  border-bottom-left-radius: 2px;
+  background: rgba(0,255,136,0.04);
+  border: 1px solid rgba(0,255,136,0.12);
+  border-left: 2px solid var(--c3, #00ff88);
+  color: var(--c3, #00ff88);
 }
 
+/* Daisy message label */
+.daisy-msg.daisy::before {
+  content: '⌁ DAISY';
+  display: block;
+  font-size: 8px;
+  letter-spacing: 2px;
+  color: rgba(0,255,136,0.5);
+  margin-bottom: 4px;
+  font-family: var(--font-display, 'Orbitron', sans-serif);
+}
+
+.daisy-msg.user::before {
+  content: 'YOU ⌁';
+  display: block;
+  font-size: 8px;
+  letter-spacing: 2px;
+  color: rgba(0,245,255,0.4);
+  margin-bottom: 4px;
+  text-align: right;
+  font-family: var(--font-display, 'Orbitron', sans-serif);
+}
+
+/* ─── Input Area ─── */
 #daisy-chat-input-area {
-  padding: 12px;
-  border-top: 1px solid rgba(0, 245, 255, 0.3);
+  padding: 10px 12px;
+  border-top: 1px solid var(--border, rgba(0,245,255,0.12));
   display: flex;
   gap: 8px;
+  background: rgba(0,0,0,0.3);
+  flex-shrink: 0;
 }
 
 #daisy-chat-input {
   flex: 1;
-  background: rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(0, 245, 255, 0.3);
-  color: #fff;
-  padding: 8px;
-  font-family: inherit;
-  border-radius: 4px;
+  background: var(--void, #000);
+  border: 1px solid var(--border, rgba(0,245,255,0.12));
+  color: var(--text, #e2e8f0);
+  padding: 8px 10px;
+  font-family: var(--font-mono, 'Share Tech Mono', monospace);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  border-radius: 2px;
   outline: none;
-  font-size: 12px;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
 }
-
+#daisy-chat-input::placeholder {
+  color: var(--muted, #a0aec0);
+  opacity: 0.5;
+}
 #daisy-chat-input:focus {
-  border-color: #00f5ff;
+  border-color: var(--c, #00f5ff);
+  box-shadow: 0 0 10px rgba(0,245,255,0.15), inset 0 0 8px rgba(0,245,255,0.03);
 }
 
 #daisy-chat-send {
-  background: #00f5ff;
-  color: #000;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
+  background: transparent;
+  color: var(--c, #00f5ff);
+  border: 1px solid var(--border-hi, rgba(0,245,255,0.35));
+  padding: 8px 14px;
+  font-family: var(--font-display, 'Orbitron', sans-serif);
+  font-size: 9px;
+  letter-spacing: 2px;
   cursor: pointer;
-  font-family: inherit;
-  font-weight: bold;
+  transition: all 0.25s ease;
+  text-transform: uppercase;
+  border-radius: 2px;
+}
+#daisy-chat-send:hover {
+  background: rgba(0,245,255,0.08);
+  box-shadow: 0 0 12px rgba(0,245,255,0.2);
+  border-color: var(--c, #00f5ff);
+}
+#daisy-chat-send:active {
+  transform: scale(0.95);
 }
 
-#daisy-chat-send:hover {
-  background: #33f7ff;
+/* ─── Welcome message ─── */
+.daisy-welcome {
+  text-align: center;
+  padding: 20px 16px;
+  color: var(--muted, #a0aec0);
+  font-size: 10px;
+  line-height: 1.8;
+  letter-spacing: 0.5px;
+  border: 1px dashed var(--border, rgba(0,245,255,0.12));
+  border-radius: 4px;
+  margin-bottom: 4px;
+}
+.daisy-welcome strong {
+  color: var(--c3, #00ff88);
+  font-weight: normal;
+}
+
+/* ─── Typing indicator ─── */
+.daisy-typing {
+  display: flex;
+  gap: 4px;
+  padding: 10px 14px;
+  align-self: flex-start;
+}
+.daisy-typing span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--c3, #00ff88);
+  opacity: 0.4;
+  animation: daisy-dot-bounce 1.2s ease-in-out infinite;
+}
+.daisy-typing span:nth-child(2) { animation-delay: 0.15s; }
+.daisy-typing span:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes daisy-dot-bounce {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  30% {
+    transform: translateY(-6px);
+    opacity: 1;
+  }
 }

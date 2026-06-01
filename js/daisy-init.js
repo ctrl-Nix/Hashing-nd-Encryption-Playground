@@ -4,94 +4,52 @@ function initDaisy() {
 
   window.currentDaisyContext = 'idle';
 
-  widget.style.cursor = 'pointer';
-
-  // Add a speech bubble to the widget if it doesn't exist
+  // ─── SPEECH BUBBLE (CSS-driven, no inline styles) ───
   let bubble = document.getElementById('daisy-bubble');
   if (!bubble) {
     bubble = document.createElement('div');
     bubble.id = 'daisy-bubble';
-    bubble.style.position = 'absolute';
-    bubble.style.bottom = '110px';
-    bubble.style.right = '50px';
-    bubble.style.background = 'var(--bg, #111)';
-    bubble.style.color = 'var(--c, #0ff)';
-    bubble.style.padding = '12px 16px';
-    bubble.style.borderRadius = '8px';
-    bubble.style.border = '1px solid var(--c, #0ff)';
-    bubble.style.fontSize = '12px';
-    bubble.style.fontFamily = 'var(--font-mono, monospace)';
-    bubble.style.maxWidth = '250px';
-    bubble.style.boxShadow = '0 0 15px rgba(0,255,255,0.2)';
-    bubble.style.opacity = '0';
-    bubble.style.transition = 'opacity 0.3s ease';
-    bubble.style.pointerEvents = 'none';
-    bubble.style.zIndex = '10000';
-    
-    // Triangle pointer
-    const pointer = document.createElement('div');
-    pointer.style.position = 'absolute';
-    pointer.style.bottom = '-6px';
-    pointer.style.right = '20px';
-    pointer.style.borderWidth = '6px 6px 0';
-    pointer.style.borderStyle = 'solid';
-    pointer.style.borderColor = 'var(--c, #0ff) transparent transparent transparent';
-    
-    const pointerInner = document.createElement('div');
-    pointerInner.style.position = 'absolute';
-    pointerInner.style.bottom = '-4px';
-    pointerInner.style.right = '-5px';
-    pointerInner.style.borderWidth = '5px 5px 0';
-    pointerInner.style.borderStyle = 'solid';
-    pointerInner.style.borderColor = 'var(--bg, #111) transparent transparent transparent';
-
-    pointer.appendChild(pointerInner);
-    bubble.appendChild(pointer);
-    
     const textSpan = document.createElement('span');
     textSpan.id = 'daisy-bubble-text';
     bubble.appendChild(textSpan);
-    
     widget.appendChild(bubble);
   }
 
   let bubbleTimeout = null;
 
   function setDaisyState(state, textKey) {
-    // Reset classes
     widget.classList.remove('daisy-idle', 'daisy-think', 'daisy-celebrate', 'daisy-warn');
     widget.classList.add(`daisy-${state}`);
-    
-    // Update text and show bubble
+
     if (textKey && DaisyDialogues[textKey]) {
       window.currentDaisyContext = textKey;
       const textSpan = document.getElementById('daisy-bubble-text');
       textSpan.textContent = DaisyDialogues[textKey];
-      bubble.style.opacity = '1';
-      
+      bubble.classList.add('visible');
+
       clearTimeout(bubbleTimeout);
       bubbleTimeout = setTimeout(() => {
-        bubble.style.opacity = '0';
-        
-        // Go back to idle after a celebration or warning
+        bubble.classList.remove('visible');
+
         if (state === 'celebrate' || state === 'warn') {
-           setTimeout(() => {
-             widget.classList.remove(`daisy-${state}`);
-             widget.classList.add('daisy-idle');
-           }, 500); // Small buffer to let the animation finish
+          setTimeout(() => {
+            widget.classList.remove(`daisy-${state}`);
+            widget.classList.add('daisy-idle');
+          }, 500);
         }
-      }, 5000); // Show text for 5 seconds
+      }, 5000);
     } else if (!textKey) {
-      // Just change state without text, hide bubble if any
-      bubble.style.opacity = '0';
+      bubble.classList.remove('visible');
       if (state === 'celebrate' || state === 'warn') {
         setTimeout(() => {
           widget.classList.remove(`daisy-${state}`);
           widget.classList.add('daisy-idle');
-        }, 2000); // Revert to idle after the animation
+        }, 2000);
       }
     }
   }
+
+  // ─── MONKEY-PATCH APP FUNCTIONS ───
 
   // 1. App.switchLabTab
   if (window.App && App.switchLabTab) {
@@ -107,12 +65,11 @@ function initDaisy() {
     const originalSetAlgo = App.setLabAlgo;
     App.setLabAlgo = function(algo) {
       originalSetAlgo.call(App, algo);
-      
+
       if (algo === 'MD5' || algo === 'SHA-1') {
         setDaisyState('warn', algo);
       } else {
         setDaisyState('think', algo);
-        // Automatically revert to idle after thinking about algorithm
         setTimeout(() => {
           widget.classList.remove('daisy-think');
           widget.classList.add('daisy-idle');
@@ -126,7 +83,7 @@ function initDaisy() {
     const originalHash = App.runLabHash;
     App.runLabHash = async function() {
       setDaisyState('think');
-      
+
       let res;
       try {
         res = await originalHash.apply(App, arguments);
@@ -134,7 +91,7 @@ function initDaisy() {
         setDaisyState('warn', 'warn');
         throw e;
       }
-      
+
       setDaisyState('celebrate', 'celebrate');
       return res;
     };
@@ -145,7 +102,7 @@ function initDaisy() {
     const originalRSAGen = App.runRSAGen;
     App.runRSAGen = async function() {
       setDaisyState('think');
-      
+
       let res;
       try {
         res = await originalRSAGen.apply(App, arguments);
@@ -153,7 +110,7 @@ function initDaisy() {
         setDaisyState('warn', 'warn');
         throw e;
       }
-      
+
       setDaisyState('celebrate', 'celebrate');
       return res;
     };
@@ -177,18 +134,24 @@ function initDaisy() {
     };
   }
 
-  // --- CHAT PANEL SETUP ---
+  // ─── CHAT PANEL SETUP ───
   const chatPanel = document.createElement('div');
   chatPanel.id = 'daisy-chat';
   chatPanel.innerHTML = `
     <div id="daisy-chat-header">
-      <span>Daisy // SECURE COMMS</span>
-      <button id="daisy-chat-close">✖</button>
+      <span>DAISY COMMS</span>
+      <button id="daisy-chat-close">[ ESC ]</button>
     </div>
-    <div id="daisy-chat-history"></div>
+    <div id="daisy-chat-history">
+      <div class="daisy-welcome">
+        <strong>⌁ DAISY ONLINE ⌁</strong><br>
+        Nebula Crypto-Explorer v1.0<br>
+        Type a message or switch tools — I'll keep up.
+      </div>
+    </div>
     <div id="daisy-chat-input-area">
-      <input type="text" id="daisy-chat-input" placeholder="Message Daisy..." autocomplete="off">
-      <button id="daisy-chat-send">SEND</button>
+      <input type="text" id="daisy-chat-input" placeholder="// message daisy..." autocomplete="off" spellcheck="false">
+      <button id="daisy-chat-send">TX</button>
     </div>
   `;
   document.body.appendChild(chatPanel);
@@ -198,10 +161,14 @@ function initDaisy() {
   const sendBtn = document.getElementById('daisy-chat-send');
   const closeBtn = document.getElementById('daisy-chat-close');
 
-  // Toggle chat
+  // Toggle chat on widget click
   widget.addEventListener('click', () => {
     chatPanel.classList.toggle('open');
     if (chatPanel.classList.contains('open')) {
+      // Re-trigger animation by removing and re-adding the class
+      chatPanel.style.animation = 'none';
+      chatPanel.offsetHeight; // reflow
+      chatPanel.style.animation = '';
       input.focus();
     }
   });
@@ -211,28 +178,49 @@ function initDaisy() {
     chatPanel.classList.remove('open');
   });
 
-  // Chat logic
+  // Close on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && chatPanel.classList.contains('open')) {
+      chatPanel.classList.remove('open');
+    }
+  });
+
+  // ─── CHAT LOGIC ───
+  function addTypingIndicator() {
+    const typing = document.createElement('div');
+    typing.className = 'daisy-typing';
+    typing.id = 'daisy-typing';
+    typing.innerHTML = '<span></span><span></span><span></span>';
+    history.appendChild(typing);
+    history.scrollTop = history.scrollHeight;
+    return typing;
+  }
+
   window.daisyChat = function(message) {
     if (!message.trim()) return;
-    
-    // Add user message
+
+    // User message
     const userMsg = document.createElement('div');
     userMsg.className = 'daisy-msg user';
     userMsg.textContent = message;
     history.appendChild(userMsg);
-    
-    // Daisy reply
+    history.scrollTop = history.scrollHeight;
+    input.value = '';
+
+    // Typing indicator
+    const typing = addTypingIndicator();
+
+    // Daisy reply after a short delay
     setTimeout(() => {
+      typing.remove();
+
       const reply = DaisyDialogues[window.currentDaisyContext] || DaisyDialogues['idle'];
       const daisyMsg = document.createElement('div');
       daisyMsg.className = 'daisy-msg daisy';
       daisyMsg.textContent = reply;
       history.appendChild(daisyMsg);
       history.scrollTop = history.scrollHeight;
-    }, 300);
-
-    history.scrollTop = history.scrollHeight;
-    input.value = '';
+    }, 600 + Math.random() * 400);
   };
 
   sendBtn.addEventListener('click', () => {
