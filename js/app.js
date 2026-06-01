@@ -348,8 +348,10 @@ const App = {
     } else {
       let inputData = textInput;
       if (salt) inputData = textInput + salt;
-      const r = await CE.hash(App.S.lab.algo, inputData);
-      renderResult(r, salt ? 'SALTED STRING HASH' : 'STRING HASH');
+      try {
+        const r = await CE.hash(App.S.lab.algo, inputData);
+        renderResult(r, salt ? 'SALTED STRING HASH' : 'STRING HASH');
+      } catch(e) { alert('Hashing Failed: ' + e.message); }
     }
   },
 
@@ -473,12 +475,14 @@ const App = {
     const key = document.getElementById('hmac-key').value;
     if(!data || !key) return alert('Provide both a message and a secret key.');
     
-    const r = await CE.hmac(App.S.lab.hmacAlgo, key, data);
-    const res = document.getElementById('lab-hmac-result');
-    res.style.display = 'block';
-    document.getElementById('lab-hmac-out').innerText = r.hex;
-    document.getElementById('lab-hmac-time').innerText = `${r.ms}ms`;
-    res.scrollIntoView({ behavior:'smooth', block:'nearest' });
+    try {
+      const r = await CE.hmac(App.S.lab.hmacAlgo, key, data);
+      const res = document.getElementById('lab-hmac-result');
+      res.style.display = 'block';
+      document.getElementById('lab-hmac-out').innerText = r.hex;
+      document.getElementById('lab-hmac-time').innerText = `${r.ms}ms`;
+      res.scrollIntoView({ behavior:'smooth', block:'nearest' });
+    } catch(e) { alert('HMAC Generation Failed: ' + e.message); }
   },
 
   /* ─── STEGANOGRAPHY LAB ─── */
@@ -953,23 +957,25 @@ const App = {
     const input = document.getElementById('s-hash-in').value.trim();
     if(!input) return alert('Enter a password first.');
     App.S.story.pwd = input;
-    const r = await CE.hash(App.S.story.algo, input);
-    App.S.story.hashHex = r.hex;
-    App.S.story.hashBits = r.bits;
-    
-    const res = document.getElementById('s-hash-res');
-    res.innerHTML = `
-      <div class="readout readout-green" style="font-size:12px; margin-bottom:12px;">
-        <div style="font-size:9px; color:var(--muted); margin-bottom:4px;">GENERATED FINGERPRINT (${App.S.story.algo})</div>
-        ${r.hex}
-      </div>
-      <div class="bit-grid" style="max-height:100px;"></div>
-    `;
-    const grid = res.querySelector('.bit-grid');
-    for(let i=0; i<Math.min(r.bits.length, 256); i++) {
-      const b = document.createElement('div'); b.className = 'bit' + (r.bits[i]==='1'?' on':''); grid.appendChild(b);
-    }
-    App.showNextBtn(1);
+    try {
+      const r = await CE.hash(App.S.story.algo, input);
+      App.S.story.hashHex = r.hex;
+      App.S.story.hashBits = r.bits;
+      
+      const res = document.getElementById('s-hash-res');
+      res.innerHTML = `
+        <div class="readout readout-green" style="font-size:12px; margin-bottom:12px;">
+          <div style="font-size:9px; color:var(--muted); margin-bottom:4px;">GENERATED FINGERPRINT (${App.S.story.algo})</div>
+          ${r.hex}
+        </div>
+        <div class="bit-grid" style="max-height:100px;"></div>
+      `;
+      const grid = res.querySelector('.bit-grid');
+      for(let i=0; i<Math.min(r.bits.length, 256); i++) {
+        const b = document.createElement('div'); b.className = 'bit' + (r.bits[i]==='1'?' on':''); grid.appendChild(b);
+      }
+      App.showNextBtn(1);
+    } catch(e) { alert('Hashing Failed: ' + e.message); }
   },
 
   runStoryAvalanche: async (init) => {
@@ -978,35 +984,37 @@ const App = {
     if (!init && !input) {
       init = true;
     }
-    const r = await CE.hash(App.S.story.algo, input);
-    const grid = document.getElementById('s-av-grid');
-    const res = document.getElementById('s-av-res');
-    if(!grid) return;
-    grid.innerHTML = '';
-    
-    let diffs = 0;
-    const maxBits = Math.min(r.bits.length, 256);
-    for(let i=0; i<maxBits; i++) {
-      const b = document.createElement('div');
-      const bitOn = r.bits[i] === '1';
-      const isDiff = !init && r.bits[i] !== App.S.story.hashBits[i];
-      if(isDiff) diffs++;
-      b.className = 'bit' + (bitOn ? ' on' : '') + (isDiff ? ' diff' : '');
-      grid.appendChild(b);
-    }
-    
-    if(!init) {
-      const percent = ((diffs / maxBits) * 100).toFixed(1);
-      res.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span>BIT FLIPS DETECTED: <strong style="color:var(--c2);">${diffs}</strong> / ${maxBits}</span>
-          <span class="status-tag ${diffs > 100 ? 'st-ok' : 'st-warn'}">${percent}% VARIANCE</span>
-        </div>
-      `;
-      if(input !== App.S.story.pwd && input.length > 0) App.showNextBtn(2);
-    } else {
-      res.innerHTML = '// Modify the password above to observe the avalanche effect.';
-    }
+    try {
+      const r = await CE.hash(App.S.story.algo, input);
+      const grid = document.getElementById('s-av-grid');
+      const res = document.getElementById('s-av-res');
+      if(!grid) return;
+      grid.innerHTML = '';
+      
+      let diffs = 0;
+      const maxBits = Math.min(r.bits.length, 256);
+      for(let i=0; i<maxBits; i++) {
+        const b = document.createElement('div');
+        const bitOn = r.bits[i] === '1';
+        const isDiff = !init && r.bits[i] !== App.S.story.hashBits[i];
+        if(isDiff) diffs++;
+        b.className = 'bit' + (bitOn ? ' on' : '') + (isDiff ? ' diff' : '');
+        grid.appendChild(b);
+      }
+      
+      if(!init) {
+        const percent = ((diffs / maxBits) * 100).toFixed(1);
+        res.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span>BIT FLIPS DETECTED: <strong style="color:var(--c2);">${diffs}</strong> / ${maxBits}</span>
+            <span class="status-tag ${diffs > 100 ? 'st-ok' : 'st-warn'}">${percent}% VARIANCE</span>
+          </div>
+        `;
+        if(input !== App.S.story.pwd && input.length > 0) App.showNextBtn(2);
+      } else {
+        res.innerHTML = '// Modify the password above to observe the avalanche effect.';
+      }
+    } catch(e) { alert('Hashing Failed: ' + e.message); }
   },
 
   runStoryBruteForce: async () => {
@@ -1269,22 +1277,24 @@ const App = {
     const tamperedMsg = msg + "_TAMPERED";
     document.getElementById('s-ecdsa-msg').value = tamperedMsg;
     
-    const r = await CE.verifyECDSA(App.S.story.ecdsaKeyPair.publicKey, App.S.story.ecdsaSig, tamperedMsg);
-    const statusBox = document.getElementById('s-ecdsa-status-box');
-    if(!r.valid) {
-      statusBox.innerHTML = `
-        <div class="sig-result sig-invalid">
-          <div class="sig-status invalid">✗ SIGNATURE INVALID</div>
-          <p style="font-size:11px; color:var(--muted);">Integrity Check Failed! The message has been altered after signing.</p>
-        </div>
-      `;
-      App.S.story.sigVerifiedInvalid = true;
-      App.flash('s-ecdsa-status-box');
-    }
-    
-    if (App.S.story.sigVerifiedValid && App.S.story.sigVerifiedInvalid) {
-      App.showNextBtn(7);
-    }
+    try {
+      const r = await CE.verifyECDSA(App.S.story.ecdsaKeyPair.publicKey, App.S.story.ecdsaSig, tamperedMsg);
+      const statusBox = document.getElementById('s-ecdsa-status-box');
+      if(!r.valid) {
+        statusBox.innerHTML = `
+          <div class="sig-result sig-invalid">
+            <div class="sig-status invalid">✗ SIGNATURE INVALID</div>
+            <p style="font-size:11px; color:var(--muted);">Integrity Check Failed! The message has been altered after signing.</p>
+          </div>
+        `;
+        App.S.story.sigVerifiedInvalid = true;
+        App.flash('s-ecdsa-status-box');
+      }
+      
+      if (App.S.story.sigVerifiedValid && App.S.story.sigVerifiedInvalid) {
+        App.showNextBtn(7);
+      }
+    } catch(e) { alert('Verify Failed: ' + e.message); }
   },
 
   runStoryECDSAVerifyOriginal: async () => {
@@ -1292,21 +1302,23 @@ const App = {
     const msg = App.S.story.ecdsaMsg;
     document.getElementById('s-ecdsa-msg').value = msg;
     
-    const r = await CE.verifyECDSA(App.S.story.ecdsaKeyPair.publicKey, App.S.story.ecdsaSig, msg);
-    const statusBox = document.getElementById('s-ecdsa-status-box');
-    if(r.valid) {
-      statusBox.innerHTML = `
-        <div class="sig-result sig-valid">
-          <div class="sig-status valid">✓ SIGNATURE VALID</div>
-          <p style="font-size:11px; color:var(--muted);">Verified against Public Key. The message is authentic and untampered.</p>
-        </div>
-      `;
-      App.S.story.sigVerifiedValid = true;
-    }
-    
-    if (App.S.story.sigVerifiedValid && App.S.story.sigVerifiedInvalid) {
-      App.showNextBtn(7);
-    }
+    try {
+      const r = await CE.verifyECDSA(App.S.story.ecdsaKeyPair.publicKey, App.S.story.ecdsaSig, msg);
+      const statusBox = document.getElementById('s-ecdsa-status-box');
+      if(r.valid) {
+        statusBox.innerHTML = `
+          <div class="sig-result sig-valid">
+            <div class="sig-status valid">✓ SIGNATURE VALID</div>
+            <p style="font-size:11px; color:var(--muted);">Verified against Public Key. The message is authentic and untampered.</p>
+          </div>
+        `;
+        App.S.story.sigVerifiedValid = true;
+      }
+      
+      if (App.S.story.sigVerifiedValid && App.S.story.sigVerifiedInvalid) {
+        App.showNextBtn(7);
+      }
+    } catch(e) { alert('Verify Failed: ' + e.message); }
   },
 
   // PKI Story Mode Actions
@@ -2108,8 +2120,8 @@ App.runBenchmark = async () => {
   
   // Reset UI
   ['md5', 'sha256', 'sha512'].forEach(algo => {
-    document.getElementById(`bench--ops`).innerText = 'Running...';
-    document.getElementById(`bench--bar`).style.width = '0%';
+    document.getElementById(`bench-${algo}-ops`).innerText = 'Running...';
+    document.getElementById(`bench-${algo}-bar`).style.width = '0%';
   });
 
   const iters = 10000;
@@ -2149,3 +2161,7 @@ App.runBenchmark = async () => {
   btn.disabled = false;
 };
 
+window.addEventListener('unhandledrejection', event => {
+  console.error("Unhandled Promise Rejection:", event.reason);
+  alert("Fatal Error: " + (event.reason?.message || "Cryptographic Operation Failed"));
+});

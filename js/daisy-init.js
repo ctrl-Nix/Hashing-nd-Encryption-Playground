@@ -161,7 +161,7 @@ function initDaisy() {
   }, 1500);
 
   // ─── MONKEY-PATCH APP FUNCTIONS ───
-  if (window.App && App.switchLabTab) {
+  if (typeof App !== 'undefined' && App.switchLabTab) {
     const orig = App.switchLabTab;
     App.switchLabTab = function(tabId) {
       orig.call(App, tabId);
@@ -181,7 +181,7 @@ function initDaisy() {
     };
   }
 
-  if (window.App && App.setLabAlgo) {
+  if (typeof App !== 'undefined' && App.setLabAlgo) {
     const orig = App.setLabAlgo;
     App.setLabAlgo = function(algo) {
       orig.call(App, algo);
@@ -202,7 +202,7 @@ function initDaisy() {
     };
   }
 
-  if (window.App && App.runLabHash) {
+  if (typeof App !== 'undefined' && App.runLabHash) {
     const orig = App.runLabHash;
     App.runLabHash = async function() {
       if (!widget.classList.contains('daisy-sleep')) {
@@ -227,7 +227,7 @@ function initDaisy() {
     };
   }
 
-  if (window.App && App.runRSAGen) {
+  if (typeof App !== 'undefined' && App.runRSAGen) {
     const orig = App.runRSAGen;
     App.runRSAGen = async function() {
       if (!widget.classList.contains('daisy-sleep')) setDaisyState('think');
@@ -244,7 +244,7 @@ function initDaisy() {
     };
   }
 
-  if (window.App && App.startMD5Crack) {
+  if (typeof App !== 'undefined' && App.startMD5Crack) {
     const orig = App.startMD5Crack;
     App.startMD5Crack = function() {
       if (!widget.classList.contains('daisy-sleep')) setDaisyState('think', 'cracker');
@@ -253,7 +253,7 @@ function initDaisy() {
     };
   }
 
-  if (window.AchievementSystem && AchievementSystem.unlock) {
+  if (typeof AchievementSystem !== 'undefined' && AchievementSystem.unlock) {
     const orig = AchievementSystem.unlock;
     AchievementSystem.unlock = function(id) {
       orig.call(AchievementSystem, id);

@@ -106,3 +106,64 @@ Auditor: Antigravity Agent
 - **File**: `index.html`
 - **Description**: Axe audit (simulated) flagged critical missing semantic markers. The custom `div.lab-tab` elements acting as buttons had no ARIA structure.
 - **Fix Status**: FIXED (Injected exhaustive `aria-label` tags into tabs, icon buttons, canvas displays, and interactive tool zones).
+
+## Bug #18 - MD5 Hash Corruption for Unicode Surrogates (Emojis)
+- **Severity**: HIGH
+- **File**: `js/crypto.js`
+- **Description**: The custom MD5 `charCodeAt` loop incorrectly splits 4-byte surrogate pairs into 6 bytes, corrupting hashes for emojis/complex Unicode.
+- **Fix Status**: FIXED (Removed string loop, used native TextEncoder)
+
+## Bug #19 - Benchmark UI Template String Crash
+- **Severity**: HIGH
+- **File**: `js/app.js`
+- **Description**: Missing template literals in `App.runBenchmark` (`bench--ops`) result in `getElementById` returning null, crashing the Benchmark tab via TypeError.
+- **Fix Status**: FIXED (Added template variables)
+
+## Bug #20 - Missing Unhandled Promise Rejection Boundary
+- **Severity**: HIGH
+- **File**: `js/app.js`
+- **Description**: The global unhandled promise rejection listener is missing, causing `crypto.subtle` DOMExceptions to silently break execution and flood the console.
+- **Fix Status**: FIXED (Added listener mapping to global-error-toast)
+
+## Bug #21 - stegoDecode Garbage Extraction Loop
+- **Severity**: HIGH
+- **File**: `js/crypto.js`
+- **Description**: Extracting from an unencoded image reads 10,000 garbage bytes, which `TextDecoder` (lacking `fatal:true`) attempts to parse, yielding huge strings of replacement characters.
+- **Fix Status**: FIXED (Added fatal:true and try/catch block)
+
+## Bug #22 - hexToBuf Null TypeError Crash
+- **Severity**: HIGH
+- **File**: `js/crypto.js`
+- **Description**: `CE.hexToBuf(h)` throws `TypeError: Cannot read properties of null` if given empty strings or non-hex characters because `h.match` returns null.
+- **Fix Status**: FIXED (Added boundary checks)
+
+## Bug #23 - App.runLabHash Missing Try/Catch
+- **Severity**: HIGH
+- **File**: `js/app.js`
+- **Description**: Missing try/catch exposes `crypto.subtle` promise rejections directly to the console if hashing fails.
+- **Fix Status**: FIXED (Wrapped in try/catch)
+
+## Bug #24 - App.runLabHMAC Missing Try/Catch
+- **Severity**: HIGH
+- **File**: `js/app.js`
+- **Description**: Missing try/catch causes unhandled rejection if invalid/empty keys are used.
+- **Fix Status**: FIXED (Wrapped in try/catch)
+
+## Bug #25 - App.runStoryHash Missing Try/Catch
+- **Severity**: HIGH
+- **File**: `js/story-mode-v2.js`
+- **Description**: Story Mode hash method crashes silently on DOMExceptions.
+- **Fix Status**: FIXED (Wrapped in try/catch)
+
+## Bug #26 - App.runStoryAvalanche Missing Try/Catch
+- **Severity**: HIGH
+- **File**: `js/story-mode-v2.js`
+- **Description**: Avalanche module hash computations lack try/catch wrappers.
+- **Fix Status**: FIXED (Wrapped in try/catch)
+
+## Bug #27 - Story ECDSA Handlers Missing Try/Catch
+- **Severity**: HIGH
+- **File**: `js/app.js`
+- **Description**: `runStoryECDSATamper` and `runStoryECDSAVerifyOriginal` lack try/catch wrappers for `CE.verifyECDSA`.
+- **Fix Status**: FIXED (Wrapped in try/catch)
+

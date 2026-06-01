@@ -3,7 +3,7 @@
 ══════════════════════════════════════════════════════════ */
 const CE = {
   bufToHex: b => Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2,'0')).join(''),
-  hexToBuf: h => new Uint8Array(h.match(/.{1,2}/g).map(b => parseInt(b, 16))),
+  hexToBuf: h => { const m = h.match(/.{1,2}/g); if(!m) throw new Error("Invalid hex"); return new Uint8Array(m.map(b => parseInt(b, 16))); },
   hexToBits: h => h.split('').map(c => parseInt(c,16).toString(2).padStart(4,'0')).join(''),
 
   md5: input => {
@@ -17,8 +17,7 @@ const CE = {
     // Accept both string and Uint8Array/ArrayBuffer for binary-safe MD5
     let bytes;
     if (typeof input === 'string') {
-      bytes = [];
-      for(let i=0;i<input.length;i++){const c=input.charCodeAt(i);if(c<128)bytes.push(c);else if(c<2048)bytes.push(192|(c>>6),128|(c&63));else bytes.push(224|(c>>12),128|((c>>6)&63),128|(c&63));}
+      bytes = Array.from(new TextEncoder().encode(input));
     } else {
       bytes = Array.from(input instanceof ArrayBuffer ? new Uint8Array(input) : (ArrayBuffer.isView(input) ? new Uint8Array(input.buffer, input.byteOffset, input.byteLength) : new Uint8Array(input)));
     }
@@ -189,8 +188,12 @@ const CE = {
       if (bytes.length > 10000) break; // Safety limit
     }
     
-    const plain = new TextDecoder().decode(new Uint8Array(bytes));
-    return { plain, ms: (performance.now() - t0).toFixed(2) };
+    try {
+      const plain = new TextDecoder("utf-8", { fatal: true }).decode(new Uint8Array(bytes));
+      return { plain, ms: (performance.now() - t0).toFixed(2) };
+    } catch(e) {
+      return { plain: "[ ERROR: No valid payload found in image. Carrier is likely empty or corrupted. ]", ms: (performance.now() - t0).toFixed(2) };
+    }
   },
 
   /* ─── ENTROPY ─── */

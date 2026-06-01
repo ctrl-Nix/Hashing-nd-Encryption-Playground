@@ -504,26 +504,28 @@ App.runStoryHash = async () => {
   const input = document.getElementById('s-hash-in').value.trim();
   if (!input) { alert('Enter a password first.'); return; }
   App.S.story.pwd = input;
-  const r = await CE.hash(App.S.story.algo, input);
-  App.S.story.hashHex = r.hex;
-  App.S.story.hashBits = r.bits;
+  try {
+    const r = await CE.hash(App.S.story.algo, input);
+    App.S.story.hashHex = r.hex;
+    App.S.story.hashBits = r.bits;
 
-  const res = document.getElementById('s-hash-res');
-  res.innerHTML = `
-    <div class="reveal-in">
-      ${readoutHTML('s-hash-val', `GENERATED FINGERPRINT (${App.S.story.algo})`, r.hex, 'readout-green')}
-      <div class="bit-grid-label" style="margin-top:16px;">BIT PATTERN — ${r.bits.length} BITS</div>
-      <div class="bit-grid" id="s-hash-bits" style="margin-top:4px;max-height:100px;"></div>
-      ${missionCompleteHTML('Hash fingerprint generated. Ready to observe Avalanche Effect.')}
-    </div>`;
+    const res = document.getElementById('s-hash-res');
+    res.innerHTML = `
+      <div class="reveal-in">
+        ${SMv2.readoutHTML('s-hash-val', `GENERATED FINGERPRINT (${App.S.story.algo})`, r.hex, 'readout-green')}
+        <div class="bit-grid-label" style="margin-top:16px;">BIT PATTERN — ${r.bits.length} BITS</div>
+        <div class="bit-grid" id="s-hash-bits" style="margin-top:4px;max-height:100px;"></div>
+        ${SMv2.missionCompleteHTML('Hash fingerprint generated. Ready to observe Avalanche Effect.')}
+      </div>`;
 
-  const grid = document.getElementById('s-hash-bits');
-  for (let i = 0; i < Math.min(r.bits.length, 256); i++) {
-    const b = document.createElement('div');
-    b.className = 'bit' + (r.bits[i] === '1' ? ' on' : '');
-    grid.appendChild(b);
-  }
-  App.showNextBtn(1);
+    const grid = document.getElementById('s-hash-bits');
+    for (let i = 0; i < Math.min(r.bits.length, 256); i++) {
+      const b = document.createElement('div');
+      b.className = 'bit' + (r.bits[i] === '1' ? ' on' : '');
+      grid.appendChild(b);
+    }
+    App.showNextBtn(1);
+  } catch(e) { alert('Hashing Failed: ' + e.message); }
 };
 
 /* ─────────────────────────────────────────────────────────────────
