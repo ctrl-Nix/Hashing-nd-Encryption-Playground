@@ -2,7 +2,6 @@ function initDaisy() {
   const widget = document.getElementById('daisy-widget');
   if (!widget) return;
 
-  // Status dot creation
   let statusDot = document.getElementById('daisy-status-dot');
   if (!statusDot) {
     statusDot = document.createElement('div');
@@ -10,15 +9,61 @@ function initDaisy() {
     widget.appendChild(statusDot);
   }
 
-  // ─── DAISY CONTEXT ───
+  // Manual Button
+  let manualBtn = document.getElementById('daisy-manual-btn');
+  if (!manualBtn) {
+    manualBtn = document.createElement('div');
+    manualBtn.id = 'daisy-manual-btn';
+    manualBtn.textContent = '?';
+    widget.appendChild(manualBtn);
+  }
+
+  // Manual Modal
+  let manualModal = document.getElementById('daisy-manual-modal');
+  if (!manualModal) {
+    manualModal = document.createElement('div');
+    manualModal.id = 'daisy-manual-modal';
+    manualModal.style.cssText = 'display:none; position:fixed; top:10%; left:50%; transform:translateX(-50%); width:90%; max-width:500px; max-height:80vh; z-index:10001; background:var(--bg, #05050a); border:2px solid var(--c, #00f5ff); padding:24px; overflow-y:auto; box-shadow:0 0 30px rgba(0,245,255,0.2); font-family:var(--font-mono, monospace); color:var(--text, #e2e8f0); border-radius:8px;';
+    
+    manualModal.innerHTML = `
+      <div style="display:flex; justify-content:space-between; margin-bottom:16px; border-bottom:1px solid var(--c); padding-bottom:8px;">
+        <div style="font-family:var(--font-display); color:var(--c); font-size:16px; letter-spacing:2px;">⌁ DAISY'S MANUAL ⌁</div>
+        <button id="daisy-manual-close" style="background:none; border:1px solid var(--c2, #ff003c); color:var(--c2, #ff003c); cursor:pointer;">[X]</button>
+      </div>
+      <div style="font-size:12px; line-height:1.6; display:flex; flex-direction:column; gap:12px;">
+        <p><strong>Hi! I'm Daisy, your local AI companion.</strong> Here is how you can interact with me:</p>
+        <ul style="padding-left:16px; display:flex; flex-direction:column; gap:8px;">
+          <li><strong style="color:var(--c3, #00ff88);">💬 Local AI Chat:</strong> Click me to open the comms panel. My brain (Qwen2.5) runs 100% inside your browser!</li>
+          <li><strong style="color:var(--c3, #00ff88);">✋ High Five:</strong> Click on the right side of my body (my right arm) for a quick high five.</li>
+          <li><strong style="color:var(--c3, #00ff88);">😵‍💫 Dizzy Spin:</strong> Click, drag me fast in circles around the screen, and drop me to make me dizzy!</li>
+          <li><strong style="color:var(--c3, #00ff88);">😴 Snooze Mode:</strong> If you don't touch your mouse or keyboard for 60s, I will fall asleep.</li>
+          <li><strong style="color:var(--c3, #00ff88);">🌸 Ticklish:</strong> Hover your mouse directly over my face/petals quickly to tickle me.</li>
+          <li><strong style="color:var(--c3, #00ff88);">🕶️ Hacker Mode:</strong> Switch to advanced labs (like RSA or Steganography) and I'll put on my cyber-goggles.</li>
+          <li><strong style="color:var(--c3, #00ff88);">⌨️ Active Listening:</strong> Type in my chat box and I'll type along with you.</li>
+          <li><strong style="color:var(--c3, #00ff88);">🪴 Level Up:</strong> Unlock an achievement to water me and make me grow!</li>
+          <li><strong style="color:var(--c3, #00ff88);">👀 Eye Tracking:</strong> Move your mouse around and watch my eyes follow your cursor.</li>
+        </ul>
+      </div>
+    `;
+    document.body.appendChild(manualModal);
+
+    document.getElementById('daisy-manual-close').addEventListener('click', () => {
+      manualModal.style.display = 'none';
+    });
+
+    manualBtn.addEventListener('click', (e) => {
+      e.stopPropagation(); // Don't open chat
+      manualModal.style.display = 'block';
+    });
+  }
+
   window.DaisyContext = {
     currentTool: 'hash',
     currentAlgo: 'none',
     lastAction: 'none'
   };
 
-  // ─── EXPRESSION SWITCHING ───
-  const EXPRESSIONS = ['idle', 'think', 'celebrate', 'warn', 'sleep'];
+  const EXPRESSIONS = ['idle', 'think', 'celebrate', 'warn', 'sleep', 'dizzy'];
 
   function setDaisyExpression(expr) {
     EXPRESSIONS.forEach(e => {
@@ -27,7 +72,6 @@ function initDaisy() {
     });
   }
 
-  // ─── COMIC SPEECH BUBBLE (CSS-driven) ───
   let bubble = document.getElementById('daisy-bubble');
   if (!bubble) {
     bubble = document.createElement('div');
@@ -41,10 +85,8 @@ function initDaisy() {
   let bubbleTimeout = null;
 
   function setDaisyState(state, textKey) {
-    // Prevent state changes if dragging or sleeping (unless explicitly waking up)
     if (widget.classList.contains('daisy-drag')) return;
     
-    // If still in flower mode, do not animate limbs
     if (widget.classList.contains('daisy-flower')) {
       if (textKey && DaisyDialogues[textKey]) {
         const textSpan = document.getElementById('daisy-bubble-text');
@@ -53,17 +95,15 @@ function initDaisy() {
         clearTimeout(bubbleTimeout);
         bubbleTimeout = setTimeout(() => {
           bubble.classList.remove('visible');
-        }, 4000); // 4s auto-hide
+        }, 4000);
       }
       return;
     }
 
-    // Reset animation classes
-    widget.classList.remove('daisy-idle', 'daisy-think', 'daisy-celebrate', 'daisy-warn', 'daisy-sleep');
+    widget.classList.remove('daisy-idle', 'daisy-think', 'daisy-celebrate', 'daisy-warn', 'daisy-sleep', 'daisy-dizzy');
     widget.classList.add(`daisy-${state}`);
     setDaisyExpression(state);
 
-    // Show bubble text
     if (textKey && DaisyDialogues[textKey]) {
       const textSpan = document.getElementById('daisy-bubble-text');
       textSpan.textContent = DaisyDialogues[textKey];
@@ -75,19 +115,19 @@ function initDaisy() {
 
         if (state === 'celebrate' || state === 'warn') {
           setTimeout(() => {
-            if (!widget.classList.contains('daisy-sleep')) {
+            if (!widget.classList.contains('daisy-sleep') && !widget.classList.contains('daisy-dizzy')) {
               widget.classList.remove(`daisy-${state}`);
               widget.classList.add('daisy-idle');
               setDaisyExpression('idle');
             }
           }, 500);
         }
-      }, 4000); // 4s auto-hide
+      }, 4000);
     } else if (!textKey) {
       bubble.classList.remove('visible');
       if (state === 'celebrate' || state === 'warn') {
         setTimeout(() => {
-          if (!widget.classList.contains('daisy-sleep')) {
+          if (!widget.classList.contains('daisy-sleep') && !widget.classList.contains('daisy-dizzy')) {
             widget.classList.remove(`daisy-${state}`);
             widget.classList.add('daisy-idle');
             setDaisyExpression('idle');
@@ -97,10 +137,8 @@ function initDaisy() {
     }
   }
 
-  // Helper for proactive bubbles
   let proactiveTimeout = null;
   function triggerProactiveBubble(state, textKey) {
-    // Don't trigger if sleeping
     if (widget.classList.contains('daisy-sleep')) return;
     clearTimeout(proactiveTimeout);
     proactiveTimeout = setTimeout(() => {
@@ -108,7 +146,6 @@ function initDaisy() {
     }, 600);
   }
 
-  // ─── INITIAL GREETING ───
   setTimeout(() => {
     if (widget.classList.contains('daisy-flower')) {
       const textSpan = document.getElementById('daisy-bubble-text');
@@ -127,6 +164,17 @@ function initDaisy() {
     App.switchLabTab = function(tabId) {
       orig.call(App, tabId);
       window.DaisyContext.currentTool = tabId;
+      
+      // Hacker Accessory Toggle
+      const hackerGoggles = document.getElementById('daisy-accessory-hacker');
+      if (hackerGoggles) {
+        if (['rsa', 'stegano', 'ecdsa', 'certs', 'ecdh'].includes(tabId)) {
+          hackerGoggles.style.display = '';
+        } else {
+          hackerGoggles.style.display = 'none';
+        }
+      }
+
       triggerProactiveBubble('idle', tabId);
     };
   }
@@ -141,7 +189,6 @@ function initDaisy() {
         triggerProactiveBubble('warn', algo);
       } else {
         triggerProactiveBubble('think', algo);
-        // Switch back to idle after thinking
         setTimeout(() => {
           if (!widget.classList.contains('daisy-flower') && !widget.classList.contains('daisy-sleep')) {
             widget.classList.remove('daisy-think');
@@ -156,15 +203,23 @@ function initDaisy() {
   if (window.App && App.runLabHash) {
     const orig = App.runLabHash;
     App.runLabHash = async function() {
-      if (!widget.classList.contains('daisy-sleep')) setDaisyState('think');
+      if (!widget.classList.contains('daisy-sleep')) {
+        const inputVal = document.getElementById('hash-input') ? document.getElementById('hash-input').value : '';
+        setDaisyState('think');
+        if (inputVal.length > 20) {
+          widget.classList.add('daisy-munch');
+        }
+      }
       let res;
       try {
         res = await orig.apply(App, arguments);
         window.DaisyContext.lastAction = 'just hashed a string';
       } catch (e) {
+        widget.classList.remove('daisy-munch');
         if (!widget.classList.contains('daisy-sleep')) setDaisyState('warn', 'warn');
         throw e;
       }
+      widget.classList.remove('daisy-munch');
       if (!widget.classList.contains('daisy-sleep')) setDaisyState('celebrate', 'celebrate');
       return res;
     };
@@ -200,7 +255,14 @@ function initDaisy() {
     const orig = AchievementSystem.unlock;
     AchievementSystem.unlock = function(id) {
       orig.call(AchievementSystem, id);
-      if (!widget.classList.contains('daisy-sleep')) setDaisyState('celebrate', 'celebrate');
+      if (!widget.classList.contains('daisy-sleep')) {
+        setDaisyState('celebrate', 'celebrate');
+        // Watering can grow animation
+        widget.classList.add('daisy-grow');
+        setTimeout(() => {
+          widget.classList.remove('daisy-grow');
+        }, 3500);
+      }
     };
   }
 
@@ -235,10 +297,9 @@ function initDaisy() {
   const sendBtn = document.getElementById('daisy-chat-send');
   const closeBtn = document.getElementById('daisy-chat-close');
 
-  // ─── TICKLE ANIMATION ───
   let tickleTimeout;
   widget.addEventListener('mouseenter', () => {
-    if (widget.classList.contains('daisy-sleep') || widget.classList.contains('daisy-drag') || widget.classList.contains('daisy-flower')) return;
+    if (widget.classList.contains('daisy-sleep') || widget.classList.contains('daisy-drag') || widget.classList.contains('daisy-flower') || widget.classList.contains('daisy-dizzy')) return;
     widget.classList.add('daisy-tickle');
     clearTimeout(tickleTimeout);
     tickleTimeout = setTimeout(() => {
@@ -246,13 +307,20 @@ function initDaisy() {
     }, 400);
   });
 
-  // ─── TOGGLE CHAT / WAKE UP ───
-  // We use a flag to separate drag from click
   let isDragging = false;
   widget.addEventListener('click', (e) => {
-    if (isDragging) return; // Prevent click if we were dragging
+    if (isDragging) return;
 
-    // Wake up from flower or sleep mode
+    const rect = widget.getBoundingClientRect();
+    const isRightSide = (e.clientX - rect.left) > (rect.width * 0.7) && (e.clientY - rect.top) > (rect.height * 0.4);
+    
+    // High-Five Interaction
+    if (isRightSide && widget.classList.contains('daisy-idle')) {
+      widget.classList.add('daisy-highfive-slap');
+      setTimeout(() => widget.classList.remove('daisy-highfive-slap'), 500);
+      return; // Stop here, don't open chat
+    }
+
     if (widget.classList.contains('daisy-flower') || widget.classList.contains('daisy-sleep')) {
       widget.classList.remove('daisy-flower', 'daisy-sleep');
       widget.classList.add('daisy-idle');
@@ -287,42 +355,82 @@ function initDaisy() {
     }
   });
 
-  // ─── DRAG AND DROP ───
+  // ─── DRAG AND DROP & DIZZY PHYSICS ───
   let dragOffsetX = 0;
   let dragOffsetY = 0;
+  let dragSpeeds = [];
+  let lastDragTime = 0;
+  let lastDragX = 0;
+  let lastDragY = 0;
+  let isDizzy = false;
 
   widget.addEventListener('mousedown', (e) => {
-    // Only drag with left click, don't drag if input focused
     if (e.button !== 0 || e.target.tagName === 'INPUT') return;
-    e.preventDefault(); // Prevent text selection
+    e.preventDefault();
     
     isDragging = false;
+    isDizzy = false;
+    dragSpeeds = [];
+    
     const rect = widget.getBoundingClientRect();
     dragOffsetX = e.clientX - rect.left;
     dragOffsetY = e.clientY - rect.top;
+    
+    lastDragTime = Date.now();
+    lastDragX = e.clientX;
+    lastDragY = e.clientY;
 
     function onMouseMove(moveEvent) {
       isDragging = true;
       widget.classList.add('daisy-drag');
-      // Calculate new position
+      
       let newX = moveEvent.clientX - dragOffsetX;
       let newY = moveEvent.clientY - dragOffsetY;
       
-      // Keep within bounds
       newX = Math.max(0, Math.min(newX, window.innerWidth - widget.offsetWidth));
       newY = Math.max(0, Math.min(newY, window.innerHeight - widget.offsetHeight));
 
       widget.style.left = newX + 'px';
       widget.style.top = newY + 'px';
-      widget.style.right = 'auto'; // Disable right/bottom positioning
+      widget.style.right = 'auto';
       widget.style.bottom = 'auto';
+
+      // Physics tracking for Dizzy state
+      const now = Date.now();
+      const dt = now - lastDragTime;
+      if (dt > 0) {
+        const dist = Math.sqrt((moveEvent.clientX - lastDragX)**2 + (moveEvent.clientY - lastDragY)**2);
+        const speed = dist / dt;
+        dragSpeeds.push(speed);
+        if (dragSpeeds.length > 15) dragSpeeds.shift();
+        
+        const avgSpeed = dragSpeeds.reduce((a, b) => a + b, 0) / dragSpeeds.length;
+        if (avgSpeed > 3.0) { // Threshold for fast dragging
+          isDizzy = true;
+        }
+      }
+      lastDragTime = now;
+      lastDragX = moveEvent.clientX;
+      lastDragY = moveEvent.clientY;
     }
 
     function onMouseUp() {
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
       widget.classList.remove('daisy-drag');
-      // Reset isDragging after a short delay so click event doesn't fire
+      
+      if (isDizzy) {
+        setDaisyState('dizzy');
+        setTimeout(() => {
+          if (widget.classList.contains('daisy-dizzy')) {
+            widget.classList.remove('daisy-dizzy');
+            widget.classList.add('daisy-idle');
+            setDaisyExpression('idle');
+          }
+          isDizzy = false;
+        }, 3000);
+      }
+
       setTimeout(() => isDragging = false, 50);
     }
 
@@ -344,27 +452,19 @@ function initDaisy() {
 
   document.addEventListener('mousemove', (e) => {
     resetActivity();
-
-    // Eye tracking logic (only when idle, think, or celebrate)
-    if (widget.classList.contains('daisy-flower') || widget.classList.contains('daisy-sleep')) return;
+    if (widget.classList.contains('daisy-flower') || widget.classList.contains('daisy-sleep') || widget.classList.contains('daisy-dizzy')) return;
 
     const rect = widget.getBoundingClientRect();
-    // Approximate center of Daisy's face in the SVG
     const faceX = rect.left + rect.width / 2;
     const faceY = rect.top + rect.height * 0.4;
 
     const dx = e.clientX - faceX;
     const dy = e.clientY - faceY;
     
-    // Map full screen distance to a tiny pixel translation (-2.5px to +2.5px)
-    const distance = Math.sqrt(dx*dx + dy*dy);
     const maxMove = 2.5;
-    
-    // Normalize and scale
     let moveX = (dx / window.innerWidth) * maxMove * 2;
     let moveY = (dy / window.innerHeight) * maxMove * 2;
     
-    // Clamp
     moveX = Math.max(-maxMove, Math.min(maxMove, moveX));
     moveY = Math.max(-maxMove, Math.min(maxMove, moveY));
 
@@ -375,10 +475,9 @@ function initDaisy() {
   document.addEventListener('keydown', resetActivity);
   document.addEventListener('click', resetActivity);
 
-  // Inactivity loop (60 seconds)
   setInterval(() => {
     if (Date.now() - lastInteractionTime > 60000) {
-      if (!widget.classList.contains('daisy-flower') && !widget.classList.contains('daisy-sleep')) {
+      if (!widget.classList.contains('daisy-flower') && !widget.classList.contains('daisy-sleep') && !widget.classList.contains('daisy-dizzy')) {
         widget.classList.remove('daisy-idle', 'daisy-think', 'daisy-celebrate', 'daisy-warn');
         widget.classList.add('daisy-sleep');
         setDaisyExpression('sleep');
@@ -386,7 +485,7 @@ function initDaisy() {
     }
   }, 5000);
 
-  // ─── TYPING ANIMATION (LISTEN STATE) ───
+  // ─── TYPING ANIMATION ───
   let typingTimeout;
   input.addEventListener('input', () => {
     resetActivity();
@@ -398,7 +497,6 @@ function initDaisy() {
       widget.classList.remove('daisy-listen');
     }, 500);
   });
-
 
   // ─── AI WORKER INTEGRATION ───
   let worker = new Worker('js/daisy.worker.js');
@@ -412,7 +510,7 @@ function initDaisy() {
     const { type, pct, text } = e.data;
 
     if (type === 'progress') {
-      statusDot.className = 'loading'; // Red pulse
+      statusDot.className = 'loading';
       if (currentProgressDiv) {
         currentProgressDiv.textContent = `Downloading Daisy's brain... ${Math.round(pct)}%`;
       }
@@ -428,27 +526,31 @@ function initDaisy() {
         }
         modelLoaded = true;
         modelLoading = false;
-        statusDot.className = 'ready'; // Green static
+        statusDot.className = 'ready';
       }
       currentResponseDiv.textContent += text;
       history.scrollTop = history.scrollHeight;
       
-      widget.classList.remove('daisy-idle', 'daisy-celebrate', 'daisy-warn', 'daisy-sleep');
-      widget.classList.add('daisy-think');
-      setDaisyExpression('think');
+      if (!widget.classList.contains('daisy-dizzy')) {
+        widget.classList.remove('daisy-idle', 'daisy-celebrate', 'daisy-warn', 'daisy-sleep');
+        widget.classList.add('daisy-think');
+        setDaisyExpression('think');
+      }
 
     } else if (type === 'done') {
-      widget.classList.remove('daisy-think');
-      widget.classList.add('daisy-celebrate');
-      setDaisyExpression('celebrate');
-      
-      setTimeout(() => {
-        if (!widget.classList.contains('daisy-sleep')) {
-          widget.classList.remove('daisy-celebrate');
-          widget.classList.add('daisy-idle');
-          setDaisyExpression('idle');
-        }
-      }, 1500);
+      if (!widget.classList.contains('daisy-dizzy')) {
+        widget.classList.remove('daisy-think');
+        widget.classList.add('daisy-celebrate');
+        setDaisyExpression('celebrate');
+        
+        setTimeout(() => {
+          if (!widget.classList.contains('daisy-sleep') && !widget.classList.contains('daisy-dizzy')) {
+            widget.classList.remove('daisy-celebrate');
+            widget.classList.add('daisy-idle');
+            setDaisyExpression('idle');
+          }
+        }, 1500);
+      }
 
       currentResponseDiv = null;
       
@@ -458,14 +560,12 @@ function initDaisy() {
       }
 
     } else if (type === 'error') {
-      console.warn("Daisy Worker Error:", e.data.error);
-      
       if (currentProgressDiv) {
         currentProgressDiv.remove();
         currentProgressDiv = null;
       }
       modelLoading = false;
-      statusDot.className = ''; // Revert to grey
+      statusDot.className = '';
       
       const key = window.DaisyContext.currentAlgo !== 'none' 
         ? window.DaisyContext.currentAlgo 
@@ -507,7 +607,6 @@ function initDaisy() {
     history.scrollTop = history.scrollHeight;
     input.value = '';
     
-    // Remove typing state
     widget.classList.remove('daisy-listen');
     clearTimeout(typingTimeout);
 
@@ -517,7 +616,7 @@ function initDaisy() {
 
     if (!modelLoaded && !modelLoading) {
       modelLoading = true;
-      statusDot.className = 'loading'; // Red pulse
+      statusDot.className = 'loading';
       currentProgressDiv = document.createElement('div');
       currentProgressDiv.className = 'daisy-msg daisy';
       currentProgressDiv.style.opacity = '0.7';
