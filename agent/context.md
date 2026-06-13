@@ -85,3 +85,12 @@ The story steps have been re-numbered and expanded to support a 9-step progressi
 5. **Session Serialization**: Introduced Session Manager to serialize and export live Sandbox states (including inputs, algorithm params, and ciphertexts). Securely protects data using PBKDF2 and AES-GCM for optional file encryptions.
    - **Correct sandbox element IDs** (as of v3 patch): `lab-hash-in`, `lab-hash-salt`, `lab-hash-out` (Hash Engine); `lab-enc-data`, `lab-enc-out`, `lab-enc-out-iv` (AES-GCM); `cmp-input` (Compare); `hmac-data`, `lab-hmac-out` (HMAC); `entropy-input` (Entropy); `ecdsa-msg`, `ecdsa-pub-out`, `ecdsa-sig-out` (ECDSA); `ecdh-fingerprint` (ECDH).
 6. **Stateless Cross-Browser Sharing**: Utilized hash fragments (`#share=` and `#ecdh=`) with base64url-encoded JSON payloads to bypass the server completely when sharing keys and parameters between browser clients. The `#share=` loader calls `App.startLab()` before populating fields to ensure the DOM is active.
+7. **v2 Sandbox Additions**: Added 4 new advanced labs to the sandbox.
+   - **ECDSA Signatures**: Generates P-256 keys. Includes a "Tamper" feature to flip one bit and demonstrate verification failure.
+   - **Cert Inspector**: Parses PEM-encoded X.509 certificates and checks validity (expiration, self-signed).
+   - **Entropy Analyzer**: Calculates Shannon Entropy (`bits/char`). Now properly checks input against a local Top-10,000 password list (loaded globally as `TOP_PASSWORDS`) to detect compromised inputs.
+   - **Birthday Attack**: Uses Web Workers (`birthday-worker.js`) to find hash collisions and visualize the probability curve, with an option to export the collision as a JSON proof card.
+8. **v4 QA & Performance**: Achieved complete Web Content Accessibility Guidelines (WCAG) 2.1 AA compliance.
+   - **ARIA Semantics**: Injected `aria-label`, `role="button"`, and `tabindex="0"` to all interactive `lab-tab` elements. Applied `aria-hidden="true"` to visual-only `canvas` elements.
+   - **Error Handling**: Wrapped all native Web Crypto promises with a global `unhandledrejection` listener that intercepts `DOMException`s and renders them in the UI via `#global-error-toast` instead of silently failing.
+   - **Stretch Tools**: Integrated a `runDiagnostics()` self-test suite and a 10,000-op `runBenchmark()` panel directly into the UI.

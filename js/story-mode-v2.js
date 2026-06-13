@@ -166,7 +166,7 @@ function copyText(text, btn) {
 
 /** Build a copy button HTML string */
 function copyBtnHTML(dataId, label = 'COPY') {
-  return `<button class="copy-btn" onclick="SMv2.copy('${dataId}',this)" title="Copy to clipboard">
+  return `<button class="copy-btn" aria-label="Copy to clipboard" onclick="SMv2.copy('${dataId}',this)" title="Copy to clipboard">
     <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <rect x="5" y="5" width="9" height="10" rx="1"/><path d="M11 5V3a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h2"/>
     </svg>
@@ -475,7 +475,7 @@ App.renderStory = () => {
             <div id="stego-story-drop" class="drop-zone" style="min-height:100px;">
               <div class="drop-text" style="font-size:12px;">DRAG & DROP DECOY IMAGE</div>
             </div>
-            <canvas id="stego-story-canvas" style="display:none;max-width:100%;margin-top:12px;border:1px solid var(--c);"></canvas>
+            <canvas id="stego-story-canvas" style="display:none;max-width:100%;margin-top:12px;border:1px solid var(--c);" aria-hidden="true"></canvas>
           </div>
           <div>
             <span class="form-label">Encrypted Payload (Hidden in Pixels)</span>

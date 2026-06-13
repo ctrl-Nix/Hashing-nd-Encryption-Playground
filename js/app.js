@@ -988,7 +988,7 @@ const App = {
               <div id="stego-story-drop" class="drop-zone" style="min-height:100px;">
                 <div class="drop-text" style="font-size:12px;">DRAG & DROP DECOY IMAGE</div>
               </div>
-              <canvas id="stego-story-canvas" style="display:none; max-width:100%; margin-top:12px; border:1px solid var(--c);"></canvas>
+              <canvas id="stego-story-canvas" style="display:none; max-width:100%; margin-top:12px; border:1px solid var(--c);" aria-hidden="true"></canvas>
             </div>
             <div>
               <span class="form-label">Encrypted Data</span>
@@ -1794,15 +1794,26 @@ const App = {
 
   runEntropy: () => {
     const str = document.getElementById('entropy-input').value;
+    const warnEl = document.getElementById('ent-compromised-warn');
+    
+    // Check Top 10k Passwords
+    const isCompromised = (typeof TOP_PASSWORDS !== 'undefined') && TOP_PASSWORDS.has(str.trim().toLowerCase());
+    
+    warnEl.style.display = isCompromised ? 'block' : 'none';
+    
     const res = CE.shannonEntropy(str);
     document.getElementById('ent-bpc').innerText = res.bitsPerChar;
-    document.getElementById('ent-total').innerText = res.total;
     
-    let pct = Math.min(100, (res.total / 128) * 100);
+    // If compromised, effective entropy is 0 for security purposes
+    const effectiveTotal = isCompromised ? 0 : res.total;
+    document.getElementById('ent-total').innerText = effectiveTotal;
+    
+    let pct = Math.min(100, (effectiveTotal / 128) * 100);
     document.getElementById('ent-gauge').style.width = pct + '%';
     
     let evalStr = '';
-    if (res.total < 40) evalStr = '<span style="color:var(--c2);">Weak.</span> Highly vulnerable to brute-force or dictionary attacks.';
+    if (isCompromised) evalStr = '<span style="color:var(--c2);">Compromised.</span> Found in top 10,000 passwords. Effective entropy is zero.';
+    else if (res.total < 40) evalStr = '<span style="color:var(--c2);">Weak.</span> Highly vulnerable to brute-force or dictionary attacks.';
     else if (res.total < 80) evalStr = '<span style="color:var(--c4);">Moderate.</span> Susceptible to targeted brute-force.';
     else evalStr = '<span style="color:var(--c3);">Strong.</span> Sufficient entropy for most cryptographic keys.';
     document.getElementById('ent-eval').innerHTML = evalStr;
