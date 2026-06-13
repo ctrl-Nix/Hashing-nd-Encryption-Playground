@@ -515,8 +515,78 @@ const App = {
       res.style.display = 'block';
       document.getElementById('lab-hmac-out').innerText = r.hex;
       document.getElementById('lab-hmac-time').innerText = `${r.ms}ms`;
+      
+      const timingDemo = document.getElementById('lab-hmac-timing-demo');
+      if (timingDemo) timingDemo.style.display = 'block';
+
       res.scrollIntoView({ behavior:'smooth', block:'nearest' });
     } catch(e) { alert('HMAC Generation Failed: ' + e.message); }
+  },
+
+  runTimingAttackDemo: async (mode) => {
+    const validHex = document.getElementById('lab-hmac-out').innerText;
+    const forgedHex = document.getElementById('hmac-forged').value.trim();
+    if (!validHex || validHex === '—') return alert('Generate a valid HMAC first.');
+    if (!forgedHex) return alert('Enter a forged HMAC string to test.');
+
+    const resBox = document.getElementById('timing-demo-res');
+    resBox.style.display = 'block';
+    document.getElementById('timing-type').innerText = mode.toUpperCase();
+    document.getElementById('timing-type').style.color = mode === 'safe' ? 'var(--c3, #00ff88)' : 'var(--c2, #ff003c)';
+    
+    const logBox = document.getElementById('timing-log');
+    logBox.innerHTML = 'Initiating server comparison...<br>';
+    const bar = document.getElementById('timing-bar');
+    bar.style.width = '0%';
+    bar.style.background = mode === 'safe' ? 'var(--c3, #00ff88)' : 'var(--c2, #ff003c)';
+    document.getElementById('timing-ms').innerText = 'Running...';
+
+    const delayPerChar = 20;
+    let matchCount = 0;
+    
+    const startTime = performance.now();
+
+    const compareChar = async () => {
+      return new Promise(resolve => setTimeout(resolve, delayPerChar));
+    };
+
+    if (mode === 'naive') {
+      for (let i = 0; i < validHex.length; i++) {
+        await compareChar();
+        bar.style.width = Math.min(((i+1) / validHex.length) * 100, 100) + '%';
+        if (i >= forgedHex.length || validHex[i] !== forgedHex[i]) {
+          logBox.innerHTML += `<span style="color:var(--c2, #ff003c);">[FAIL]</span> Mismatch at index ${i} (Got: ${forgedHex[i] || 'EOF'}). Connection closed.<br>`;
+          break;
+        } else {
+          matchCount++;
+          if (i % 8 === 0) logBox.innerHTML += `[MATCH] Bytes 0-${i} identical. Continuing check...<br>`;
+        }
+      }
+    } else {
+      let isMismatch = false;
+      for (let i = 0; i < validHex.length; i++) {
+        await compareChar();
+        bar.style.width = Math.min(((i+1) / validHex.length) * 100, 100) + '%';
+        if (i >= forgedHex.length || validHex[i] !== forgedHex[i]) {
+          isMismatch = true;
+        }
+        if (i % 8 === 0) logBox.innerHTML += `[CONST-TIME] Timing-safe cycle ${i}...<br>`;
+      }
+      if (isMismatch) {
+        logBox.innerHTML += `<span style="color:var(--c2, #ff003c);">[FAIL]</span> Signatures do not match. Connection closed.<br>`;
+      } else {
+        logBox.innerHTML += `<span style="color:var(--c3, #00ff88);">[SUCCESS]</span> Signatures match.<br>`;
+      }
+    }
+
+    const elapsed = Math.round(performance.now() - startTime);
+    document.getElementById('timing-ms').innerText = `${elapsed}ms`;
+    
+    if (mode === 'naive' && matchCount > 0) {
+      logBox.innerHTML += `<br><span style="color:var(--c, #00f5ff);">[ATTACKER INTEL]</span> The server took ${elapsed}ms. We know the first ${matchCount} chars are correct!`;
+    }
+    
+    logBox.scrollTop = logBox.scrollHeight;
   },
 
   /* ─── STEGANOGRAPHY LAB ─── */
@@ -1662,6 +1732,36 @@ const App = {
       document.getElementById('cert-notbefore').innerText = info.notBefore;
       document.getElementById('cert-notafter').innerText = info.notAfter;
       document.getElementById('cert-serial').innerText = info.serial;
+
+      const statusBox = document.getElementById('cert-browser-status');
+      if (statusBox) {
+        let statusHtml = '';
+        let isValid = true;
+        
+        if (info.isExpired) {
+          isValid = false;
+          statusHtml += `<div style="color:var(--c2, #ff003c); margin-bottom:8px;">❌ <strong>NET::ERR_CERT_DATE_INVALID</strong><br><span style="color:var(--muted); font-size:11px;">The certificate has expired. Browsers will reject it to prevent attackers from using old, potentially compromised keys.</span></div>`;
+        }
+        if (info.isSelfSigned) {
+          isValid = false;
+          statusHtml += `<div style="color:var(--c2, #ff003c); margin-bottom:8px;">❌ <strong>NET::ERR_CERT_AUTHORITY_INVALID</strong><br><span style="color:var(--muted); font-size:11px;">This is a self-signed certificate (Subject = Issuer). Browsers will block it because it was not signed by a trusted Certificate Authority (CA) in their root store.</span></div>`;
+        }
+        
+        if (isValid) {
+          statusHtml += `<div style="color:var(--c3, #00ff88); margin-bottom:8px;">✅ <strong>CERTIFICATE APPEARS VALID</strong><br><span style="color:var(--muted); font-size:11px;">No immediate red flags. Provided it's signed by a trusted CA, a browser would accept it.</span></div>`;
+        }
+        
+        if (info.isEV) {
+          statusHtml += `<div style="color:var(--c, #00f5ff); margin-top:12px; border-top:1px solid rgba(0,255,255,0.2); padding-top:12px;">🛡️ <strong>Extended Validation (EV) Detected</strong><br><span style="color:var(--muted); font-size:11px;">This cert includes the EV OID (2.23.140.1.1). The issuing CA performed strict identity verification on the organization.</span></div>`;
+        }
+        
+        if (info.sans && info.sans.length > 0) {
+          statusHtml += `<div style="color:var(--c, #00f5ff); margin-top:12px; border-top:1px solid rgba(0,255,255,0.2); padding-top:12px;">🌐 <strong>Subject Alternative Names (SANs)</strong><br><span style="color:var(--muted); font-size:11px;">Valid for: ${info.sans.join(', ')}</span></div>`;
+        }
+        
+        statusBox.innerHTML = statusHtml;
+      }
+
       resEl.style.display = 'block';
       AchievementSystem.unlock('trust_no_one');
     } catch(e) {

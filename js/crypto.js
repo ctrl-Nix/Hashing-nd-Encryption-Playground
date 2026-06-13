@@ -69,28 +69,54 @@ const CE = {
     return { hex, ms: (performance.now()-t0).toFixed(2), bits: CE.hexToBits(hex) };
   },
 
-  deriveKey: async (pass, salt) => {
+  deriveKey: async (pass, salt, iters = 100000) => {
     const km = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), {name:'PBKDF2'}, false, ['deriveKey']);
-    const aesKey = await crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:100000,hash:'SHA-256'}, km, {name:'AES-GCM',length:256}, true, ['encrypt','decrypt']);
+    const aesKey = await crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:iters,hash:'SHA-256'}, km, {name:'AES-GCM',length:256}, true, ['encrypt','decrypt']);
     const raw = await crypto.subtle.exportKey('raw', aesKey);
     return { aesKey, hexKey: CE.bufToHex(raw) };
   },
 
-  encrypt: async (data, pass) => {
+  encrypt: async (data, pass, customIvHex = null, iters = 100000) => {
     const t0 = performance.now();
     const salt = crypto.getRandomValues(new Uint8Array(16));
-    const iv   = crypto.getRandomValues(new Uint8Array(12));
-    const { aesKey, hexKey } = await CE.deriveKey(pass, salt);
+    let iv;
+    if (customIvHex) {
+      iv = CE.hexToBuf(customIvHex);
+    } else {
+      iv = crypto.getRandomValues(new Uint8Array(12));
+    }
+    const { aesKey, hexKey } = await CE.deriveKey(pass, salt, iters);
     const cipher = await crypto.subtle.encrypt({name:'AES-GCM',iv}, aesKey, new TextEncoder().encode(data));
-    return { payload:`${CE.bufToHex(salt)}:${CE.bufToHex(iv)}:${CE.bufToHex(cipher)}`, key:hexKey, ms:(performance.now()-t0).toFixed(2), cipherBuf:cipher };
+    
+    const cipherBytes = new Uint8Array(cipher);
+    const tag = cipherBytes.slice(cipherBytes.length - 16);
+    const rawCipher = cipherBytes.slice(0, cipherBytes.length - 16);
+    
+    return { 
+      payload:`${iters}:${CE.bufToHex(salt)}:${CE.bufToHex(iv)}:${CE.bufToHex(cipher)}`, 
+      key:hexKey, 
+      ms:(performance.now()-t0).toFixed(2), 
+      cipherBuf:cipher,
+      rawCipherHex: CE.bufToHex(rawCipher.buffer),
+      tagHex: CE.bufToHex(tag.buffer),
+      ivHex: CE.bufToHex(iv)
+    };
   },
 
   decrypt: async (payload, pass) => {
     const t0 = performance.now();
     const parts = payload.trim().split(':');
-    if(parts.length !== 3) throw new Error('Invalid Format: expected salt:iv:cipher');
-    const salt = CE.hexToBuf(parts[0]), iv = CE.hexToBuf(parts[1]), cipher = CE.hexToBuf(parts[2]);
-    const { aesKey, hexKey } = await CE.deriveKey(pass, salt);
+    let iters, salt, iv, cipher;
+    if(parts.length === 3) {
+      iters = 100000;
+      salt = CE.hexToBuf(parts[0]); iv = CE.hexToBuf(parts[1]); cipher = CE.hexToBuf(parts[2]);
+    } else if (parts.length === 4) {
+      iters = parseInt(parts[0], 10);
+      salt = CE.hexToBuf(parts[1]); iv = CE.hexToBuf(parts[2]); cipher = CE.hexToBuf(parts[3]);
+    } else {
+      throw new Error('Invalid Format: expected [iters:]salt:iv:cipher');
+    }
+    const { aesKey, hexKey } = await CE.deriveKey(pass, salt, iters);
     const dec = await crypto.subtle.decrypt({name:'AES-GCM',iv}, aesKey, cipher);
     return { plain: new TextDecoder().decode(dec), key:hexKey, ms:(performance.now()-t0).toFixed(2) };
   },
@@ -271,13 +297,59 @@ const CE = {
       const hashBuf = await crypto.subtle.digest('SHA-256', bytes);
       const fingerprint = CE.bufToHex(hashBuf).toUpperCase().match(/.{1,2}/g).join(':');
 
+      let isEV = false;
+      const evOid = [0x06, 0x05, 0x67, 0x81, 0x0c, 0x01, 0x01];
+      for(let i=0; i<bytes.length-evOid.length; i++) {
+        let match = true;
+        for(let j=0; j<evOid.length; j++) if(bytes[i+j] !== evOid[j]) { match = false; break; }
+        if (match) { isEV = true; break; }
+      }
+
+      let sans = [];
+      const sanOid = [0x06, 0x03, 0x55, 0x1d, 0x11];
+      for(let i=0; i<bytes.length-sanOid.length; i++) {
+        let match = true;
+        for(let j=0; j<sanOid.length; j++) if(bytes[i+j] !== sanOid[j]) { match = false; break; }
+        if (match) {
+          for (let k = i+sanOid.length; k < i+sanOid.length+150 && k < bytes.length-2; k++) {
+            if (bytes[k] === 0x82) {
+              let len = bytes[k+1];
+              if (len > 0 && len < 60) {
+                let text = new TextDecoder().decode(bytes.slice(k+2, k+2+len));
+                // filter out junk
+                if (/^[a-zA-Z0-9.-]+$/.test(text)) sans.push(text);
+                k += len + 1;
+              }
+            }
+          }
+          break;
+        }
+      }
+
+      const subjectRaw = `CN=${cns[1] || cns[0] || 'Unknown'}, O=${orgs[1] || orgs[0] || 'Unknown'}, C=${countries[1] || countries[0] || 'Unknown'}`;
+      const issuerRaw = `CN=${cns[0] || 'Unknown'}, O=${orgs[0] || 'Unknown'}`;
+      const isSelfSigned = (cns[0] && cns[1] && cns[0] === cns[1]);
+
+      let isExpired = false;
+      if (dates[1]) {
+        let parts = dates[1].split(' ');
+        if (parts.length >= 2) {
+           let d = new Date(parts[0] + 'T' + parts[1] + 'Z');
+           if (!isNaN(d) && d < new Date()) isExpired = true;
+        }
+      }
+
       return {
-        subject: `CN=${cns[1] || cns[0] || 'Unknown'}, O=${orgs[1] || orgs[0] || 'Unknown'}, C=${countries[1] || countries[0] || 'Unknown'}`,
-        issuer: `CN=${cns[0] || 'Unknown'}, O=${orgs[0] || 'Unknown'}`,
+        subject: subjectRaw,
+        issuer: issuerRaw,
         notBefore: dates[0] || 'Unknown',
         notAfter: dates[1] || 'Unknown',
         serial: serial,
-        fingerprint: fingerprint
+        fingerprint: fingerprint,
+        isEV: isEV,
+        sans: sans.length ? [...new Set(sans)] : [],
+        isSelfSigned: !!isSelfSigned,
+        isExpired: isExpired
       };
     } catch (e) {
       throw new Error("Invalid or malformed PEM certificate format.");
