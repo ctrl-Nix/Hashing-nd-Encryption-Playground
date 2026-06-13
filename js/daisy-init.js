@@ -733,7 +733,7 @@ function initDaisy() {
   });
 
   // ─── AI WORKER INTEGRATION ───
-  let worker = new Worker('js/daisy.worker.js');
+  let worker = new Worker('js/daisy.worker.js', { type: 'module' });
   let currentResponseDiv = null;
   let modelLoaded = false;
   let modelLoading = false;

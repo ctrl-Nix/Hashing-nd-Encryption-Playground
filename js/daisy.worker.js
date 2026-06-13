@@ -1,4 +1,4 @@
-importScripts('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3/dist/transformers.min.js');
+import { pipeline, TextStreamer } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3';
 
 let generator;
 
