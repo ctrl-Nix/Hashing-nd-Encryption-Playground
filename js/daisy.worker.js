@@ -5,7 +5,13 @@ let generator;
 self.addEventListener('message', async (event) => {
   const { type, text, context } = event.data;
 
+  if (type === 'stop') {
+    self.shouldStop = true;
+    return;
+  }
+
   if (type === 'generate') {
+    self.shouldStop = false;
     if (!generator) {
       try {
         generator = await pipeline('text-generation', 'Xenova/Qwen1.5-0.5B-Chat', {
@@ -57,6 +63,7 @@ If they ask for help, explain the currently active tool or algorithm using simpl
         skip_prompt: true,
         skip_special_tokens: true,
         callback_function: (token) => {
+          if (self.shouldStop) throw new Error('stopped_by_user');
           finalReply += token;
           self.postMessage({ type: 'token', text: token });
         }

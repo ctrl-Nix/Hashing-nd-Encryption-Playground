@@ -486,6 +486,7 @@ function initDaisy() {
     <div id="daisy-chat-input-area">
       <input type="text" id="daisy-chat-input" placeholder="// message daisy..." autocomplete="off" spellcheck="false">
       <button id="daisy-chat-send">TX</button>
+      <button id="daisy-chat-stop" style="display:none; background:#ff003c; border-color:#ff003c;">🛑</button>
     </div>
   `;
   document.body.appendChild(chatPanel);
@@ -493,6 +494,7 @@ function initDaisy() {
   const history = document.getElementById('daisy-chat-history');
   const input = document.getElementById('daisy-chat-input');
   const sendBtn = document.getElementById('daisy-chat-send');
+  const stopBtn = document.getElementById('daisy-chat-stop');
   const closeBtn = document.getElementById('daisy-chat-close');
 
   let tickleTimeout;
@@ -761,6 +763,8 @@ function initDaisy() {
         modelLoaded = true;
         modelLoading = false;
         statusDot.className = 'ready';
+        sendBtn.style.display = 'none';
+        stopBtn.style.display = 'block';
       }
       currentResponseDiv.textContent += text;
       history.scrollTop = history.scrollHeight;
@@ -772,6 +776,8 @@ function initDaisy() {
       }
 
     } else if (type === 'done') {
+      sendBtn.style.display = 'block';
+      stopBtn.style.display = 'none';
       if (!widget.classList.contains('daisy-dizzy')) {
         widget.classList.remove('daisy-think');
         widget.classList.add('daisy-celebrate');
@@ -794,12 +800,24 @@ function initDaisy() {
       }
 
     } else if (type === 'error') {
+      if (e.data.error === 'stopped_by_user') {
+        currentResponseDiv = null;
+        sendBtn.style.display = 'block';
+        stopBtn.style.display = 'none';
+        widget.classList.remove('daisy-think');
+        widget.classList.add('daisy-idle');
+        setDaisyExpression('idle');
+        return;
+      }
+
       if (currentProgressDiv) {
         currentProgressDiv.remove();
         currentProgressDiv = null;
       }
       modelLoading = false;
       statusDot.className = '';
+      sendBtn.style.display = 'block';
+      stopBtn.style.display = 'none';
       
       const key = window.DaisyContext.currentAlgo !== 'none' 
         ? window.DaisyContext.currentAlgo 
@@ -867,6 +885,10 @@ function initDaisy() {
 
   sendBtn.addEventListener('click', () => {
     window.daisyChat(input.value);
+  });
+
+  stopBtn.addEventListener('click', () => {
+    worker.postMessage({ type: 'stop' });
   });
 
   input.addEventListener('keydown', (e) => {
