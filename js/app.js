@@ -22,19 +22,30 @@ const AchievementSystem = {
     AchievementSystem.showNotification(AchievementSystem.badges[id]);
   },
   showNotification: (badge) => {
+    // Fullscreen neon flash
+    const flash = document.createElement('div');
+    flash.style.cssText = 'position:fixed;inset:0;z-index:99998;pointer-events:none;background:rgba(0,245,255,0.08);border:2px solid var(--c);animation:achieveFlash 0.8s ease forwards;';
+    if (!document.getElementById('achieve-flash-style')) {
+      const style = document.createElement('style');
+      style.id = 'achieve-flash-style';
+      style.textContent = '@keyframes achieveFlash{0%{opacity:1;box-shadow:inset 0 0 60px rgba(0,245,255,0.3)}80%{opacity:0.6}100%{opacity:0;}}';
+      document.head.appendChild(style);
+    }
+    document.body.appendChild(flash);
+    setTimeout(() => flash.parentNode && flash.parentNode.removeChild(flash), 850);
+
+    // Corner toast
     const el = document.createElement('div');
-    el.style.position = 'fixed';
-    el.style.bottom = '20px';
-    el.style.right = '20px';
-    el.style.background = 'var(--bg)';
-    el.style.border = '1px solid var(--c)';
-    el.style.padding = '16px';
-    el.style.color = 'var(--c)';
-    el.style.zIndex = '9999';
-    el.style.boxShadow = '0 0 20px rgba(0,0,0,0.8)';
-    el.innerHTML = `<div style="font-size:24px; float:left; margin-right:12px;">${badge.icon}</div><div><strong style="display:block; margin-bottom:4px;">ACHIEVEMENT UNLOCKED</strong>${badge.name}</div>`;
+    el.style.cssText = 'position:fixed;bottom:20px;right:20px;background:var(--bg);border:1px solid var(--c);padding:16px 20px;color:var(--c);z-index:99999;box-shadow:0 0 30px rgba(0,245,255,0.25);font-family:var(--font-mono);min-width:260px;animation:slideInRight 0.3s ease;';
+    if (!document.getElementById('achieve-toast-style')) {
+      const style2 = document.createElement('style');
+      style2.id = 'achieve-toast-style';
+      style2.textContent = '@keyframes slideInRight{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}';
+      document.head.appendChild(style2);
+    }
+    el.innerHTML = `<div style="font-size:10px;letter-spacing:3px;color:var(--muted);margin-bottom:6px;">ACHIEVEMENT UNLOCKED</div><div style="display:flex;align-items:center;gap:12px;"><span style="font-size:28px;">${badge.icon}</span><div><div style="font-weight:700;color:var(--bright);margin-bottom:2px;">${badge.name}</div><div style="font-size:11px;color:var(--muted);">${badge.desc}</div></div></div>`;
     document.body.appendChild(el);
-    setTimeout(() => { document.body.removeChild(el); }, 4000);
+    setTimeout(() => { el.style.transition='opacity 0.4s'; el.style.opacity='0'; setTimeout(()=>el.parentNode&&el.parentNode.removeChild(el),400); }, 4000);
   }
 };
 AchievementSystem.init();
@@ -1874,16 +1885,26 @@ const App = {
     const currentTab = document.querySelector('.lab-tab.active').id.replace('btn-tab-', '');
     let payload = { tool: currentTab };
     if (currentTab === 'hash') {
-      payload.input = document.getElementById('hash-input').value;
-      payload.salt = document.getElementById('hash-salt').value;
+      payload.input = document.getElementById('lab-hash-in').value;
+      payload.salt = document.getElementById('lab-hash-salt').value;
     } else if (currentTab === 'enc') {
-      payload.plain = document.getElementById('enc-plain').value;
-      payload.pass = document.getElementById('enc-pass').value;
+      payload.data = document.getElementById('lab-enc-data').value;
+      payload.mode = App.S.lab.encMode;
+    } else if (currentTab === 'compare') {
+      payload.input = document.getElementById('cmp-input').value;
+    } else if (currentTab === 'hmac') {
+      payload.data = document.getElementById('hmac-data').value;
+      payload.algo = App.S.lab.hmacAlgo;
+    } else if (currentTab === 'entropy') {
+      const el = document.getElementById('entropy-input');
+      if (el) payload.input = el.value;
     }
-    const b64 = btoa(JSON.stringify(payload)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(payload)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
     const link = window.location.origin + window.location.pathname + '#share=' + b64;
     App.copyToClipboardRaw(link);
-    alert('Share Link Copied to Clipboard!');
+    App.showError('✓ Share link copied to clipboard!');
+    const toast = document.getElementById('global-error-toast');
+    if (toast) { toast.style.borderColor='var(--c3)'; toast.style.color='var(--c3)'; toast.style.boxShadow='0 0 20px rgba(0,255,136,0.4)'; setTimeout(()=>{toast.style.borderColor='#ff003c';toast.style.color='#ff003c';toast.style.boxShadow='0 0 20px rgba(255,0,60,0.5)';},3000); }
   },
 
   copyToClipboardRaw: (text) => {
@@ -1896,20 +1917,50 @@ const App = {
   },
 
   exportSession: async () => {
+    const g = (id) => { const el = document.getElementById(id); return el ? (el.value || el.innerText || '') : ''; };
     const data = {
       version: '3.0.0',
       timestamp: new Date().toISOString(),
       toolStates: {
         hash: {
-          input: document.getElementById('hash-input').value,
-          salt: document.getElementById('hash-salt').value,
-          output: document.getElementById('hash-output').innerText
+          toolId: 'hash',
+          algorithm: App.S.lab.algo,
+          input: g('lab-hash-in'),
+          salt: g('lab-hash-salt'),
+          output: g('lab-hash-out')
         },
         enc: {
-          mode: document.getElementById('btn-mode-enc').classList.contains('btn-primary') ? 'enc' : 'dec',
-          plain: document.getElementById('enc-plain').value,
-          pass: document.getElementById('enc-pass').value,
-          cipher: document.getElementById('enc-cipher').value
+          toolId: 'enc',
+          mode: App.S.lab.encMode,
+          data: g('lab-enc-data'),
+          output: g('lab-enc-out'),
+          iv: g('lab-enc-out-iv'),
+          iterations: g('lab-enc-iters')
+        },
+        compare: {
+          toolId: 'compare',
+          input: g('cmp-input')
+        },
+        hmac: {
+          toolId: 'hmac',
+          algorithm: App.S.lab.hmacAlgo,
+          data: g('hmac-data'),
+          output: g('lab-hmac-out')
+        },
+        entropy: {
+          toolId: 'entropy',
+          input: (() => { const el = document.getElementById('entropy-input'); return el ? el.value : ''; })()
+        },
+        ecdsa: {
+          toolId: 'ecdsa',
+          message: g('ecdsa-msg'),
+          publicKey: g('ecdsa-pub-out'),
+          signature: g('ecdsa-sig-out')
+        },
+        ecdh: {
+          toolId: 'ecdh',
+          fingerprint: g('ecdh-fingerprint'),
+          note: 'Private keys excluded for security.'
         }
       }
     };
@@ -1996,18 +2047,59 @@ const App = {
           data = JSON.parse(new TextDecoder().decode(plainBytes));
         }
 
-        if (!data.version || !data.toolStates) throw new Error("Missing schema fields (version or toolStates)");
-        
+        // Schema validation with field-level error messages
+        const errors = [];
+        if (!data.version) errors.push('Missing required field: "version"');
+        if (!data.timestamp) errors.push('Missing required field: "timestamp"');
+        if (!data.toolStates) errors.push('Missing required field: "toolStates" — cannot restore any tool state');
+        if (errors.length) throw new Error(errors.join('\n'));
+        if (typeof data.toolStates !== 'object') throw new Error('Field "toolStates" must be an object, got ' + typeof data.toolStates);
+
+        let loaded = [];
+
         if (data.toolStates.hash) {
-          document.getElementById('hash-input').value = data.toolStates.hash.input || '';
-          document.getElementById('hash-salt').value = data.toolStates.hash.salt || '';
+          const h = data.toolStates.hash;
+          if (typeof h !== 'object') throw new Error('toolStates.hash must be an object');
+          const inEl = document.getElementById('lab-hash-in');
+          const saltEl = document.getElementById('lab-hash-salt');
+          if (inEl) inEl.value = h.input || '';
+          if (saltEl) saltEl.value = h.salt || '';
+          if (h.algorithm) App.setLabAlgo(h.algorithm);
           App.switchLabTab('hash');
-          App.runLabHash();
+          if (h.input || h.salt) App.runLabHash();
+          loaded.push('Hash Engine');
         }
-        
-        alert("Session loaded successfully!");
+
+        if (data.toolStates.enc) {
+          const s = data.toolStates.enc;
+          if (typeof s !== 'object') throw new Error('toolStates.enc must be an object');
+          const dataEl = document.getElementById('lab-enc-data');
+          if (dataEl) dataEl.value = s.data || '';
+          if (s.mode) App.setLabEncMode(s.mode);
+          loaded.push('AES-GCM Utility');
+        }
+
+        if (data.toolStates.compare) {
+          const c = data.toolStates.compare;
+          const cmpEl = document.getElementById('cmp-input');
+          if (cmpEl && c.input) { cmpEl.value = c.input; App.runCompare(); }
+          loaded.push('Compare All Algos');
+        }
+
+        if (data.toolStates.hmac) {
+          const h = data.toolStates.hmac;
+          const hmacEl = document.getElementById('hmac-data');
+          if (hmacEl && h.data) hmacEl.value = h.data;
+          if (h.algorithm) App.setHMACAlgo(h.algorithm);
+          loaded.push('HMAC Auth');
+        }
+
+        const summary = loaded.length
+          ? `Session v${data.version} loaded.\nRestored: ${loaded.join(', ')}.`
+          : `Session v${data.version} loaded but contained no restorable tool states.`;
+        alert(summary);
       } catch(err) {
-        alert("Session Import Error: " + err.message);
+        alert('Session Import Error:\n\n' + err.message);
       }
       e.target.value = '';
     };
@@ -2169,6 +2261,7 @@ const App = {
 
 setTimeout(() => {
   if (window.location.hash.startsWith('#ecdh=')) {
+    App.startLab();
     App.switchLabTab('ecdh');
     App.parseECDHFragment();
   } else if (window.location.hash.startsWith('#share=')) {
@@ -2176,20 +2269,36 @@ setTimeout(() => {
       let b64Url = window.location.hash.substring(7);
       let b64 = b64Url.replace(/-/g, '+').replace(/_/g, '/');
       while (b64.length % 4) { b64 += '='; }
-      const payload = JSON.parse(atob(b64));
-      
+      const payload = JSON.parse(decodeURIComponent(escape(atob(b64))));
+
+      App.startLab();
       App.switchLabTab(payload.tool);
+
       if (payload.tool === 'hash') {
-        document.getElementById('hash-input').value = payload.input || '';
-        document.getElementById('hash-salt').value = payload.salt || '';
-        App.runLabHash();
+        const inEl = document.getElementById('lab-hash-in');
+        const saltEl = document.getElementById('lab-hash-salt');
+        if (inEl) inEl.value = payload.input || '';
+        if (saltEl) saltEl.value = payload.salt || '';
+        if (payload.input || payload.salt) App.runLabHash();
       } else if (payload.tool === 'enc') {
-        document.getElementById('enc-plain').value = payload.plain || '';
-        document.getElementById('enc-pass').value = payload.pass || '';
+        const dataEl = document.getElementById('lab-enc-data');
+        if (dataEl) dataEl.value = payload.data || '';
+        if (payload.mode) App.setLabEncMode(payload.mode);
+      } else if (payload.tool === 'compare') {
+        const cmpEl = document.getElementById('cmp-input');
+        if (cmpEl && payload.input) { cmpEl.value = payload.input; App.runCompare(); }
+      } else if (payload.tool === 'hmac') {
+        const hmacEl = document.getElementById('hmac-data');
+        if (hmacEl && payload.data) hmacEl.value = payload.data;
+        if (payload.algo) App.setHMACAlgo(payload.algo);
+      } else if (payload.tool === 'entropy') {
+        const entEl = document.getElementById('entropy-input');
+        if (entEl && payload.input) entEl.value = payload.input;
       }
-    } catch(e) { console.error(e); }
+    } catch(e) { console.error('Share fragment parse error:', e); }
   }
 }, 500);
+
 
 window.addEventListener('unhandledrejection', event => {
   if (event.reason instanceof DOMException) {

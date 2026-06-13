@@ -93,8 +93,29 @@
 - [x] **Self-test suite (Diagnostics)**: Completed. "Run Diagnostics" button integrated into the Sandbox HUD. It executes a pre-defined test vector across SHA-256, AES-GCM, and ECDSA P-256 returning PASS/FAIL UI updates in real-time.
 - [x] **Performance benchmark panel**: Completed. Added a new BENCHMARK tab in the sandbox. It runs a 10,000 hash loop across MD5, SHA-256, and SHA-512 and visualizes their respective ops/sec throughput via animated CSS bar charts.
 
-## Verification & Build Status
-
 - **Development Server**: Verified locally.
 - **Console Errors**: 0 unhandled promise rejections on malformed crypto operations.
 - **Documentation**: `qa-report.md`, `bug-log.md` (v4), and `agent/architecture.md` (v4) are updated and committed.
+
+---
+
+# Bug Fix Log — v3 Post-Audit (Weeks 5–6 Patch)
+
+## Issues Found & Resolved
+
+- [x] **`exportSession()` stale element IDs**: All 6 element references (`hash-input`, `hash-salt`, `hash-output`, `enc-plain`, `enc-pass`, `enc-cipher`) pointed to non-existent DOM elements. Fixed to use correct IDs (`lab-hash-in`, `lab-hash-salt`, `lab-hash-out`, `lab-enc-data`, `lab-enc-out`). Expanded export to cover all 7 sandbox tools.
+- [x] **`importSession()` stale IDs**: Same stale ID issue. Fixed + added field-level validation with specific error messages for each missing/malformed field.
+- [x] **`shareActiveLab()` stale IDs**: Fixed `hash-input` → `lab-hash-in`, `enc-plain` → `lab-enc-data`. Expanded to support all tabs (compare, hmac, entropy). Replaced `alert()` with toast notification.
+- [x] **`#share=` fragment loader stale IDs**: Fragment listener at page load used same broken IDs + missing `App.startLab()` call before populating fields. Fixed and expanded to handle all tools.
+- [x] **Story congratulations screen**: `maxStep` was persisted but completing all 9 chapters showed only a small button — no visual celebration. Added fullscreen animated overlay with neon pulsing title, emoji badges, and summary card. Sets `nix_story_completed` in localStorage.
+- [x] **Achievement notification**: Was a plain corner div with no animation. Replaced with a fullscreen neon flash (0.8s) + styled slide-in toast with description text and fade-out.
+- [x] **ECDH plain-English explainer**: Spec required a "How this works" explanation for non-technical readers. Added collapsible `<details>` accordion with paint-mixing analogy above the key exchange steps.
+
+## Verification
+
+- **Session Export**: Downloads JSON with real values from all 7 tools (not empty strings).
+- **Session Import**: Restores Hash Engine, AES-GCM, Compare, HMAC inputs. Shows specific field errors on bad schema.
+- **Share Link**: Copies valid base64url-encoded URL fragment to clipboard with success toast.
+- **Fragment Load**: Opening `index.html#share=...` correctly populates and activates the correct sandbox tab.
+- **Achievement Flash**: Fullscreen cyan flash + slide-in toast fires on badge unlock.
+- **Story Congrats**: Full-screen overlay appears on `nextIdx > 8` with localStorage persistence.

@@ -56,6 +56,56 @@ App.showNextBtn = (nextIdx) => {
   const currentIdx = nextIdx - 1;
 
   if (nextIdx > 8) {
+    // Mark story as fully completed in localStorage
+    localStorage.setItem('nix_story_completed', 'true');
+    if (App.S.story.maxStep < 9) { App.S.story.maxStep = 9; localStorage.setItem('nix_story_max', '9'); }
+
+    // Show fullscreen congratulations overlay
+    const existing = document.getElementById('story-congrats-overlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'story-congrats-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px;animation:fadeInOverlay 0.5s ease;';
+
+    if (!document.getElementById('congrats-style')) {
+      const s = document.createElement('style');
+      s.id = 'congrats-style';
+      s.textContent = `
+        @keyframes fadeInOverlay{from{opacity:0}to{opacity:1}}
+        @keyframes pulseGlow{0%,100%{text-shadow:0 0 20px rgba(0,245,255,0.6)}50%{text-shadow:0 0 60px rgba(0,245,255,1),0 0 100px rgba(0,245,255,0.4)}}
+        @keyframes floatUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+        .congrats-title{font-family:var(--font-display);font-size:clamp(28px,6vw,72px);color:var(--c);letter-spacing:4px;animation:pulseGlow 2s ease infinite,floatUp 0.7s ease;}
+        .congrats-sub{font-family:var(--font-mono);font-size:14px;color:var(--muted);letter-spacing:2px;margin:16px 0 32px;animation:floatUp 0.9s ease;}
+        .congrats-badges{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:32px;animation:floatUp 1.1s ease;}
+        .congrats-badge{font-size:32px;filter:drop-shadow(0 0 8px rgba(0,245,255,0.5));}
+      `;
+      document.head.appendChild(s);
+    }
+
+    overlay.innerHTML = `
+      <div class="congrats-title">MISSION COMPLETE</div>
+      <div class="congrats-sub">// MATRIX PROTOCOL — ALL 9 CHAPTERS CLEARED — CLEARANCE LEVEL: MAXIMUM</div>
+      <div class="congrats-badges">
+        <span class="congrats-badge">🏆</span>
+        <span class="congrats-badge">🔐</span>
+        <span class="congrats-badge">🌐</span>
+        <span class="congrats-badge">⚡</span>
+        <span class="congrats-badge">🥷</span>
+      </div>
+      <div style="font-family:var(--font-mono);font-size:12px;color:var(--muted);max-width:500px;line-height:2;margin-bottom:32px;border:1px solid rgba(0,245,255,0.1);padding:20px;">
+        You've mastered hashing, symmetric &amp; asymmetric encryption, digital signatures,<br>
+        steganography, PKI trust chains, and end-to-end key exchange.<br>
+        <span style="color:var(--c3);margin-top:8px;display:block;">[ OPERATIVE STATUS: FIELD READY ]</span>
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
+        <button class="btn btn-primary" style="font-size:14px;padding:14px 28px;" onclick="document.getElementById('story-congrats-overlay').remove(); App.goHome();">↩ RETURN TO BASE</button>
+        <button class="btn" style="font-size:14px;padding:14px 28px;" onclick="document.getElementById('story-congrats-overlay').remove(); App.showAchievements();">🏆 VIEW ACHIEVEMENTS</button>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    // Also show in the zone
     zone.innerHTML = `
       <div class="mission-complete" style="margin-bottom:16px;">
         <div class="mc-badge">🏆</div>
@@ -65,6 +115,7 @@ App.showNextBtn = (nextIdx) => {
         </div>
       </div>
       <button class="btn btn-success btn-full" onclick="App.goHome()">↩ RETURN TO BASE</button>`;
+
   } else {
     const challenge = CHALLENGES[currentIdx];
     
