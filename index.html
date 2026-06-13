@@ -1171,15 +1171,24 @@
 </div>
 
 <script src="js/data.js" defer></script>
-<script src="js/story-explain.js" defer></script>
 <script src="js/crypto.js" defer></script>
-<script src="js/qrcode.min.js" defer></script>
-<script src="js/wordlist-10k.js" defer></script>
 <script src="js/app.js" defer></script>
-<script src="js/story-mode-v2.js" defer></script>
-<script src="js/daisy-dialogues.js" defer></script>
 <script src="js/daisy-init.js" defer></script>
 <script src="js/onboarding.js" defer></script>
+
+<!-- LAZY LOAD HEAVY ASSETS -->
+<script>
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      const heavyScripts = ['js/wordlist-10k.js', 'js/qrcode.min.js', 'js/story-mode-v2.js', 'js/story-explain.js', 'js/daisy-dialogues.js'];
+      heavyScripts.forEach(src => {
+        const s = document.createElement('script');
+        s.src = src;
+        document.body.appendChild(s);
+      });
+    }, 1000);
+  });
+</script>
 
 <!-- EXPLAINER MODAL -->
 <div id="explainer-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:99999; backdrop-filter:blur(4px); align-items:center; justify-content:center;">
