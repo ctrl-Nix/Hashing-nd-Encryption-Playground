@@ -45,6 +45,12 @@ A gamified, 9-chapter simulation engine designed to teach cryptographic fundamen
 <!-- SCREENSHOT PLACEHOLDER 3: Story Mode / Cyber UI -->
 ![NIX Story Mode UI](docs/screenshot-story-placeholder.png)
 
+### 04 // Daisy: Local AI Companion
+A highly intelligent, fully local AI assistant integrated directly into the sandbox:
+- **Zero-Server Inference**: Powered by Hugging Face `Transformers.js`, Daisy downloads and runs a 0.5B parameter LLM (Qwen) entirely inside your browser's Web Worker. No API keys, no cloud servers, 100% privacy.
+- **Context-Aware Assistance**: Daisy monitors your current active tool (e.g., MD5 hashing or AES encryption) and provides tailored, conversational explanations, hints, and analogies.
+- **Interruptible Streaming**: Real-time token streaming with full UI integration, including dynamic facial expressions, drag-and-drop physics, and user-triggered response abortion.
+
 ---
 
 ## 🏗️ Architecture Overview

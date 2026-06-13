@@ -119,3 +119,21 @@
 - **Fragment Load**: Opening `index.html#share=...` correctly populates and activates the correct sandbox tab.
 - **Achievement Flash**: Fullscreen cyan flash + slide-in toast fires on badge unlock.
 - **Story Congrats**: Full-screen overlay appears on `nextIdx > 8` with localStorage persistence.
+
+---
+
+# Progress Log — Hashing & Encryption Playground v5
+
+## Core Spec & Checklist Status
+
+- [x] **Local AI Integration (Daisy)**: Completed. Integrated Hugging Face Transformers.js v3 to run Xenova/Qwen1.5-0.5B-Chat entirely within a Web Worker. Fully local, zero-server architecture.
+- [x] **Context-Aware Prompting**: Completed. The Web Worker receives the active tool, algorithm, and last action state from the UI to construct a system prompt dynamically, allowing Daisy to provide relevant crypto-explanations.
+- [x] **Streaming Token UI**: Completed. Connected the Web Worker's TextStreamer to a custom chat UI (daisy-init.js), enabling real-time token rendering and auto-scrolling.
+- [x] **Interruptible Generation**: Completed. Added a Stop button (??) that throws a handled exception in the worker's callback loop, instantly aborting generation.
+- [x] **Cinematic Boot Sequences**: Completed. Added 
+ix-boot.js featuring a heavily styled, CRT-glitching, dynamic-typing Matrix Rain boot sequence for both the Landing Page and Cheatsheet.
+
+## Verification & Build Status
+
+- **AI Inference**: Verified that the 300MB WASM model downloads, caches correctly in IndexedDB, and executes within the browser without main thread blocking.
+- **UI Interactivity**: Validated the Stop Generation functionality securely aborts the execution loop without crashing the Web Worker context.
