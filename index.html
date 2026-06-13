@@ -630,6 +630,16 @@
           </div>
         </div>
       </div>
+
+      <div class="panel" style="margin-top:16px;">
+        <div class="panel-title"><span style="color:var(--c);">SHARE THIS</span></div>
+        <div class="copy-wrap" style="align-items:flex-start;">
+          <textarea id="md5-share-text" class="readout readout-cyan" style="width:100%; min-height:80px; resize:none; font-family:var(--font-mono); font-size:12px; border:none; background:transparent;" readonly></textarea>
+          <button class="copy-btn" aria-label="Copy to clipboard" onclick="App.copyVal('md5-share-text', this)" style="align-self:flex-start; margin-top:8px;">
+            <span class="copy-icon">⧉</span><span class="copy-text">COPY</span>
+          </button>
+        </div>
+      </div>
     </div>
 
     <div id="crack-sha256-area" style="display:none; margin-top:24px;">

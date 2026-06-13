@@ -1629,6 +1629,13 @@ const App = {
         document.getElementById('crack-result-password').innerText = msg.password;
         document.getElementById('crack-result-time').innerText = `${msg.time} ms`;
         document.getElementById('crack-result-attempts').innerText = msg.attempts;
+        
+        const shareText = document.getElementById('md5-share-text');
+        if (shareText) {
+          const secs = (msg.time / 1000).toFixed(1);
+          const link = window.location.href.split('#')[0];
+          shareText.value = `I just cracked an MD5 hash in my browser in ${secs} seconds — here's why MD5 is broken for passwords ${link} #cryptography #security`;
+        }
 
         if (terminal) {
           terminal.innerHTML += `<span style="color:var(--c3);">[SUCCESS] PASSWORD CRACKED IN ${msg.time}ms! MATCH FOUND: "${msg.password}"</span><br>`;
