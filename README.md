@@ -7,7 +7,7 @@
 <br />
 
 <!-- SCREENSHOT PLACEHOLDER 1: Hero or Dashboard -->
-![NIX Dashboard / Hero Image](docs/screenshot-dashboard-placeholder.png)
+![NIX Dashboard / Hero Image](docs/banner.png)
 
 ## 📖 Project Overview
 
