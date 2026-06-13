@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NIX // Applied Cryptography Protocol</title>
   <meta name="description" content="Master cryptography through interactive simulations. A client-side cryptographic playground.">
+  <link rel="manifest" href="manifest.json">
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -504,6 +505,16 @@
     </div>
   </footer>
 
+<!-- SERVICE WORKER REGISTRATION -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('[PWA] Service Worker registered:', reg.scope))
+        .catch(err => console.error('[PWA] Service Worker registration failed:', err));
+    });
+  }
+</script>
 </body>
 <script src="js/nix-boot.js"></script>
 </html>
