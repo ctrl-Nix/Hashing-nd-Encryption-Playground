@@ -9,6 +9,7 @@ self.addEventListener('message', async (event) => {
     if (!generator) {
       try {
         generator = await pipeline('text-generation', 'Xenova/Qwen2.5-0.5B-Instruct', {
+          dtype: 'q4',
           progress_callback: (x) => {
             if (x.status === 'progress' || x.status === 'downloading') {
                // Post progress back
