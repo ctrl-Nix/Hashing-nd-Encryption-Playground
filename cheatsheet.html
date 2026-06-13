@@ -380,6 +380,102 @@
       </div>
     </div>
 
+    <!-- RSA -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">RSA (Rivest-Shamir-Adleman)</h2>
+        <span class="badge">ASYMMETRIC ENCRYPTION</span>
+      </div>
+      <div class="card-body">
+        <div class="data-grid">
+          <div class="data-label">PROTOCOL</div>
+          <div class="data-value">Public-Key Cryptography System</div>
+          
+          <div class="data-label">KEY PARAMETERS</div>
+          <div class="data-value">Keys: <strong>2048 or 4096 bits</strong>. (2048 is minimum safe, 4096 recommended for extended life).</div>
+          
+          <div class="data-label">ARCHITECTURE</div>
+          <div class="data-value">
+            Relies on the mathematical difficulty of factoring the product of two extremely large prime numbers. Supports both Encryption (Public Key encrypts, Private Key decrypts) and Digital Signatures (Private Key signs, Public Key verifies).
+          </div>
+
+          <div class="data-label">IMPLEMENTATION</div>
+          <div class="data-value">
+            RSA is computationally expensive and has strict payload size limits. <strong>CRITICAL WARNING:</strong> Never use RSA for bulk data encryption. Instead, use RSA to securely transmit an AES-GCM symmetric key (Key Wrapping), and then encrypt the actual data using that fast symmetric key. Always use <strong>RSA-OAEP</strong> padding for encryption to prevent Chosen Ciphertext Attacks.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PKI & X.509 -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">PKI & X.509 Certificates</h2>
+        <span class="badge">TRUST INFRASTRUCTURE</span>
+      </div>
+      <div class="card-body">
+        <div class="data-grid">
+          <div class="data-label">PROTOCOL</div>
+          <div class="data-value">Public Key Infrastructure (RFC 5280)</div>
+          
+          <div class="data-label">ARCHITECTURE</div>
+          <div class="data-value">
+            Certificates bind a Public Key to a specific identity (e.g., a domain name). A Certificate Authority (CA) digitally signs the certificate, proving they validated the identity. 
+          </div>
+
+          <div class="data-label">IMPLEMENTATION</div>
+          <div class="data-value">
+            Trust is established via the <strong>Certificate Chain</strong>. Your OS/Browser hardcodes "Root CAs". A Root CA signs an Intermediate CA, which signs the end-server certificate. If any link in the chain breaks, or if the certificate expires, or if the SHA-256 fingerprint doesn't match the signature, the TLS handshake fails.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ATTACK VECTORS -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Cryptanalytic Attack Vectors</h2>
+        <span class="badge">THREAT MODELING</span>
+      </div>
+      <div class="card-body">
+        <div class="data-grid">
+          <div class="data-label" style="color:var(--c-warn);">BRUTE-FORCE</div>
+          <div class="data-value">
+            <strong>Dictionary Attacks & Rainbow Tables:</strong> Systematically hashing every word in a dictionary list to crack a stolen hash database. <strong>Defense:</strong> Prevented by using memory-hard KDFs (Argon2id) combined with a unique, cryptographically random <strong>Salt</strong> for every user, which completely invalidates precomputed Rainbow Tables.
+          </div>
+          
+          <div class="data-label" style="color:var(--c-warn);">COLLISIONS</div>
+          <div class="data-value">
+            <strong>The Birthday Paradox:</strong> The probability of finding two different inputs that produce the exact same hash. Because of probability mechanics, you only need to hash roughly 2<sup>(N/2)</sup> inputs to find a collision in an N-bit hash, dramatically reducing the mathematical security of the hash function by half.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEGANOGRAPHY -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Steganography</h2>
+        <span class="badge">DATA OBFUSCATION</span>
+      </div>
+      <div class="card-body">
+        <div class="data-grid">
+          <div class="data-label">PROTOCOL</div>
+          <div class="data-value">Least Significant Bit (LSB) Encoding</div>
+          
+          <div class="data-label">ARCHITECTURE</div>
+          <div class="data-value">
+            Cryptography hides the <em>meaning</em> of a message. Steganography hides the <em>existence</em> of the message entirely.
+          </div>
+
+          <div class="data-label">IMPLEMENTATION</div>
+          <div class="data-value">
+            By modifying the Least Significant Bit of the Red, Green, and Blue channels of an image pixel, you can embed an encrypted binary payload without visibly altering the image to the human eye. <strong>Defense:</strong> Statistical analysis (Steganalysis) can detect unnatural LSB distributions.
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- DEPRECATED -->
     <div class="card warning">
       <div class="card-header">
