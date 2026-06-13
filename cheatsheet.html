@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NIX // Cryptography Cheatsheet</title>
+  <title>NIX // Senior Cryptography Architecture Cheatsheet</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -36,19 +36,19 @@
     }
 
     .container {
-      max-width: 900px;
+      max-width: 1000px;
       margin: 0 auto;
       background: var(--surface);
       border: 1px solid var(--border);
-      box-shadow: 0 0 30px rgba(0,245,255,0.05);
-      padding: 40px;
+      box-shadow: 0 0 40px rgba(0,245,255,0.08);
+      padding: 40px 50px;
       position: relative;
     }
 
     header {
       border-bottom: 2px solid var(--c);
       padding-bottom: 20px;
-      margin-bottom: 30px;
+      margin-bottom: 40px;
       display: flex;
       justify-content: space-between;
       align-items: flex-end;
@@ -56,10 +56,11 @@
 
     .title {
       font-family: var(--font-display);
-      font-size: 32px;
+      font-size: 36px;
       color: var(--c);
       letter-spacing: 2px;
       margin: 0;
+      text-transform: uppercase;
     }
 
     .subtitle {
@@ -67,14 +68,16 @@
       color: var(--muted);
       font-size: 14px;
       letter-spacing: 1px;
+      margin-top: 8px;
     }
 
     .btn-print {
       background: rgba(0,245,255,0.1);
       border: 1px solid var(--c);
       color: var(--c);
-      padding: 8px 16px;
+      padding: 10px 20px;
       font-family: var(--font-mono);
+      font-weight: bold;
       cursor: pointer;
       transition: all 0.2s;
     }
@@ -86,122 +89,137 @@
 
     .grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 24px;
+      grid-template-columns: 1fr;
+      gap: 32px;
     }
 
     .card {
       border: 1px solid var(--border);
-      padding: 20px;
-      background: rgba(255,255,255,0.02);
+      background: rgba(255,255,255,0.015);
+      position: relative;
     }
 
-    .card.warning {
-      border-color: rgba(255,0,60,0.3);
-      background: rgba(255,0,60,0.02);
-    }
-
-    .card-title {
-      font-family: var(--font-display);
-      font-size: 20px;
-      color: var(--bright);
-      margin: 0 0 12px 0;
+    .card-header {
+      background: rgba(0,245,255,0.05);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
 
+    .card.warning {
+      border-color: rgba(255,0,60,0.4);
+      background: rgba(255,0,60,0.02);
+    }
+    .card.warning .card-header {
+      background: rgba(255,0,60,0.1);
+      border-bottom-color: rgba(255,0,60,0.4);
+    }
+
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 22px;
+      color: var(--bright);
+      margin: 0;
+      letter-spacing: 1px;
+    }
+    .card.warning .card-title { color: var(--c-error); }
+
     .badge {
       font-family: var(--font-mono);
       font-size: 11px;
-      padding: 2px 8px;
+      padding: 4px 10px;
       border-radius: 4px;
       background: rgba(0,245,255,0.1);
       color: var(--c);
       border: 1px solid var(--c);
+      letter-spacing: 1px;
     }
-
     .badge.warn-badge {
       background: rgba(255,0,60,0.1);
       color: var(--c-error);
       border-color: var(--c-error);
     }
 
-    .data-row {
-      display: flex;
-      margin-bottom: 8px;
-      font-size: 15px;
+    .card-body {
+      padding: 24px;
+    }
+
+    .data-grid {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 16px 24px;
     }
 
     .data-label {
-      width: 90px;
       font-family: var(--font-mono);
       color: var(--c);
-      font-size: 12px;
+      font-size: 13px;
       text-transform: uppercase;
-      padding-top: 3px;
+      font-weight: bold;
+      padding-top: 2px;
     }
 
     .data-value {
-      flex: 1;
       color: var(--text);
+      font-size: 15px;
+      line-height: 1.6;
     }
 
-    .warning .data-label { color: var(--c-error); }
+    .data-value strong { color: var(--bright); }
+    .data-value code {
+      font-family: var(--font-mono);
+      color: var(--c4);
+      background: rgba(255,170,0,0.1);
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 13px;
+    }
+
+    .critical-note {
+      margin-top: 16px;
+      padding: 12px 16px;
+      background: rgba(255,0,60,0.05);
+      border-left: 3px solid var(--c-error);
+      font-size: 14px;
+    }
+
+    .critical-note strong { color: var(--c-error); font-family: var(--font-mono); letter-spacing: 1px;}
 
     footer {
-      margin-top: 40px;
+      margin-top: 50px;
       text-align: center;
       font-family: var(--font-mono);
       font-size: 12px;
       color: var(--muted);
       border-top: 1px solid var(--border);
-      padding-top: 20px;
+      padding-top: 24px;
     }
 
-    /* PRINT STYLES (Clean, Ink-saving, Black & White) */
+    /* PRINT STYLES (Clean, Professional Reference Document) */
     @media print {
-      body {
-        background: #fff;
-        color: #000;
-        padding: 0;
-      }
-      .container {
-        max-width: 100%;
-        border: none;
-        box-shadow: none;
-        padding: 0;
-        background: transparent;
-      }
+      body { background: #fff; color: #000; padding: 0; }
+      .container { max-width: 100%; border: none; box-shadow: none; padding: 0; background: transparent; }
       .btn-print { display: none; }
-      header { border-bottom: 2px solid #000; }
+      header { border-bottom: 2px solid #000; margin-bottom: 20px; }
       .title { color: #000; }
-      .subtitle { color: #555; }
-      .card {
-        border: 1px solid #ccc;
-        background: transparent;
-        break-inside: avoid;
-      }
-      .card.warning {
-        border-color: #000;
-        border-width: 2px;
-      }
-      .card-title { color: #000; }
-      .badge {
-        background: transparent;
-        color: #000;
-        border: 1px solid #000;
-      }
-      .badge.warn-badge {
-        font-weight: bold;
-      }
-      .data-label { color: #555; font-weight: bold; }
-      .data-value { color: #000; }
-      footer { border-top: 1px solid #ccc; color: #555; }
-    }
-
-    @media(max-width: 768px) {
-      .grid { grid-template-columns: 1fr; }
+      .subtitle { color: #444; }
+      .grid { gap: 20px; }
+      .card { border: 1px solid #aaa; background: transparent; break-inside: avoid; margin-bottom:20px; }
+      .card-header { background: #f5f5f5; border-bottom: 1px solid #aaa; padding: 10px 16px; }
+      .card.warning { border: 2px solid #000; }
+      .card.warning .card-header { background: #eaeaea; border-bottom: 2px solid #000; }
+      .card-title { color: #000; font-weight: bold; }
+      .card-body { padding: 16px; }
+      .badge { background: transparent; color: #000; border: 1px solid #000; }
+      .badge.warn-badge { font-weight: bold; }
+      .data-label { color: #444; font-weight: bold; }
+      .data-value { color: #111; }
+      .data-value code { background: transparent; color: #000; font-weight: bold; border: 1px solid #ddd; }
+      .critical-note { background: transparent; border-left: 4px solid #000; padding: 8px 12px; margin-top: 12px; }
+      .critical-note strong { color: #000; }
+      footer { border-top: 1px solid #aaa; color: #444; margin-top: 30px; }
     }
   </style>
 </head>
@@ -210,138 +228,195 @@
 <div class="container">
   <header>
     <div>
-      <h1 class="title">NIX // CHEATSHEET</h1>
-      <div class="subtitle">Quick Reference Guide for Applied Cryptography</div>
+      <h1 class="title">NIX // Architecture Cheatsheet</h1>
+      <div class="subtitle">Senior Engineering Reference Guide for Applied Cryptography</div>
     </div>
-    <button class="btn-print" onclick="window.print()">[ PRINT CARD ]</button>
+    <button class="btn-print" onclick="window.print()">[ PRINT DOC ]</button>
   </header>
 
   <div class="grid">
 
     <!-- AES-GCM -->
     <div class="card">
-      <h2 class="card-title">AES-GCM <span class="badge">SYMMETRIC</span></h2>
-      <div class="data-row">
-        <div class="data-label">TYPE</div>
-        <div class="data-value">Authenticated Symmetric Encryption</div>
+      <div class="card-header">
+        <h2 class="card-title">AES-GCM</h2>
+        <span class="badge">SYMMETRIC AEAD</span>
       </div>
-      <div class="data-row">
-        <div class="data-label">KEY SIZE</div>
-        <div class="data-value">128, 192, 256 bits</div>
-      </div>
-      <div class="data-row">
-        <div class="data-label">USE CASES</div>
-        <div class="data-value">Bulk data encryption, secure file storage, TLS/HTTPS payloads, databases.</div>
-      </div>
-      <div class="data-row" style="margin-top:8px;">
-        <div class="data-label">NOTES</div>
-        <div class="data-value" style="font-size:13px; color:var(--muted);">Provides both confidentiality AND integrity. Requires a strictly unique Initialization Vector (IV) / Nonce for every encryption.</div>
+      <div class="card-body">
+        <div class="data-grid">
+          <div class="data-label">PROTOCOL</div>
+          <div class="data-value">Authenticated Encryption with Associated Data (AEAD)</div>
+          
+          <div class="data-label">KEY PARAMETERS</div>
+          <div class="data-value">Keys: <strong>128, 192, 256 bits</strong>. (256-bit recommended for long-term data; post-quantum safe).</div>
+          
+          <div class="data-label">ARCHITECTURE</div>
+          <div class="data-value">
+            Galois/Counter Mode provides both <strong>confidentiality</strong> (via CTR mode) and <strong>integrity</strong> (via GHASH polynomial MAC). It is highly parallelizable and hardware-accelerated (AES-NI), making it significantly faster and safer than AES-CBC. Appends a 128-bit authentication tag.
+          </div>
+
+          <div class="data-label">IMPLEMENTATION</div>
+          <div class="data-value">
+            Requires an Initialization Vector (IV). The NIST-recommended optimal IV length is strictly <strong>96 bits (12 bytes)</strong> to avoid additional internal GHASH processing overhead.
+            <div class="critical-note">
+              <strong>CRITICAL WARNING:</strong> Never reuse an IV (nonce) under the same key. Nonce reuse in AES-GCM catastrophically breaks the authentication key, allowing attackers to forge tags and recover plaintext via XOR.
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- SHA-256 -->
     <div class="card">
-      <h2 class="card-title">SHA-256 <span class="badge">HASHING</span></h2>
-      <div class="data-row">
-        <div class="data-label">TYPE</div>
-        <div class="data-value">Cryptographic Hash Function</div>
+      <div class="card-header">
+        <h2 class="card-title">SHA-2 / SHA-3 Family</h2>
+        <span class="badge">CRYPTOGRAPHIC HASH</span>
       </div>
-      <div class="data-row">
-        <div class="data-label">OUTPUT</div>
-        <div class="data-value">256 bits (32 bytes)</div>
-      </div>
-      <div class="data-row">
-        <div class="data-label">USE CASES</div>
-        <div class="data-value">File integrity verification, blockchain proofs, generating message digests for digital signatures.</div>
-      </div>
-      <div class="data-row" style="margin-top:8px;">
-        <div class="data-label">NOTES</div>
-        <div class="data-value" style="font-size:13px; color:var(--muted);">One-way deterministic function. For password storage, it MUST be wrapped in a key derivation function (like PBKDF2, Argon2) with a unique salt.</div>
+      <div class="card-body">
+        <div class="data-grid">
+          <div class="data-label">PROTOCOL</div>
+          <div class="data-value">Deterministic One-Way Hash Function</div>
+          
+          <div class="data-label">OUTPUT SIZE</div>
+          <div class="data-value">SHA-256 (32 bytes), SHA-384 (48 bytes), SHA-512 (64 bytes)</div>
+          
+          <div class="data-label">ARCHITECTURE</div>
+          <div class="data-value">
+            Mathematically infeasible to reverse (preimage resistance) or find two inputs producing the same output (collision resistance). Used for file integrity, digital signature digests, and blockchain proof-of-work.
+          </div>
+
+          <div class="data-label">IMPLEMENTATION</div>
+          <div class="data-value">
+            SHA-2 is vulnerable to <strong>Length Extension Attacks</strong>. Never use <code>Hash(Secret || Message)</code> for authentication; use HMAC instead.
+            <div class="critical-note">
+              <strong>CRITICAL WARNING:</strong> NEVER use raw SHA-256 for password storage. It is designed to be extremely fast and hardware-optimized, allowing attackers to brute-force billions of hashes per second using GPUs. Always wrap passwords in memory-hard Key Derivation Functions (KDFs) like <strong>Argon2id</strong>, <strong>bcrypt</strong>, or <strong>PBKDF2</strong> with high iteration counts and unique salts.
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- ECDSA -->
+    <!-- ECDSA / EdDSA -->
     <div class="card">
-      <h2 class="card-title">ECDSA <span class="badge">ASYMMETRIC</span></h2>
-      <div class="data-row">
-        <div class="data-label">TYPE</div>
-        <div class="data-value">Digital Signatures</div>
+      <div class="card-header">
+        <h2 class="card-title">ECDSA & EdDSA</h2>
+        <span class="badge">ASYMMETRIC SIGNATURES</span>
       </div>
-      <div class="data-row">
-        <div class="data-label">KEY SIZE</div>
-        <div class="data-value">256, 384, 521 bits (P-256 is common)</div>
-      </div>
-      <div class="data-row">
-        <div class="data-label">USE CASES</div>
-        <div class="data-value">Authenticating software updates, JSON Web Tokens (JWTs), cryptocurrency transactions, proving identity.</div>
-      </div>
-      <div class="data-row" style="margin-top:8px;">
-        <div class="data-label">NOTES</div>
-        <div class="data-value" style="font-size:13px; color:var(--muted);">You <b>Sign</b> with your Private Key (proving you sent it). Anyone can <b>Verify</b> with your Public Key.</div>
+      <div class="card-body">
+        <div class="data-grid">
+          <div class="data-label">PROTOCOL</div>
+          <div class="data-value">Elliptic Curve Digital Signature Algorithm</div>
+          
+          <div class="data-label">CURVES</div>
+          <div class="data-value">NIST P-256 (secp256r1), secp256k1 (Bitcoin), Curve25519 (Ed25519)</div>
+          
+          <div class="data-label">ARCHITECTURE</div>
+          <div class="data-value">
+            Used to prove authenticity and non-repudiation. The owner <strong>Signs</strong> a payload (usually a SHA-256 digest of the message) using their Private Key. Anyone can <strong>Verify</strong> the signature using the exposed Public Key. Standard for JWTs (ES256), software updates, and blockchains.
+          </div>
+
+          <div class="data-label">IMPLEMENTATION</div>
+          <div class="data-value">
+            ECDSA requires generating a random integer (nonce <em>k</em>) for every signature. 
+            <div class="critical-note">
+              <strong>CRITICAL WARNING:</strong> Using a predictable nonce, or reusing a nonce across two different signatures, allows trivial mathematical extraction of the Private Key (e.g., the 2010 Sony PS3 hack). <strong>Best Practice:</strong> Use Deterministic ECDSA (RFC 6979) or migrate to <strong>Ed25519</strong>, which is deterministic by design and immune to timing attacks.
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- ECDH -->
+    <!-- ECDHE -->
     <div class="card">
-      <h2 class="card-title">ECDH <span class="badge">ASYMMETRIC</span></h2>
-      <div class="data-row">
-        <div class="data-label">TYPE</div>
-        <div class="data-value">Key Exchange Agreement</div>
+      <div class="card-header">
+        <h2 class="card-title">ECDH(E)</h2>
+        <span class="badge">KEY EXCHANGE</span>
       </div>
-      <div class="data-row">
-        <div class="data-label">KEY SIZE</div>
-        <div class="data-value">256, 384, 521 bits</div>
-      </div>
-      <div class="data-row">
-        <div class="data-label">USE CASES</div>
-        <div class="data-value">Establishing a shared secret over a public/insecure channel, TLS handshakes, End-to-End encrypted messaging (Signal).</div>
-      </div>
-      <div class="data-row" style="margin-top:8px;">
-        <div class="data-label">NOTES</div>
-        <div class="data-value" style="font-size:13px; color:var(--muted);">Mix your Private Key with their Public Key to derive the exact same symmetric key without ever transmitting secrets.</div>
+      <div class="card-body">
+        <div class="data-grid">
+          <div class="data-label">PROTOCOL</div>
+          <div class="data-value">Elliptic Curve Diffie-Hellman (Ephemeral)</div>
+          
+          <div class="data-label">ARCHITECTURE</div>
+          <div class="data-value">
+            Allows two parties to negotiate a shared symmetric secret over a fully public, monitored channel. Party A mixes their Private Key with Party B's Public Key. Party B does the inverse. The resulting math yields the exact same shared secret.
+          </div>
+
+          <div class="data-label">IMPLEMENTATION</div>
+          <div class="data-value">
+            Always use the <strong>Ephemeral (ECDHE)</strong> variant. By generating a fresh, temporary key pair for each session, you guarantee <strong>Perfect Forward Secrecy (PFS)</strong>. If a long-term private key is compromised in the future, past traffic cannot be decrypted.
+            <div class="critical-note">
+              <strong>CRITICAL WARNING:</strong> ECDH provides zero authentication. It is entirely vulnerable to Man-in-the-Middle (MitM) attacks. You must combine ECDH with digital signatures (RSA/ECDSA) to cryptographically verify the identity of the peer you are exchanging keys with (e.g., TLS 1.3 Handshake).
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- HMAC -->
     <div class="card">
-      <h2 class="card-title">HMAC <span class="badge">AUTH CODE</span></h2>
-      <div class="data-row">
-        <div class="data-label">TYPE</div>
-        <div class="data-value">Message Authentication Code</div>
+      <div class="card-header">
+        <h2 class="card-title">HMAC</h2>
+        <span class="badge">MESSAGE AUTHENTICATION</span>
       </div>
-      <div class="data-row">
-        <div class="data-label">KEY SIZE</div>
-        <div class="data-value">Variable (depends on underlying hash)</div>
-      </div>
-      <div class="data-row">
-        <div class="data-label">USE CASES</div>
-        <div class="data-value">Validating API webhooks, generating stateless session tokens, preventing parameter tampering.</div>
-      </div>
-      <div class="data-row" style="margin-top:8px;">
-        <div class="data-label">NOTES</div>
-        <div class="data-value" style="font-size:13px; color:var(--muted);">Proves both data integrity AND authenticity, because computing the matching hash requires knowing the shared secret password.</div>
+      <div class="card-body">
+        <div class="data-grid">
+          <div class="data-label">PROTOCOL</div>
+          <div class="data-value">Hash-based Message Authentication Code (RFC 2104)</div>
+          
+          <div class="data-label">ARCHITECTURE</div>
+          <div class="data-value">
+            Provides both data integrity and authenticity. Uses a shared secret key combined with a cryptographic hash function (e.g., HMAC-SHA256) via a two-pass structure: <code>H(Key ^ opad || H(Key ^ ipad || Message))</code>. Immune to length extension attacks.
+          </div>
+
+          <div class="data-label">IMPLEMENTATION</div>
+          <div class="data-value">
+            Used heavily for validating API webhooks, generating stateless session tokens, and preventing parameter tampering.
+            <div class="critical-note">
+              <strong>CRITICAL WARNING:</strong> When verifying an HMAC tag, you must use a <strong>constant-time comparison function</strong> (e.g., <code>crypto.subtle.verify</code> or Node's <code>timingSafeEqual</code>). Using standard string comparison (<code>==</code>) fails fast, allowing attackers to forge tags byte-by-byte via timing attacks.
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- WARNING: DO NOT USE -->
+    <!-- DEPRECATED -->
     <div class="card warning">
-      <h2 class="card-title">DO NOT USE <span class="badge warn-badge">DEPRECATED</span></h2>
-      
-      <div style="margin-bottom:16px;">
-        <div style="color:var(--c-error); font-weight:bold; font-family:var(--font-mono); margin-bottom:4px;">MD5 (128-bit)</div>
-        <div style="font-size:14px;">Severely compromised by fast collision attacks. A modern GPU can brute-force billions of MD5 hashes per second. Safe <b>only</b> for non-cryptographic file checksums to detect accidental corruption.</div>
+      <div class="card-header">
+        <h2 class="card-title">DEPRECATED PRIMITIVES</h2>
+        <span class="badge warn-badge">DO NOT USE</span>
       </div>
+      <div class="card-body">
+        <div class="data-grid">
+          
+          <div class="data-label" style="color:var(--c-error);">MD5</div>
+          <div class="data-value">
+            <strong>Catastrophically Broken.</strong> Collision resistance is destroyed. Modern GPUs can brute-force 100+ billion MD5 hashes per second. Safe <strong>only</strong> for non-cryptographic checksums to detect accidental file transmission errors.
+          </div>
 
-      <div>
-        <div style="color:var(--c-error); font-weight:bold; font-family:var(--font-mono); margin-bottom:4px;">SHA-1 (160-bit)</div>
-        <div style="font-size:14px;">Mathematically broken (SHAttered attack). Capable of generating collisions where two different files produce the same hash. Completely deprecated for digital signatures and certificates.</div>
+          <div class="data-label" style="color:var(--c-error);">SHA-1</div>
+          <div class="data-value">
+            <strong>Mathematically Broken.</strong> Vulnerable to chosen-prefix collision attacks (SHAttered, 2017). Completely deprecated globally by NIST and major browser vendors for digital signatures and TLS certificates. Upgrade to SHA-256 or SHA-3.
+          </div>
+
+          <div class="data-label" style="color:var(--c-error);">AES-ECB</div>
+          <div class="data-value">
+            <strong>Electronic Codebook Mode.</strong> Does not use an Initialization Vector (IV). Identical plaintext blocks produce identical ciphertext blocks, revealing structural data patterns (the famous "ECB Penguin" image). Never use.
+          </div>
+
+          <div class="data-label" style="color:var(--c-error);">AES-CBC</div>
+          <div class="data-value">
+            <strong>Cipher Block Chaining without MAC.</strong> Unless strictly paired with an HMAC via Encrypt-then-MAC, CBC mode is highly vulnerable to <strong>Padding Oracle Attacks</strong> (e.g., POODLE). Modern architectures should exclusively use authenticated modes like AES-GCM or ChaCha20-Poly1305.
+          </div>
+
+        </div>
       </div>
     </div>
 
   </div>
 
   <footer>
-    <a href="index.html" style="color:var(--c); text-decoration:none;">← BACK TO NIX TERMINAL</a>
+    <a href="index.html" style="color:var(--c); text-decoration:none; font-weight:bold;">← BACK TO NIX TERMINAL</a>
     <div style="margin-top: 10px;">NIX // MATRIX PROTOCOL // SECURE CHANNEL ACTIVE</div>
   </footer>
 </div>
