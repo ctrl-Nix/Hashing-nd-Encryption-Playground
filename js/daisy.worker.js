@@ -1,4 +1,4 @@
-import { pipeline, TextStreamer } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3';
+import { pipeline, TextStreamer } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3/+esm';
 
 let generator;
 
@@ -8,7 +8,7 @@ self.addEventListener('message', async (event) => {
   if (type === 'generate') {
     if (!generator) {
       try {
-        generator = await pipeline('text-generation', 'Xenova/Qwen2.5-0.5B-Instruct', {
+        generator = await pipeline('text-generation', 'Xenova/Qwen1.5-0.5B-Chat', {
           dtype: 'q4',
           progress_callback: (x) => {
             if (x.status === 'progress' || x.status === 'downloading') {

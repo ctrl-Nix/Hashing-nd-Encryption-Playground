@@ -808,7 +808,7 @@ function initDaisy() {
       const fallbackReply = DaisyDialogues[key] || DaisyDialogues['idle'];
       const fbDiv = document.createElement('div');
       fbDiv.className = 'daisy-msg daisy';
-      fbDiv.textContent = fallbackReply;
+      fbDiv.textContent = fallbackReply + " (Error: " + e.data.error + ")";
       history.appendChild(fbDiv);
       history.scrollTop = history.scrollHeight;
       
