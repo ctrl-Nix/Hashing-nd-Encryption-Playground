@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NIX // Cryptography Simulator</title>
+  <title>NIX // Applied Cryptography Protocol</title>
   <meta name="description" content="Master cryptography through interactive simulations. A client-side cryptographic playground.">
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,26 +14,37 @@
   <link rel="stylesheet" href="css/ui.css">
 
   <style>
-    /* Landing Page Specific Overrides */
+    /* Premium Landing Page Overrides */
     body {
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
       min-height: 100vh;
       overflow-y: auto;
-      padding: 0 24px;
+      overflow-x: hidden;
+      padding: 0;
     }
 
-    header {
+    /* Navbar */
+    .nav {
       width: 100%;
-      max-width: 1000px;
+      background: rgba(8, 8, 16, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: center;
+    }
+    
+    .nav-content {
+      width: 100%;
+      max-width: 1200px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 32px 0;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 64px;
+      padding: 20px 24px;
     }
 
     .logo {
@@ -42,119 +53,308 @@
       color: var(--c);
       letter-spacing: 4px;
       text-transform: uppercase;
+      text-shadow: 0 0 10px rgba(0, 245, 255, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
 
+    .logo-icon {
+      width: 12px;
+      height: 12px;
+      background: var(--c);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--c);
+      animation: pulse 2s infinite;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      padding: 0 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Hero */
     .hero {
       text-align: center;
-      max-width: 800px;
-      margin-bottom: 80px;
-      animation: boxIn 0.6s ease;
+      padding: 100px 0 60px 0;
+      animation: boxIn 0.8s ease;
+      position: relative;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      padding: 6px 16px;
+      border: 1px solid var(--c3);
+      color: var(--c3);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 2px;
+      border-radius: 50px;
+      margin-bottom: 32px;
+      background: rgba(0, 255, 136, 0.05);
+      box-shadow: 0 0 20px rgba(0, 255, 136, 0.1);
     }
 
     .hero-title {
       font-family: var(--font-display);
-      font-size: 56px;
+      font-size: clamp(40px, 6vw, 72px);
       line-height: 1.1;
       color: var(--bright);
-      margin-bottom: 24px;
+      margin-bottom: 32px;
       letter-spacing: 2px;
+      text-shadow: 0 0 40px rgba(255, 255, 255, 0.2);
+    }
+    
+    .hero-title span {
+      color: var(--c);
     }
 
     .hero-subtitle {
-      font-size: 20px;
+      font-size: 22px;
       color: var(--muted);
       line-height: 1.6;
-      margin-bottom: 40px;
+      max-width: 800px;
+      margin: 0 auto 48px auto;
     }
 
     .hero-actions {
       display: flex;
-      gap: 16px;
+      gap: 20px;
       justify-content: center;
+      flex-wrap: wrap;
     }
 
     .btn-large {
-      padding: 16px 32px;
+      padding: 18px 40px;
       font-size: 16px;
+      letter-spacing: 2px;
     }
 
+    .btn-github {
+      background: rgba(255,255,255,0.05);
+      border-color: rgba(255,255,255,0.2);
+      color: var(--bright);
+    }
+    
+    .btn-github:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: var(--bright);
+    }
+
+    /* Preview Graphic */
     .preview-section {
       width: 100%;
-      max-width: 1000px;
-      background: rgba(0, 0, 0, 0.5);
-      border: 1px solid var(--border-hi);
-      border-radius: 8px;
-      padding: 8px;
-      margin-bottom: 80px;
-      position: relative;
+      margin: 0 0 100px 0;
+      perspective: 1000px;
     }
 
-    /* Placeholders for images */
-    .preview-placeholder {
+    .preview-window {
       width: 100%;
       aspect-ratio: 16/9;
-      background: var(--surface);
-      border: 1px dashed var(--muted);
+      background: #050508;
+      border: 1px solid var(--border-hi);
+      border-radius: 12px;
+      padding: 0;
+      position: relative;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.8), 0 0 100px rgba(0, 245, 255, 0.1);
+      overflow: hidden;
+      transform: rotateX(2deg);
+      transition: transform 0.5s ease;
+    }
+
+    .preview-window:hover {
+      transform: rotateX(0deg);
+    }
+
+    .preview-header {
+      height: 32px;
+      background: rgba(255,255,255,0.05);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 8px;
+    }
+
+    .preview-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+    }
+
+    .preview-content {
+      position: absolute;
+      inset: 32px 0 0 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--muted);
+      color: var(--c);
       font-family: var(--font-mono);
+      font-size: 14px;
+      letter-spacing: 3px;
+      background: radial-gradient(circle at center, rgba(0,245,255,0.05) 0%, transparent 70%);
+    }
+
+    /* Data Highlights */
+    .stats-row {
+      display: flex;
+      gap: 40px;
+      justify-content: center;
+      margin-bottom: 100px;
+      flex-wrap: wrap;
+      width: 100%;
+    }
+
+    .stat-box {
+      text-align: center;
+      padding: 24px;
+      background: rgba(0, 245, 255, 0.02);
+      border: 1px solid var(--border);
+      min-width: 200px;
+    }
+
+    .stat-num {
+      font-family: var(--font-display);
+      font-size: 48px;
+      color: var(--c);
+      margin-bottom: 8px;
+      text-shadow: 0 0 20px rgba(0,245,255,0.4);
+    }
+
+    .stat-label {
+      font-family: var(--font-mono);
+      color: var(--muted);
+      letter-spacing: 2px;
+      font-size: 12px;
+    }
+
+    /* Features */
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 36px;
+      color: var(--bright);
+      text-align: center;
+      margin-bottom: 60px;
       letter-spacing: 2px;
     }
 
     .features-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 24px;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 32px;
       width: 100%;
-      max-width: 1000px;
-      margin-bottom: 80px;
+      margin-bottom: 120px;
     }
 
     .feature-card {
-      background: var(--surface);
+      background: rgba(0,0,0,0.4);
       border: 1px solid var(--border);
-      padding: 32px;
-      transition: all 0.2s ease;
+      padding: 40px 32px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 2px;
+      background: var(--c);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.3s ease;
     }
 
     .feature-card:hover {
-      border-color: var(--c);
-      box-shadow: inset 0 0 20px rgba(0, 245, 255, 0.05);
-      transform: translateY(-4px);
+      background: rgba(0,245,255,0.02);
+      border-color: rgba(0,245,255,0.3);
+      transform: translateY(-5px);
+    }
+
+    .feature-card:hover::before {
+      transform: scaleX(1);
     }
 
     .feature-icon {
-      font-size: 32px;
-      margin-bottom: 16px;
-      display: block;
+      font-size: 40px;
+      margin-bottom: 24px;
+      display: inline-block;
+      filter: drop-shadow(0 0 10px rgba(0,245,255,0.3));
     }
 
     .feature-title {
       font-family: var(--font-display);
-      font-size: 18px;
+      font-size: 20px;
       color: var(--bright);
-      margin-bottom: 12px;
+      margin-bottom: 16px;
       letter-spacing: 1px;
     }
 
     .feature-desc {
-      font-size: 14px;
+      font-size: 15px;
       color: var(--muted);
-      line-height: 1.6;
+      line-height: 1.7;
     }
 
+    /* Technical details */
+    .tech-panel {
+      width: 100%;
+      background: rgba(124, 58, 237, 0.05);
+      border: 1px solid rgba(124, 58, 237, 0.3);
+      padding: 60px;
+      border-radius: 8px;
+      margin-bottom: 120px;
+      display: flex;
+      align-items: center;
+      gap: 60px;
+    }
+
+    .tech-text {
+      flex: 1;
+    }
+    
+    .tech-code {
+      flex: 1;
+      background: #020204;
+      border: 1px solid #333;
+      padding: 24px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: #a0aec0;
+      line-height: 1.8;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    }
+
+    /* Footer */
     footer {
       width: 100%;
-      max-width: 1000px;
-      padding: 32px 0;
+      padding: 40px 24px;
       border-top: 1px solid var(--border);
-      text-align: center;
+      background: var(--surface);
+      display: flex;
+      justify-content: center;
+    }
+    
+    .footer-content {
+      width: 100%;
+      max-width: 1200px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       font-family: var(--font-mono);
       font-size: 12px;
       color: var(--muted);
-      margin-top: auto;
+    }
+
+    @media(max-width: 768px) {
+      .tech-panel { flex-direction: column; padding: 32px; gap: 32px; }
+      .hero-title { font-size: 36px; }
+      .stats-row { gap: 20px; }
+      .stat-box { min-width: 140px; padding: 16px; }
+      .footer-content { flex-direction: column; gap: 16px; text-align: center; }
     }
   </style>
 </head>
@@ -164,61 +364,143 @@
   <div class="bg-grid"></div>
   <div class="scanline"></div>
 
-  <header>
-    <div class="logo">NIX // PROTOCOL</div>
-    <a href="https://github.com/ctrl-Nix/Hashing-nd-Encryption-Playground" target="_blank" class="btn" style="text-decoration: none;">VIEW REPOSITORY</a>
-  </header>
+  <nav class="nav">
+    <div class="nav-content">
+      <div class="logo">
+        <div class="logo-icon"></div>
+        NIX // PROTOCOL
+      </div>
+      <div>
+        <a href="index.html" class="btn btn-primary" style="text-decoration:none; padding:8px 24px; font-size:12px;">LAUNCH TERMINAL</a>
+      </div>
+    </div>
+  </nav>
 
-  <main style="display:flex; flex-direction:column; align-items:center; width:100%;">
+  <main class="container">
     
     <section class="hero">
-      <h1 class="hero-title">Demystify Applied Cryptography</h1>
-      <p class="hero-subtitle">Master cryptography through interactive simulations. A 100% client-side playground for hashing, digital signatures, key exchange, and cyber-defense tactical training.</p>
+      <div class="hero-badge">SYSTEM V4.0 // ONLINE</div>
+      <h1 class="hero-title">Demystify <span>Applied</span> Cryptography</h1>
+      <p class="hero-subtitle">Step into a highly tactical, 100% client-side sandbox. Master hashing algorithms, digital signatures, key exchanges, and cyber-defense via real-time interactive simulations.</p>
       <div class="hero-actions">
-        <a href="index.html" class="btn btn-primary btn-large" style="text-decoration:none;">⚡ TRY IT NOW</a>
-        <a href="https://github.com/ctrl-Nix/Hashing-nd-Encryption-Playground" target="_blank" class="btn btn-large" style="text-decoration:none;">SOURCE CODE</a>
+        <a href="index.html" class="btn btn-primary btn-large" style="text-decoration:none; box-shadow: 0 0 30px rgba(0,245,255,0.3);">⚡ ENTER THE SIMULATION</a>
+        <a href="https://github.com/ctrl-Nix/Hashing-nd-Encryption-Playground" target="_blank" class="btn btn-large btn-github" style="text-decoration:none;">VIEW REPOSITORY</a>
       </div>
     </section>
 
     <!-- PREVIEW SCREENSHOT / GIF SPACE -->
     <section class="preview-section">
-      <!-- REPLACE THIS PLACEHOLDER WITH AN <img> or <video> TAG -->
-      <div class="preview-placeholder">
-        [ SCREENSHOT / APP PREVIEW GIF GOES HERE ]
+      <div class="preview-window">
+        <div class="preview-header">
+          <div class="preview-dot" style="background:#ff5f56;"></div>
+          <div class="preview-dot" style="background:#ffbd2e;"></div>
+          <div class="preview-dot" style="background:#27c93f;"></div>
+        </div>
+        <div class="preview-content">
+          <div style="text-align:center;">
+            <div style="font-size:32px; margin-bottom:16px;">[ INSERT APP GIF/SCREENSHOT HERE ]</div>
+            <div style="color:var(--muted); font-size:12px;">REPLACE THIS CONTAINER WITH YOUR MEDIA IN PRODUCTION</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats-row">
+      <div class="stat-box">
+        <div class="stat-num">0ms</div>
+        <div class="stat-label">SERVER LATENCY</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" style="color:var(--c3);">100%</div>
+        <div class="stat-label">CLIENT SIDE PROCESSING</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" style="color:var(--c4);">10K</div>
+        <div class="stat-label">PASSWORD DICTIONARY</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" style="color:var(--c2);">0</div>
+        <div class="stat-label">DATA TRACKERS</div>
       </div>
     </section>
 
     <!-- FEATURE LIST -->
+    <h2 class="section-title">TACTICAL ARSENAL</h2>
     <section class="features-grid">
       <div class="feature-card">
         <span class="feature-icon">🛠️</span>
         <h3 class="feature-title">PRO SANDBOX</h3>
-        <p class="feature-desc">Unrestricted access to real Web Crypto APIs. Generate RSA/ECDSA key pairs, compute hashes, inspect entropy, and encrypt with AES-GCM right in the browser.</p>
+        <p class="feature-desc">Unrestricted access to the native <code>crypto.subtle</code> API. Generate pristine RSA/ECDSA key pairs, compute hashes, inspect entropy, and encrypt payloads with AES-256-GCM right in the browser.</p>
       </div>
 
       <div class="feature-card">
         <span class="feature-icon">💥</span>
         <h3 class="feature-title">LIVE ATTACKS</h3>
-        <p class="feature-desc">Visualize cryptographic vulnerabilities. Run an MD5 dictionary cracker or compute Birthday Attack collision probabilities via off-thread Web Workers.</p>
+        <p class="feature-desc">Stop reading theory and start visualizing cryptographic vulnerabilities. Run a live MD5 dictionary cracker or compute Birthday Attack collision probabilities via off-thread Web Workers.</p>
       </div>
 
       <div class="feature-card">
         <span class="feature-icon">📖</span>
         <h3 class="feature-title">STORY MODE</h3>
-        <p class="feature-desc">A guided narrative simulation. Intercept enemy transmissions, decode hidden steganography, and solve cryptographic puzzles to progress through 8 interactive chapters.</p>
+        <p class="feature-desc">A guided narrative simulation. Intercept enemy transmissions, decode hidden steganography carrier images, and solve cryptographic puzzles to progress through 8 interactive chapters.</p>
+      </div>
+
+      <div class="feature-card" style="border-color: rgba(124, 58, 237, 0.4);">
+        <span class="feature-icon" style="filter: drop-shadow(0 0 10px rgba(124,58,237,0.5));">🤝</span>
+        <h3 class="feature-title" style="color: #b794f4;">KEY EXCHANGE</h3>
+        <p class="feature-desc">Generate an ECDH public key and share it securely via URL fragment to negotiate a shared secret with another user on a different machine — completely bypassing server requirements.</p>
       </div>
 
       <div class="feature-card">
-        <span class="feature-icon">🤝</span>
-        <h3 class="feature-title">KEY EXCHANGE</h3>
-        <p class="feature-desc">Generate an ECDH public key and share it securely via URL fragment to negotiate a shared secret with another user without any backend server.</p>
+        <span class="feature-icon">📜</span>
+        <h3 class="feature-title">CERT INSPECTOR</h3>
+        <p class="feature-desc">Paste raw PEM-encoded X.509 Certificates to instantly parse their structure. Validate expiration dates, identify self-signed roots, and understand exactly how HTTPS trust chains operate.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="feature-icon">🤖</span>
+        <h3 class="feature-title">AI ASSISTANT</h3>
+        <p class="feature-desc">Meet Daisy, your onboard AI companion. Operating entirely locally via browser-cached models, she provides proactive hints, error handling, and procedural audio cues as you learn.</p>
+      </div>
+    </section>
+
+    <!-- TECHNICAL DEEP DIVE -->
+    <section class="tech-panel">
+      <div class="tech-text">
+        <h2 class="section-title" style="text-align:left; margin-bottom:24px; font-size:28px;">Zero-Server Architecture</h2>
+        <p style="color:var(--muted); line-height:1.8; font-size:16px; margin-bottom:24px;">
+          NIX is engineered to run entirely on your local machine. Every hash generated, every key pair computed, and every AES-GCM encryption occurs directly inside your browser using the native Web Cryptography API.
+        </p>
+        <p style="color:var(--muted); line-height:1.8; font-size:16px; margin-bottom:32px;">
+          Heavy computational tasks—like hunting for hash collisions or cracking MD5 passwords—are seamlessly offloaded to dedicated Web Workers, ensuring the UI remains buttery smooth even when computing thousands of operations per second.
+        </p>
+        <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API" target="_blank" style="color:var(--c); font-family:var(--font-mono); text-decoration:none; font-size:14px; letter-spacing:1px;">EXPLORE THE WEB CRYPTO API →</a>
+      </div>
+      <div class="tech-code">
+<pre style="margin:0;"><span style="color:#c678dd;">const</span> <span style="color:#e5c07b;">keyPair</span> = <span style="color:#c678dd;">await</span> window.<span style="color:#e06c75;">crypto</span>.<span style="color:#e06c75;">subtle</span>.<span style="color:#61afef;">generateKey</span>(
+  {
+    name: <span style="color:#98c379;">"ECDSA"</span>,
+    namedCurve: <span style="color:#98c379;">"P-256"</span>
+  },
+  <span style="color:#d19a66;">true</span>, 
+  [<span style="color:#98c379;">"sign"</span>, <span style="color:#98c379;">"verify"</span>]
+);
+
+<span style="color:#5c6370;">// 100% computed in browser cache.</span>
+<span style="color:#5c6370;">// Private keys never touch a server.</span></pre>
       </div>
     </section>
 
   </main>
 
   <footer>
-    <p>NIX CRYPTO-EXPLORER // SYSTEM V4.0 // 100% CLIENT SIDE // NO TRACKING</p>
+    <div class="footer-content">
+      <div>NIX CRYPTO-EXPLORER // OPEN SOURCE EDUCATIONAL PLATFORM</div>
+      <div style="display:flex; gap:24px;">
+        <a href="index.html" style="color:var(--c); text-decoration:none;">LAUNCH APP</a>
+        <a href="https://github.com/ctrl-Nix/Hashing-nd-Encryption-Playground" target="_blank" style="color:var(--muted); text-decoration:none;">GITHUB REPO</a>
+      </div>
+    </div>
   </footer>
 
 </body>
