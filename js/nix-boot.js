@@ -173,11 +173,14 @@
 
     await pause(800);
     
-    // Hyper-glitch sequence right before fade
-    terminal.classList.add('nix-glitch');
-    bootOverlay.style.transition = 'opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+    // Fade terminal text out first
+    terminal.style.transition = 'opacity 0.4s ease';
+    terminal.style.opacity = '0';
+    await pause(300);
+    
+    // Smoothly dissolve the entire matrix background
+    bootOverlay.style.transition = 'opacity 1.2s ease-in-out';
     bootOverlay.style.opacity = '0';
-    bootOverlay.style.transform = 'scale(1.1) translateZ(50px)';
     
     setTimeout(() => {
       bootOverlay.remove();
@@ -185,7 +188,7 @@
       clearInterval(rainAnim);
       document.body.style.overflow = '';
       window.removeEventListener('resize', resize);
-    }, 600);
+    }, 1200);
   };
 
   initBoot();
