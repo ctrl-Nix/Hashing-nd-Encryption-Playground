@@ -746,7 +746,7 @@ function initDaisy() {
     if (type === 'progress') {
       statusDot.className = 'loading';
       if (currentProgressDiv) {
-        currentProgressDiv.textContent = `Downloading Daisy's brain... ${Math.round(pct)}%`;
+        currentProgressDiv.innerHTML = `Downloading Daisy's brain... ${Math.round(pct)}%<br><span style="font-size:11px;opacity:0.7;">(Max 10 mins on stable connection)</span>`;
       }
     } else if (type === 'token') {
       if (!currentResponseDiv) {
@@ -854,7 +854,7 @@ function initDaisy() {
       currentProgressDiv = document.createElement('div');
       currentProgressDiv.className = 'daisy-msg daisy';
       currentProgressDiv.style.opacity = '0.7';
-      currentProgressDiv.textContent = "Downloading Daisy's brain... 0%";
+      currentProgressDiv.innerHTML = `Downloading Daisy's brain... 0%<br><span style="font-size:11px;opacity:0.7;">(Max 10 mins on stable connection)</span>`;
       history.appendChild(currentProgressDiv);
       history.scrollTop = history.scrollHeight;
       sendToWorker(message);
