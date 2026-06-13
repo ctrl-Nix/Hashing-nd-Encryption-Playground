@@ -739,6 +739,7 @@ function initDaisy() {
   let currentResponseDiv = null;
   let modelLoaded = false;
   let modelLoading = false;
+  let isGenerating = false;
   let currentProgressDiv = null;
   let currentMessageQueue = [];
 
@@ -763,8 +764,6 @@ function initDaisy() {
         modelLoaded = true;
         modelLoading = false;
         statusDot.className = 'ready';
-        sendBtn.style.display = 'none';
-        stopBtn.style.display = 'block';
       }
       currentResponseDiv.textContent += text;
       history.scrollTop = history.scrollHeight;
@@ -776,6 +775,7 @@ function initDaisy() {
       }
 
     } else if (type === 'done') {
+      isGenerating = false;
       sendBtn.style.display = 'block';
       stopBtn.style.display = 'none';
       if (!widget.classList.contains('daisy-dizzy')) {
@@ -800,10 +800,11 @@ function initDaisy() {
       }
 
     } else if (type === 'error') {
+      isGenerating = false;
+      sendBtn.style.display = 'block';
+      stopBtn.style.display = 'none';
       if (e.data.error === 'stopped_by_user') {
         currentResponseDiv = null;
-        sendBtn.style.display = 'block';
-        stopBtn.style.display = 'none';
         widget.classList.remove('daisy-think');
         widget.classList.add('daisy-idle');
         setDaisyExpression('idle');
@@ -816,8 +817,6 @@ function initDaisy() {
       }
       modelLoading = false;
       statusDot.className = '';
-      sendBtn.style.display = 'block';
-      stopBtn.style.display = 'none';
       
       const key = window.DaisyContext.currentAlgo !== 'none' 
         ? window.DaisyContext.currentAlgo 
@@ -838,6 +837,9 @@ function initDaisy() {
   });
 
   function sendToWorker(message) {
+    isGenerating = true;
+    sendBtn.style.display = 'none';
+    stopBtn.style.display = 'block';
     worker.postMessage({
       type: 'generate',
       text: message,
@@ -876,7 +878,7 @@ function initDaisy() {
       history.appendChild(currentProgressDiv);
       history.scrollTop = history.scrollHeight;
       sendToWorker(message);
-    } else if (modelLoading || currentResponseDiv) {
+    } else if (modelLoading || isGenerating) {
       currentMessageQueue.push(message);
     } else {
       sendToWorker(message);
@@ -889,6 +891,14 @@ function initDaisy() {
 
   stopBtn.addEventListener('click', () => {
     worker.postMessage({ type: 'stop' });
+    isGenerating = false;
+    sendBtn.style.display = 'block';
+    stopBtn.style.display = 'none';
+    if (widget.classList.contains('daisy-think')) {
+      widget.classList.remove('daisy-think');
+      widget.classList.add('daisy-idle');
+      setDaisyExpression('idle');
+    }
   });
 
   input.addEventListener('keydown', (e) => {
