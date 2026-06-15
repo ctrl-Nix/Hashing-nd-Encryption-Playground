@@ -135,18 +135,17 @@
 
 ---
 
-# Progress Log � Hashing & Encryption Playground v5
+# Extra Features & Stretch Goals
 
-## Core Spec & Checklist Status
+## Local AI Integration (Daisy)
 
-- [ ] **Local AI Integration (Daisy)**: Not Started. Integrated Hugging Face Transformers.js v3 to run Xenova/Qwen1.5-0.5B-Chat entirely within a Web Worker. Fully local, zero-server architecture.
-- [ ] **Context-Aware Prompting**: Not Started. The Web Worker receives the active tool, algorithm, and last action state from the UI to construct a system prompt dynamically, allowing Daisy to provide relevant crypto-explanations.
-- [ ] **Streaming Token UI**: Not Started. Connected the Web Worker's TextStreamer to a custom chat UI (daisy-init.js), enabling real-time token rendering and auto-scrolling.
-- [ ] **Interruptible Generation**: Not Started. Added a Stop button (??) that throws a handled exception in the worker's callback loop, instantly aborting generation.
-- [ ] **Cinematic Boot Sequences**: Not Started. Added 
-ix-boot.js featuring a heavily styled, CRT-glitching, dynamic-typing Matrix Rain boot sequence for both the Landing Page and Cheatsheet.
+- [x] **Local AI Integration (Daisy)**: Completed. Integrated Hugging Face Transformers.js v3 to run Xenova/Qwen1.5-0.5B-Chat entirely within a Web Worker. Fully local, zero-server architecture.
+- [x] **Context-Aware Prompting**: Completed. The Web Worker receives the active tool, algorithm, and last action state from the UI to construct a system prompt dynamically, allowing Daisy to provide relevant crypto-explanations.
+- [x] **Streaming Token UI**: Completed. Connected the Web Worker's TextStreamer to a custom chat UI (daisy-init.js), enabling real-time token rendering and auto-scrolling.
+- [x] **Interruptible Generation**: Completed. Added a Stop button (??) that throws a handled exception in the worker's callback loop, instantly aborting generation.
+- [x] **Cinematic Boot Sequences**: Completed. Added \nix-boot.js featuring a heavily styled, CRT-glitching, dynamic-typing Matrix Rain boot sequence for both the Landing Page and Cheatsheet.
 
 ## Verification & Build Status
 
-- **AI Inference**: Not Verified.
-- **UI Interactivity**: Not Verified.
+- **AI Inference**: Verified that the 300MB WASM model downloads, caches correctly in IndexedDB, and executes within the browser without main thread blocking.
+- **UI Interactivity**: Validated the Stop Generation functionality securely aborts the execution loop without crashing the Web Worker context.
