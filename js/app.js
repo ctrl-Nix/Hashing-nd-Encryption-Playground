@@ -45,19 +45,19 @@ const AchievementSystem = {
     }
     el.innerHTML = `<div style="font-size:10px;letter-spacing:3px;color:var(--muted);margin-bottom:6px;">ACHIEVEMENT UNLOCKED</div><div style="display:flex;align-items:center;gap:12px;"><span style="font-size:28px;">${badge.icon}</span><div><div style="font-weight:700;color:var(--bright);margin-bottom:2px;">${badge.name}</div><div style="font-size:11px;color:var(--muted);">${badge.desc}</div></div></div>`;
     document.body.appendChild(el);
-    setTimeout(() => { el.style.transition='opacity 0.4s'; el.style.opacity='0'; setTimeout(()=>el.parentNode&&el.parentNode.removeChild(el),400); }, 4000);
+    setTimeout(() => { el.style.transition = 'opacity 0.4s'; el.style.opacity = '0'; setTimeout(() => el.parentNode && el.parentNode.removeChild(el), 400); }, 4000);
   }
 };
 AchievementSystem.init();
 
 const Leaderboard = {
   stats: { toolsRun: 0, bytesHashed: 0, msgsEncrypted: 0 },
-  init: () => { const s = localStorage.getItem('nix_stats'); if(s) Leaderboard.stats = JSON.parse(s); },
+  init: () => { const s = localStorage.getItem('nix_stats'); if (s) Leaderboard.stats = JSON.parse(s); },
   save: () => { localStorage.setItem('nix_stats', JSON.stringify(Leaderboard.stats)); },
   track: (type, val) => {
-    if(type === 'tool') Leaderboard.stats.toolsRun++;
-    if(type === 'hash') Leaderboard.stats.bytesHashed += val;
-    if(type === 'enc') Leaderboard.stats.msgsEncrypted++;
+    if (type === 'tool') Leaderboard.stats.toolsRun++;
+    if (type === 'hash') Leaderboard.stats.bytesHashed += val;
+    if (type === 'enc') Leaderboard.stats.msgsEncrypted++;
     Leaderboard.save();
   }
 };
@@ -91,20 +91,20 @@ const App = {
     App.stopMD5Crack();
     App.S.alias = '';
     App.S.lab = { algo: 'SHA-256', hmacAlgo: 'SHA-256', stegoImg: null, encMode: 'enc', fileObj: null, fileName: '' };
-    App.S.story = { step:0, maxStep: parseInt(localStorage.getItem('nix_story_max')) || 0, algo:'SHA-256', pwd:'', hashHex:'', hashBits:'', cipherData:null, tampered:false, score:0 };
+    App.S.story = { step: 0, maxStep: parseInt(localStorage.getItem('nix_story_max')) || 0, algo: 'SHA-256', pwd: '', hashHex: '', hashBits: '', cipherData: null, tampered: false, score: 0 };
     document.querySelectorAll('input:not([type=button]), textarea').forEach(el => el.value = '');
-    ['lab-hash-result','lab-enc-result','rsa-keys-area','rsa-enc-res','rsa-dec-res','salt-demo-area','lab-hmac-result','lab-stego-result', 'crack-progress-area', 'crack-result-area'].forEach(id => { const el = document.getElementById(id); if(el) el.style.display='none'; });
-    const nz = document.getElementById('story-next-zone'); if(nz) nz.innerHTML = '';
-    const nameEl = document.getElementById('drop-filename'); if(nameEl) nameEl.innerText = '';
-    const clearBtn = document.getElementById('btn-clear-file'); if(clearBtn) clearBtn.style.display = 'none';
+    ['lab-hash-result', 'lab-enc-result', 'rsa-keys-area', 'rsa-enc-res', 'rsa-dec-res', 'salt-demo-area', 'lab-hmac-result', 'lab-stego-result', 'crack-progress-area', 'crack-result-area'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+    const nz = document.getElementById('story-next-zone'); if (nz) nz.innerHTML = '';
+    const nameEl = document.getElementById('drop-filename'); if (nameEl) nameEl.innerText = '';
+    const clearBtn = document.getElementById('btn-clear-file'); if (clearBtn) clearBtn.style.display = 'none';
   },
 
   goHome: () => { App.resetState(); App.show('screen-title'); },
 
   copyVal: (id, btn) => {
     const el = document.getElementById(id);
-    if(!el) return;
-    navigator.clipboard.writeText(el.innerText).catch(()=>{});
+    if (!el) return;
+    navigator.clipboard.writeText(el.innerText).catch(() => { });
     btn.classList.add('copied');
     const txt = btn.querySelector('.copy-text');
     const ico = btn.querySelector('.copy-icon');
@@ -125,16 +125,16 @@ const App = {
 
   flash: id => {
     const el = document.getElementById(id);
-    if(!el) return;
+    if (!el) return;
     el.classList.remove('glitch-flash');
     void el.offsetWidth; // Trigger reflow
     el.classList.add('glitch-flash');
   },
 
   /* ─── LAB ─── */
-  startLab: () => { 
-    App.resetState(); 
-    App.show('screen-lab'); 
+  startLab: () => {
+    App.resetState();
+    App.show('screen-lab');
     App.setupDropZone();
     App.setupStegoDropZone();
     App.updateCrackTargetHash();
@@ -143,7 +143,7 @@ const App = {
 
   exportTelemetry: (module) => {
     let data = { timestamp: new Date().toISOString(), module };
-    
+
     if (module === 'hash') {
       data.algorithm = App.S.lab.algo;
       data.input = document.getElementById('lab-hash-in').value || 'File: ' + App.S.lab.fileName;
@@ -183,21 +183,21 @@ const App = {
 
   switchLabTab: tab => {
     document.querySelectorAll('.lab-tab').forEach(b => b.classList.remove('active'));
-    const btn = document.getElementById('btn-tab-'+tab);
-    if(btn) btn.classList.add('active');
+    const btn = document.getElementById('btn-tab-' + tab);
+    if (btn) btn.classList.add('active');
     document.querySelectorAll('.lab-panel').forEach(p => p.classList.remove('active'));
-    const panel = document.getElementById('lab-'+tab);
-    if(panel) panel.classList.add('active');
-    
+    const panel = document.getElementById('lab-' + tab);
+    if (panel) panel.classList.add('active');
+
     const tabsEl = document.querySelector('.lab-tabs');
     if (tabsEl) {
       window.scrollTo({ top: tabsEl.offsetTop - 40, behavior: 'smooth' });
     }
-    
+
     if (['ecdh', 'ecdsa', 'rsa', 'hmac'].includes(tab) && !localStorage.getItem('explainer_' + tab)) {
-      if(window.showExplainer) window.showExplainer(tab);
+      if (window.showExplainer) window.showExplainer(tab);
     }
-    
+
     // Hacker Goggles Logic
     const goggles = document.getElementById('daisy-accessory-hacker');
     if (goggles) {
@@ -211,29 +211,29 @@ const App = {
 
   setupDropZone: () => {
     const zone = document.getElementById('drop-zone');
-    if(!zone || zone.dataset.init) return;
-    
+    if (!zone || zone.dataset.init) return;
+
     const input = document.getElementById('file-input');
     zone.onclick = () => input.click();
-    
+
     zone.ondragover = (e) => { e.preventDefault(); zone.classList.add('hover'); };
     zone.ondragleave = () => zone.classList.remove('hover');
     zone.ondrop = (e) => {
       e.preventDefault();
       zone.classList.remove('hover');
-      if(e.dataTransfer.files.length) App.handleFile(e.dataTransfer.files[0]);
+      if (e.dataTransfer.files.length) App.handleFile(e.dataTransfer.files[0]);
     };
     input.onchange = (e) => {
-      if(e.target.files.length) App.handleFile(e.target.files[0]);
+      if (e.target.files.length) App.handleFile(e.target.files[0]);
     };
-    
+
     const textIn = document.getElementById('lab-hash-in');
     if (textIn) {
       textIn.addEventListener('input', () => {
         App.clearLabFile();
       });
     }
-    
+
     zone.dataset.init = "true";
   },
 
@@ -241,27 +241,27 @@ const App = {
     App.S.lab.fileObj = file;
     App.S.lab.fileName = file.name;
     const nameEl = document.getElementById('drop-filename');
-    nameEl.innerText = `${file.name} (${(file.size/1024/1024).toFixed(2)} MB)`;
+    nameEl.innerText = `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
     const textIn = document.getElementById('lab-hash-in');
-    if(textIn) textIn.value = ""; 
+    if (textIn) textIn.value = "";
     const clearBtn = document.getElementById('btn-clear-file');
-    if(clearBtn) clearBtn.style.display = 'block';
+    if (clearBtn) clearBtn.style.display = 'block';
   },
 
   clearLabFile: (e) => {
-    if(e) e.stopPropagation();
+    if (e) e.stopPropagation();
     App.S.lab.fileObj = null;
     App.S.lab.fileName = '';
     const nameEl = document.getElementById('drop-filename');
-    if(nameEl) nameEl.innerText = '';
+    if (nameEl) nameEl.innerText = '';
     const fileInput = document.getElementById('file-input');
-    if(fileInput) fileInput.value = '';
+    if (fileInput) fileInput.value = '';
     const clearBtn = document.getElementById('btn-clear-file');
-    if(clearBtn) clearBtn.style.display = 'none';
+    if (clearBtn) clearBtn.style.display = 'none';
   },
 
   genRandomSalt: () => {
-    const salt = Array.from(crypto.getRandomValues(new Uint8Array(8))).map(b => b.toString(16).padStart(2,'0')).join('');
+    const salt = Array.from(crypto.getRandomValues(new Uint8Array(8))).map(b => b.toString(16).padStart(2, '0')).join('');
     document.getElementById('lab-hash-salt').value = salt;
   },
 
@@ -280,7 +280,7 @@ const App = {
       const fillAlgo = async (algo, outId, bitsId, lenId) => {
         try {
           const r = await CE.hash(algo, input);
-          if (document.getElementById('cmp-input').value !== input) return; 
+          if (document.getElementById('cmp-input').value !== input) return;
           document.getElementById(outId).innerText = r.hex;
           document.getElementById(lenId).innerText = r.hex.length + ' chars';
           const grid = document.getElementById(bitsId); grid.innerHTML = '';
@@ -295,7 +295,7 @@ const App = {
       };
 
       await Promise.all([
-        fillAlgo('MD5',     'cmp-md5-out',    'cmp-md5-bits',    'cmp-md5-len'),
+        fillAlgo('MD5', 'cmp-md5-out', 'cmp-md5-bits', 'cmp-md5-len'),
         fillAlgo('SHA-256', 'cmp-sha256-out', 'cmp-sha256-bits', 'cmp-sha256-len'),
         fillAlgo('SHA-512', 'cmp-sha512-out', 'cmp-sha512-bits', 'cmp-sha512-len'),
       ]);
@@ -306,7 +306,7 @@ const App = {
   setLabAlgo: algo => {
     App.S.lab.algo = algo;
     document.querySelectorAll('#lab-algo-grid .algo-card').forEach(c => c.classList.remove('selected'));
-    const card = document.getElementById('lab-'+algo); if(card) card.classList.add('selected');
+    const card = document.getElementById('lab-' + algo); if (card) card.classList.add('selected');
   },
 
   runLabHash: async () => {
@@ -314,18 +314,18 @@ const App = {
     const textInput = document.getElementById('lab-hash-in').value;
     const salt = document.getElementById('lab-hash-salt').value;
     const fileObj = App.S.lab.fileObj;
-    
-    if(!fileObj && !textInput) return alert('Enter plaintext or drop a file.');
-    
+
+    if (!fileObj && !textInput) return alert('Enter plaintext or drop a file.');
+
     document.getElementById('btn-run-hash').disabled = true;
     document.getElementById('btn-run-hash').innerText = 'PROCESSING...';
 
     const renderResult = async (r, label) => {
       const res = document.getElementById('lab-hash-result');
       res.style.display = 'block';
-      
+
       const saltDemo = document.getElementById('salt-demo-area');
-      if(salt && typeof textInput === 'string' && textInput) {
+      if (salt && typeof textInput === 'string' && textInput) {
         saltDemo.style.display = 'block';
         const rUnsalted = await CE.hash(App.S.lab.algo, textInput);
         document.getElementById('res-unsalted').innerText = rUnsalted.hex;
@@ -342,19 +342,19 @@ const App = {
       document.getElementById('lab-hash-out').innerText = r.hex;
       document.getElementById('lab-hash-time').innerText = `${r.ms}ms`;
       document.getElementById('lab-bit-count').innerText = r.bits.length;
-      
-      const grid = document.getElementById('lab-bit-grid'); 
+
+      const grid = document.getElementById('lab-bit-grid');
       grid.innerHTML = `<div style="font-family:var(--font-mono); font-size:10px; color:var(--c); margin-bottom:10px;">[ TYPE: ${label} ]</div>`;
-      for(let i=0; i<Math.min(r.bits.length,512); i++){
-        const b = document.createElement('div'); b.className = 'bit'+(r.bits[i]==='1'?' on':''); grid.appendChild(b);
+      for (let i = 0; i < Math.min(r.bits.length, 512); i++) {
+        const b = document.createElement('div'); b.className = 'bit' + (r.bits[i] === '1' ? ' on' : ''); grid.appendChild(b);
       }
-      res.scrollIntoView({ behavior:'smooth', block:'nearest' });
+      res.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       AchievementSystem.unlock('first_hash');
-      
+
       document.getElementById('btn-run-hash').disabled = false;
       document.getElementById('btn-run-hash').innerText = 'EXECUTE HASH FUNCTION';
       document.getElementById('hash-progress-area').style.display = 'none';
-      
+
       Leaderboard.track('tool');
       if (fileObj) Leaderboard.track('hash', fileObj.size);
       else Leaderboard.track('hash', new TextEncoder().encode(textInput + salt).length);
@@ -382,28 +382,28 @@ const App = {
       try {
         const r = await CE.hash(App.S.lab.algo, inputData);
         renderResult(r, salt ? 'SALTED STRING HASH' : 'STRING HASH');
-      } catch(e) { alert('Hashing Failed: ' + e.message); }
+      } catch (e) { alert('Hashing Failed: ' + e.message); }
     }
   },
 
   setLabEncMode: mode => {
     App.S.lab.encMode = mode;
-    document.getElementById('btn-mode-enc').className = 'btn'+(mode==='enc'?' btn-primary':'');
-    document.getElementById('btn-mode-dec').className = 'btn'+(mode==='dec'?' btn-primary':'');
+    document.getElementById('btn-mode-enc').className = 'btn' + (mode === 'enc' ? ' btn-primary' : '');
+    document.getElementById('btn-mode-dec').className = 'btn' + (mode === 'dec' ? ' btn-primary' : '');
     document.getElementById('lab-enc-data').value = '';
     document.getElementById('lab-enc-key').value = '';
     document.getElementById('lab-enc-result').style.display = 'none';
-    document.getElementById('lab-enc-lbl-data').innerText = mode==='enc' ? 'Plaintext Data' : 'Ciphertext Payload (Salt:IV:Cipher)';
-    document.getElementById('lab-enc-data').placeholder = mode==='enc' ? 'Enter secret payload...' : 'Paste salt:iv:cipher payload...';
-    document.getElementById('lab-enc-action').innerText = mode==='enc' ? 'EXECUTE ENCRYPTION' : 'EXECUTE DECRYPTION';
-    document.getElementById('lab-btn-paste').style.display = mode==='enc' ? 'none' : 'block';
+    document.getElementById('lab-enc-lbl-data').innerText = mode === 'enc' ? 'Plaintext Data' : 'Ciphertext Payload (Salt:IV:Cipher)';
+    document.getElementById('lab-enc-data').placeholder = mode === 'enc' ? 'Enter secret payload...' : 'Paste salt:iv:cipher payload...';
+    document.getElementById('lab-enc-action').innerText = mode === 'enc' ? 'EXECUTE ENCRYPTION' : 'EXECUTE DECRYPTION';
+    document.getElementById('lab-btn-paste').style.display = mode === 'enc' ? 'none' : 'block';
   },
 
   runLabEnc: async () => {
     App.flash('lab-enc');
     const data = document.getElementById('lab-enc-data').value;
     const pass = document.getElementById('lab-enc-key').value;
-    if(!data||!pass) return alert('Provide data and passphrase.');
+    if (!data || !pass) return alert('Provide data and passphrase.');
 
     // Proactive Hint Intercept
     if (App.S.lab.encMode === 'dec' && typeof window.DaisyContext !== 'undefined') {
@@ -412,7 +412,7 @@ const App = {
         if (window.setDaisyState) window.setDaisyState('warn');
         if (window.typewriteBubble) window.typewriteBubble("Hey! Hex strings need an even number of characters. Check your spacing!");
         if (window.playAlert) window.playAlert();
-        
+
         document.getElementById('lab-enc-data').classList.add('daisy-highlight');
         setTimeout(() => document.getElementById('lab-enc-data').classList.remove('daisy-highlight'), 3000);
         return; // Stop execution
@@ -420,13 +420,13 @@ const App = {
     }
     const action = document.getElementById('lab-enc-action');
     const resBox = document.getElementById('lab-enc-result');
-    const outEl  = document.getElementById('lab-enc-out');
+    const outEl = document.getElementById('lab-enc-out');
     const dbgKey = document.getElementById('lab-debug-key');
     action.disabled = true;
     action.innerText = 'PROCESSING PBKDF2 (100K ITERATIONS)...';
     resBox.style.display = 'block';
     setTimeout(async () => {
-      if(App.S.lab.encMode === 'enc') {
+      if (App.S.lab.encMode === 'enc') {
         const r = await CE.encrypt(data, pass);
         document.getElementById('lab-enc-lbl-res').innerText = 'GENERATED PAYLOAD (SALT:IV:CIPHER)';
         document.getElementById('lab-enc-time').innerText = `${r.ms}ms`;
@@ -447,7 +447,7 @@ const App = {
           outEl.innerText = r.plain;
           dbgKey.innerText = r.key;
           document.getElementById('lab-btn-copy').style.display = 'flex';
-        } catch(e) {
+        } catch (e) {
           document.getElementById('lab-enc-lbl-res').innerText = 'DECRYPTION ERROR';
           document.getElementById('lab-enc-time').innerText = '';
           outEl.className = 'readout readout-red';
@@ -457,8 +457,8 @@ const App = {
         }
       }
       action.disabled = false;
-      action.innerText = App.S.lab.encMode==='enc' ? 'EXECUTE ENCRYPTION' : 'EXECUTE DECRYPTION';
-      resBox.scrollIntoView({ behavior:'smooth', block:'nearest' });
+      action.innerText = App.S.lab.encMode === 'enc' ? 'EXECUTE ENCRYPTION' : 'EXECUTE DECRYPTION';
+      resBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }, 60);
   },
 
@@ -481,7 +481,7 @@ const App = {
   runRSAEncrypt: async () => {
     const plain = document.getElementById('rsa-enc-in').value;
     const pubKey = document.getElementById('rsa-enc-key').value.trim();
-    if(!plain || !pubKey) return alert('Enter message and public key.');
+    if (!plain || !pubKey) return alert('Enter message and public key.');
     try {
       const r = await CE.rsaEncrypt(plain, pubKey);
       document.getElementById('rsa-cipher-out').innerText = r.cipher;
@@ -494,7 +494,7 @@ const App = {
   runRSADecrypt: async () => {
     const cipher = document.getElementById('rsa-dec-in').value.trim();
     const privKey = document.getElementById('rsa-dec-key').value.trim();
-    if(!cipher || !privKey) return alert('Enter ciphertext and private key.');
+    if (!cipher || !privKey) return alert('Enter ciphertext and private key.');
     try {
       const r = await CE.rsaDecrypt(cipher, privKey);
       document.getElementById('rsa-plain-out').innerText = r.plain;
@@ -506,11 +506,11 @@ const App = {
   setHMACAlgo: algo => {
     App.S.lab.hmacAlgo = algo;
     document.querySelectorAll('#hmac-algo-grid .algo-card').forEach(c => c.classList.remove('selected'));
-    const card = document.getElementById('hmac-'+algo); if(card) card.classList.add('selected');
+    const card = document.getElementById('hmac-' + algo); if (card) card.classList.add('selected');
   },
 
   genHMACKey: () => {
-    const key = Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b => b.toString(16).padStart(2,'0')).join('');
+    const key = Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b => b.toString(16).padStart(2, '0')).join('');
     document.getElementById('hmac-key').value = key;
   },
 
@@ -518,20 +518,20 @@ const App = {
     App.flash('lab-hmac');
     const data = document.getElementById('hmac-data').value;
     const key = document.getElementById('hmac-key').value;
-    if(!data || !key) return alert('Provide both a message and a secret key.');
-    
+    if (!data || !key) return alert('Provide both a message and a secret key.');
+
     try {
       const r = await CE.hmac(App.S.lab.hmacAlgo, key, data);
       const res = document.getElementById('lab-hmac-result');
       res.style.display = 'block';
       document.getElementById('lab-hmac-out').innerText = r.hex;
       document.getElementById('lab-hmac-time').innerText = `${r.ms}ms`;
-      
+
       const timingDemo = document.getElementById('lab-hmac-timing-demo');
       if (timingDemo) timingDemo.style.display = 'block';
 
-      res.scrollIntoView({ behavior:'smooth', block:'nearest' });
-    } catch(e) { alert('HMAC Generation Failed: ' + e.message); }
+      res.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } catch (e) { alert('HMAC Generation Failed: ' + e.message); }
   },
 
   runTimingAttackDemo: async (mode) => {
@@ -544,7 +544,7 @@ const App = {
     resBox.style.display = 'block';
     document.getElementById('timing-type').innerText = mode.toUpperCase();
     document.getElementById('timing-type').style.color = mode === 'safe' ? 'var(--c3, #00ff88)' : 'var(--c2, #ff003c)';
-    
+
     const logBox = document.getElementById('timing-log');
     logBox.innerHTML = 'Initiating server comparison...<br>';
     const bar = document.getElementById('timing-bar');
@@ -554,7 +554,7 @@ const App = {
 
     const delayPerChar = 20;
     let matchCount = 0;
-    
+
     const startTime = performance.now();
 
     const compareChar = async () => {
@@ -564,7 +564,7 @@ const App = {
     if (mode === 'naive') {
       for (let i = 0; i < validHex.length; i++) {
         await compareChar();
-        bar.style.width = Math.min(((i+1) / validHex.length) * 100, 100) + '%';
+        bar.style.width = Math.min(((i + 1) / validHex.length) * 100, 100) + '%';
         if (i >= forgedHex.length || validHex[i] !== forgedHex[i]) {
           logBox.innerHTML += `<span style="color:var(--c2, #ff003c);">[FAIL]</span> Mismatch at index ${i} (Got: ${forgedHex[i] || 'EOF'}). Connection closed.<br>`;
           break;
@@ -577,7 +577,7 @@ const App = {
       let isMismatch = false;
       for (let i = 0; i < validHex.length; i++) {
         await compareChar();
-        bar.style.width = Math.min(((i+1) / validHex.length) * 100, 100) + '%';
+        bar.style.width = Math.min(((i + 1) / validHex.length) * 100, 100) + '%';
         if (i >= forgedHex.length || validHex[i] !== forgedHex[i]) {
           isMismatch = true;
         }
@@ -592,24 +592,24 @@ const App = {
 
     const elapsed = Math.round(performance.now() - startTime);
     document.getElementById('timing-ms').innerText = `${elapsed}ms`;
-    
+
     if (mode === 'naive' && matchCount > 0) {
       logBox.innerHTML += `<br><span style="color:var(--c, #00f5ff);">[ATTACKER INTEL]</span> The server took ${elapsed}ms. We know the first ${matchCount} chars are correct!`;
     }
-    
+
     logBox.scrollTop = logBox.scrollHeight;
   },
 
   /* ─── STEGANOGRAPHY LAB ─── */
   setupStegoDropZone: () => {
     const zone = document.getElementById('stego-drop-zone');
-    if(!zone || zone.dataset.init) return;
+    if (!zone || zone.dataset.init) return;
     const input = document.getElementById('stego-file-input');
     zone.onclick = () => input.click();
     zone.ondragover = (e) => { e.preventDefault(); zone.classList.add('hover'); };
     zone.ondragleave = () => zone.classList.remove('hover');
-    zone.ondrop = (e) => { e.preventDefault(); zone.classList.remove('hover'); if(e.dataTransfer.files.length) App.handleStegoFile(e.dataTransfer.files[0]); };
-    input.onchange = (e) => { if(e.target.files.length) App.handleStegoFile(e.target.files[0]); };
+    zone.ondrop = (e) => { e.preventDefault(); zone.classList.remove('hover'); if (e.dataTransfer.files.length) App.handleStegoFile(e.dataTransfer.files[0]); };
+    input.onchange = (e) => { if (e.target.files.length) App.handleStegoFile(e.target.files[0]); };
     zone.dataset.init = "true";
   },
 
@@ -634,41 +634,41 @@ const App = {
   runLabStegoEncode: () => {
     const canvas = document.getElementById('stego-canvas');
     const payload = document.getElementById('stego-payload').value;
-    if(!App.S.lab.stegoImg || !payload) return alert('Upload an image and enter a payload.');
-    
+    if (!App.S.lab.stegoImg || !payload) return alert('Upload an image and enter a payload.');
+
     try {
       const ctx = canvas.getContext('2d');
       const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const r = CE.stegoEncode(imgData.data, payload);
       ctx.putImageData(imgData, 0, 0);
-      
+
       const link = document.createElement('a');
       link.download = 'secret_carrier.png';
       link.href = canvas.toDataURL('image/png');
       link.click();
       alert(`Success! Data encoded in ${r.ms}ms. Downloaded as secret_carrier.png`);
-    } catch(e) { alert(e.message); }
+    } catch (e) { alert(e.message); }
   },
 
   runLabStegoDecode: () => {
-    if(!App.S.lab.stegoImg) return alert('Upload the carrier image first.');
+    if (!App.S.lab.stegoImg) return alert('Upload the carrier image first.');
     const canvas = document.getElementById('stego-canvas');
     const ctx = canvas.getContext('2d');
     const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const r = CE.stegoDecode(imgData.data);
-    
+
     const res = document.getElementById('lab-stego-result');
     res.style.display = 'block';
     document.getElementById('lab-stego-out').innerText = r.plain || '[ EMPTY OR CORRUPTED ]';
     document.getElementById('lab-stego-time').innerText = `${r.ms}ms`;
-    res.scrollIntoView({ behavior:'smooth', block:'nearest' });
+    res.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   },
 
   /* ─── STORY ─── */
   openAliasScreen: () => { App.resetState(); App.show('screen-alias'); setTimeout(() => document.getElementById('op-alias-input').focus(), 300); },
   submitAlias: () => {
     const alias = document.getElementById('op-alias-input').value.trim();
-    if(!alias) return alert('Alias required.');
+    if (!alias) return alert('Alias required.');
     App.S.alias = alias;
     document.getElementById('hud-alias-display').innerText = alias;
     App.setupKeyboardAccessibility();
@@ -686,10 +686,10 @@ const App = {
     const rainAnim = setInterval(() => {
       ctx.fillStyle = 'rgba(0,0,0,0.04)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = 'rgba(0,245,255,0.6)'; ctx.font = '14px monospace';
-      drops.forEach((y,i) => {
-        ctx.fillText(chars[Math.floor(Math.random()*chars.length)], i*20, y*20);
-        if(y*20>canvas.height && Math.random()>0.975) drops[i]=0;
+      ctx.fillStyle = 'rgba(0, 102, 255, 0.8)'; ctx.font = '14px monospace';
+      drops.forEach((y, i) => {
+        ctx.fillText(chars[Math.floor(Math.random() * chars.length)], i * 20, y * 20);
+        if (y * 20 > canvas.height && Math.random() > 0.975) drops[i] = 0;
         drops[i]++;
       });
     }, 50);
@@ -698,59 +698,59 @@ const App = {
     term.innerHTML = '';
     const pause = ms => new Promise(r => setTimeout(r, ms));
 
-    const typeEl = (el, txt, speed=14) => new Promise(r => {
-      let i=0;
+    const typeEl = (el, txt, speed = 14) => new Promise(r => {
+      let i = 0;
       const tick = setInterval(() => {
-        el.textContent += txt[i++]||'';
-        if(i>=txt.length) { clearInterval(tick); r(); }
+        el.textContent += txt[i++] || '';
+        if (i >= txt.length) { clearInterval(tick); r(); }
       }, speed);
     });
 
-    const glitch = async (el, times=2) => {
+    const glitch = async (el, times = 2) => {
       const pool = '!<>-_\/[]{}—=+*^?#XQZW01'; const orig = el.textContent;
-      for(let g=0;g<times;g++){
-        el.textContent = orig.split('').map(c=>c===' '?' ':pool[Math.floor(Math.random()*pool.length)]).join('');
-        await pause(50); el.textContent=orig; await pause(35);
+      for (let g = 0; g < times; g++) {
+        el.textContent = orig.split('').map(c => c === ' ' ? ' ' : pool[Math.floor(Math.random() * pool.length)]).join('');
+        await pause(50); el.textContent = orig; await pause(35);
       }
     };
 
-    const addSysLine = async (txt, spd=13) => {
+    const addSysLine = async (txt, spd = 13) => {
       const row = document.createElement('div');
       row.style.cssText = 'display:flex;align-items:baseline;gap:12px;margin-bottom:4px;opacity:0;transition:opacity 0.3s;';
-      const badge = document.createElement('span'); badge.className='ct-sys'; badge.textContent='[SYS]';
-      const span = document.createElement('span'); span.style.color='rgba(61,79,97,0.9)'; span.style.fontFamily='var(--font-mono)'; span.style.fontSize='13px';
+      const badge = document.createElement('span'); badge.className = 'ct-sys'; badge.textContent = '[SYS]';
+      const span = document.createElement('span'); span.style.color = 'rgba(61,79,97,0.9)'; span.style.fontFamily = 'var(--font-mono)'; span.style.fontSize = '13px';
       row.appendChild(badge); row.appendChild(span); term.appendChild(row);
-      requestAnimationFrame(()=>row.style.opacity='1');
+      requestAnimationFrame(() => row.style.opacity = '1');
       await typeEl(span, txt, spd);
       return span;
     };
 
-    const addNixLine = async (txt, spd=18, color='#c8d6e5') => {
+    const addNixLine = async (txt, spd = 18, color = '#c8d6e5') => {
       const row = document.createElement('div');
       row.style.cssText = 'display:flex;align-items:flex-start;gap:16px;margin-bottom:8px;opacity:0;transition:opacity 0.35s;';
-      const badge = document.createElement('div'); badge.className='ct-nix-badge';
-      const dot = document.createElement('div'); dot.className='ct-nix-badge-dot';
+      const badge = document.createElement('div'); badge.className = 'ct-nix-badge';
+      const dot = document.createElement('div'); dot.className = 'ct-nix-badge-dot';
       badge.appendChild(dot); badge.appendChild(document.createTextNode('NIX'));
       const span = document.createElement('span');
       span.style.cssText = `color:${color};font-family:var(--font-mono);font-size:15px;line-height:2.2;padding-top:2px;`;
       row.appendChild(badge); row.appendChild(span); term.appendChild(row);
-      requestAnimationFrame(()=>row.style.opacity='1');
+      requestAnimationFrame(() => row.style.opacity = '1');
       await typeEl(span, txt, spd);
       return span;
     };
 
-    const spacer = h => { const d = document.createElement('div'); d.style.height=h+'px'; term.appendChild(d); };
+    const spacer = h => { const d = document.createElement('div'); d.style.height = h + 'px'; term.appendChild(d); };
     const divider = async () => {
       const d = document.createElement('div');
-      d.style.cssText='height:1px;background:linear-gradient(90deg,transparent,rgba(0,245,255,0.2),transparent);margin:20px 0;opacity:0;transition:opacity 0.5s;';
-      term.appendChild(d); requestAnimationFrame(()=>d.style.opacity='1'); await pause(300);
+      d.style.cssText = 'height:1px;background:linear-gradient(90deg,transparent,rgba(0,245,255,0.2),transparent);margin:20px 0;opacity:0;transition:opacity 0.5s;';
+      term.appendChild(d); requestAnimationFrame(() => d.style.opacity = '1'); await pause(300);
     };
 
     // PHASE 1: Boot (Use StoryData)
     spacer(20);
-    for(const l of StoryData.bootSequence) {
-      await addSysLine(l, 8+Math.random()*8);
-      await pause(30+Math.random()*40);
+    for (const l of StoryData.bootSequence) {
+      await addSysLine(l, 8 + Math.random() * 8);
+      await pause(30 + Math.random() * 40);
     }
     await pause(200);
     await divider();
@@ -764,11 +764,11 @@ const App = {
     await pause(180);
 
     const pbRow = document.createElement('div');
-    pbRow.style.cssText='font-family:var(--font-mono);font-size:12px;color:rgba(61,79,97,0.8);margin:4px 0 8px;';
+    pbRow.style.cssText = 'font-family:var(--font-mono);font-size:12px;color:rgba(61,79,97,0.8);margin:4px 0 8px;';
     term.appendChild(pbRow);
-    for(let p=0;p<=100;p+=4) {
-      const f=Math.floor(p/4);
-      pbRow.innerHTML = `<span style="color:rgba(61,79,97,0.5)">  [</span><span style="color:var(--c)">${'█'.repeat(f)}</span><span style="color:rgba(61,79,97,0.3)">${'·'.repeat(25-f)}</span><span style="color:rgba(61,79,97,0.5)">] </span><span style="color:rgba(0,245,255,0.7)">${p}% HANDSHAKE</span>`;
+    for (let p = 0; p <= 100; p += 4) {
+      const f = Math.floor(p / 4);
+      pbRow.innerHTML = `<span style="color:rgba(61,79,97,0.5)">  [</span><span style="color:var(--c)">${'█'.repeat(f)}</span><span style="color:rgba(61,79,97,0.3)">${'·'.repeat(25 - f)}</span><span style="color:rgba(61,79,97,0.5)">] </span><span style="color:rgba(0,245,255,0.7)">${p}% HANDSHAKE</span>`;
       await pause(18);
     }
     pbRow.innerHTML = `<span style="color:var(--c3)">  [█████████████████████████] 100% — CONNECTION ESTABLISHED ✓</span>`;
@@ -777,130 +777,130 @@ const App = {
     await addSysLine('Firewall bypassed. Auth token forged. Tunnel is LIVE.', 10);
     await pause(500);
 
-    for(let f=0;f<6;f++){
-      term.style.filter = f%2===0 ? `brightness(${1.3+Math.random()*0.5}) hue-rotate(${Math.random()*30}deg)` : '';
+    for (let f = 0; f < 6; f++) {
+      term.style.filter = f % 2 === 0 ? `brightness(${1.3 + Math.random() * 0.5}) hue-rotate(${Math.random() * 30}deg)` : '';
       await pause(40);
     }
-    term.style.filter='';
+    term.style.filter = '';
     await pause(200);
 
     await divider();
 
     // PHASE 3: NIX speaks (Use StoryData)
-    for(const line of StoryData.nixIntro) {
+    for (const line of StoryData.nixIntro) {
       const span = await addNixLine(line.m(App.S.alias), 18, '#d8e8f8');
-      if(line.glitch) await glitch(span, 2);
+      if (line.glitch) await glitch(span, 2);
       await pause(line.wait);
       term.scrollTop = term.scrollHeight;
     }
     await pause(400);
 
     const endDiv = document.createElement('div');
-    endDiv.style.cssText='height:1px;background:linear-gradient(90deg,transparent,rgba(0,245,255,0.15),transparent);margin:28px 0 10px;opacity:0;transition:opacity 0.5s;';
-    term.appendChild(endDiv); requestAnimationFrame(()=>endDiv.style.opacity='1');
+    endDiv.style.cssText = 'height:1px;background:linear-gradient(90deg,transparent,rgba(0,245,255,0.15),transparent);margin:28px 0 10px;opacity:0;transition:opacity 0.5s;';
+    term.appendChild(endDiv); requestAnimationFrame(() => endDiv.style.opacity = '1');
     await pause(300);
 
-    const wrap = document.createElement('div'); wrap.className='cta-wrap';
-    wrap.style.opacity='0'; wrap.style.transition='opacity 0.7s';
-    const hint = document.createElement('span'); hint.className='cta-hint';
-    hint.textContent='// awaiting hacker confirmation to begin mission ...';
-    const btn = document.createElement('button'); btn.className='cta-btn';
-    btn.innerHTML='<span>▶</span><span>&nbsp;&nbsp;JACK IN — BEGIN MISSION</span>';
+    const wrap = document.createElement('div'); wrap.className = 'cta-wrap';
+    wrap.style.opacity = '0'; wrap.style.transition = 'opacity 0.7s';
+    const hint = document.createElement('span'); hint.className = 'cta-hint';
+    hint.textContent = '// awaiting hacker confirmation to begin mission ...';
+    const btn = document.createElement('button'); btn.className = 'cta-btn';
+    btn.innerHTML = '<span>▶</span><span>&nbsp;&nbsp;JACK IN — BEGIN MISSION</span>';
     btn.onclick = async () => {
       clearInterval(rainAnim);
-      btn.style.pointerEvents='none';
-      btn.innerHTML='<span>[ ESTABLISHING NEURAL LINK... ]</span>';
+      btn.style.pointerEvents = 'none';
+      btn.innerHTML = '<span>[ ESTABLISHING NEURAL LINK... ]</span>';
       await pause(350);
-      document.getElementById('screen-cutscene').style.transition='opacity 0.6s';
-      document.getElementById('screen-cutscene').style.opacity='0';
+      document.getElementById('screen-cutscene').style.transition = 'opacity 0.6s';
+      document.getElementById('screen-cutscene').style.opacity = '0';
       await pause(650);
-      document.getElementById('screen-cutscene').style.opacity='';
-      document.getElementById('screen-cutscene').style.transition='';
-      App.S.story.step=0; App.S.story.maxStep=0;
+      document.getElementById('screen-cutscene').style.opacity = '';
+      document.getElementById('screen-cutscene').style.transition = '';
+      App.S.story.step = 0; App.S.story.maxStep = 0;
       await App.ensureStoryState();
       App.renderStory();
     };
     wrap.appendChild(hint); wrap.appendChild(btn);
-    term.appendChild(wrap); term.scrollTop=term.scrollHeight;
-    requestAnimationFrame(()=>wrap.style.opacity='1');
+    term.appendChild(wrap); term.scrollTop = term.scrollHeight;
+    requestAnimationFrame(() => wrap.style.opacity = '1');
   },
 
   ensureStoryState: async () => {
-    if(!App.S.story.pwd) {
+    if (!App.S.story.pwd) {
       App.S.story.pwd = 'MeridianAdmin99';
       const r = await CE.hash('SHA-256', App.S.story.pwd);
       App.S.story.hashHex = r.hex; App.S.story.hashBits = r.bits;
     }
-    if(App.S.story.step === 7) {
+    if (App.S.story.step === 7) {
       await App.ensureCAKeys();
     }
   },
 
   ensureCAKeys: async () => {
-    if(!App.S.story.caKeys) {
+    if (!App.S.story.caKeys) {
       App.S.story.caKeys = await CE.generateECDSA();
       App.S.story.serverKeys = await CE.generateECDSA();
     }
   },
 
   renderStoryMap: () => {
-    const titles = ['Init','Avalanche','Auth','Breach','AES-GCM','Stego','Forger','Authority','Eval'];
+    const titles = ['Init', 'Avalanche', 'Auth', 'Breach', 'AES-GCM', 'Stego', 'Forger', 'Authority', 'Eval'];
     const S = App.S.story;
-    let html='';
-    for(let i=0;i<9;i++){
-      const done=i<S.maxStep, active=i===S.step, unlocked=i<=S.maxStep;
-      html+=`<div class="cm-node${done?' done':''}${active?' active':''}${unlocked?' unlocked':''}" ${unlocked?`onclick="App.jumpToStory(${i})"`:''} tabindex="${unlocked?'0':'-1'}" role="button">
+    let html = '';
+    for (let i = 0; i < 9; i++) {
+      const done = i < S.maxStep, active = i === S.step, unlocked = i <= S.maxStep;
+      html += `<div class="cm-node${done ? ' done' : ''}${active ? ' active' : ''}${unlocked ? ' unlocked' : ''}" ${unlocked ? `onclick="App.jumpToStory(${i})"` : ''} tabindex="${unlocked ? '0' : '-1'}" role="button">
         <div class="cm-diamond"></div><div class="cm-lbl">${titles[i]}</div>
       </div>`;
-      if(i<8) html+=`<div class="cm-line${done?' done':''}"></div>`;
+      if (i < 8) html += `<div class="cm-line${done ? ' done' : ''}"></div>`;
     }
-    document.getElementById('story-map').innerHTML=html;
+    document.getElementById('story-map').innerHTML = html;
   },
 
   jumpToStory: async idx => {
-    if(idx<=App.S.story.maxStep){ App.S.story.step=idx; await App.ensureStoryState(); App.renderStory(); }
+    if (idx <= App.S.story.maxStep) { App.S.story.step = idx; await App.ensureStoryState(); App.renderStory(); }
   },
 
   showNextBtn: nextIdx => {
-    if(App.S.story.maxStep<nextIdx) {
-      App.S.story.maxStep=nextIdx;
+    if (App.S.story.maxStep < nextIdx) {
+      App.S.story.maxStep = nextIdx;
       localStorage.setItem('nix_story_max', nextIdx);
     }
     App.renderStoryMap();
-    const zone=document.getElementById('story-next-zone');
-    zone.innerHTML='';
-    zone.style.cssText='margin-top:28px;border-top:1px solid var(--border);padding-top:24px;';
-    if(nextIdx===4) {
-      zone.innerHTML=`<button class="btn btn-primary btn-full" onclick="App.runStoryBreachCutscene()">PROCEED TO NEXT PHASE →</button>`;
-    } else if(nextIdx>=7) {
-      zone.innerHTML=`<button class="btn btn-success btn-full" onclick="App.goHome()">MISSION ACCOMPLISHED — RETURN TO BASE</button>`;
+    const zone = document.getElementById('story-next-zone');
+    zone.innerHTML = '';
+    zone.style.cssText = 'margin-top:28px;border-top:1px solid var(--border);padding-top:24px;';
+    if (nextIdx === 4) {
+      zone.innerHTML = `<button class="btn btn-primary btn-full" onclick="App.runStoryBreachCutscene()">PROCEED TO NEXT PHASE →</button>`;
+    } else if (nextIdx >= 7) {
+      zone.innerHTML = `<button class="btn btn-success btn-full" onclick="App.goHome()">MISSION ACCOMPLISHED — RETURN TO BASE</button>`;
     } else {
-      zone.innerHTML=`<button class="btn btn-primary btn-full" onclick="App.jumpToStory(${nextIdx})">PROCEED TO NEXT PHASE →</button>`;
+      zone.innerHTML = `<button class="btn btn-primary btn-full" onclick="App.jumpToStory(${nextIdx})">PROCEED TO NEXT PHASE →</button>`;
     }
-    setTimeout(()=>zone.scrollIntoView({behavior:'smooth',block:'center'}),120);
+    setTimeout(() => zone.scrollIntoView({ behavior: 'smooth', block: 'center' }), 120);
   },
 
   renderStory: () => {
     App.show('screen-story-main');
     App.renderStoryMap();
-    
+
     const step = App.S.story.step;
     const data = StoryData.missions[step];
-    
+
     document.getElementById('story-module-name').innerText = data.module;
     document.getElementById('story-panel-title').innerText = data.title;
-    
-    const dBox=document.getElementById('story-dialogue');
-    const aBox=document.getElementById('story-action-zone');
-    document.getElementById('story-next-zone').innerHTML='';
+
+    const dBox = document.getElementById('story-dialogue');
+    const aBox = document.getElementById('story-action-zone');
+    document.getElementById('story-next-zone').innerHTML = '';
 
     // Setup Dialogue (from StoryData)
     dBox.className = `dialogue dlg-${data.dialogue.toLowerCase()}`;
     const txt = typeof data.text === 'function' ? data.text(App.S.alias) : data.text;
     dBox.innerHTML = `<div class="dlg-badge">${data.dialogue}</div><div class="dlg-text">${txt}</div>`;
 
-    if(step===0){
-      aBox.innerHTML=`
+    if (step === 0) {
+      aBox.innerHTML = `
         <span class="form-label">1. Select Hash Protocol</span>
         <div class="algo-grid" id="story-algo-grid">
           <div class="algo-card" onclick="App.selectStoryAlgo(this,'MD5')"><div class="algo-dot"></div><div><div class="algo-name">MD5</div><div class="algo-tag">BROKEN</div></div></div>
@@ -913,10 +913,10 @@ const App = {
         <div class="btn-group"><button class="btn btn-primary" onclick="App.runStoryHash()">GENERATE FINGERPRINT</button></div>
         <div id="s-hash-res" style="margin-top:20px;"></div>
       `;
-      App.S.story.algo='SHA-256';
+      App.S.story.algo = 'SHA-256';
     }
-    else if(step===1){
-      aBox.innerHTML=`
+    else if (step === 1) {
+      aBox.innerHTML = `
         <span class="form-label">Original Password (Locked)</span>
         <input class="form-input" disabled value="${App.S.story.pwd}" style="opacity:0.4;margin-bottom:4px;">
         <span class="form-label">Modified Password</span>
@@ -926,8 +926,8 @@ const App = {
       `;
       App.runStoryAvalanche(true);
     }
-    else if(step===2){
-      aBox.innerHTML=`
+    else if (step === 2) {
+      aBox.innerHTML = `
         <div class="btn-group"><button class="btn btn-danger" onclick="App.runStoryBruteForce()" id="btn-brute">INITIALIZE BRUTE FORCE SCRIPT ⚡</button></div>
         <div class="term" id="brute-term" style="display:none;margin-top:16px;"></div>
         <div id="s-log-res" style="display:none;margin-top:20px;">
@@ -938,14 +938,14 @@ const App = {
         </div>
       `;
     }
-    else if(step===3){
-      aBox.innerHTML=`
+    else if (step === 3) {
+      aBox.innerHTML = `
         <div class="btn-group"><button class="btn btn-danger" onclick="App.runStoryBruteForce()" id="btn-breach-start">[ INITIATE PERIMETER SCAN ]</button></div>
         <div class="term" id="s-breach-term" style="display:none;margin-top:16px;"></div>
       `;
     }
-    else if(step===4){
-      aBox.innerHTML=`
+    else if (step === 4) {
+      aBox.innerHTML = `
         <div style="display:flex;gap:8px;margin-bottom:24px;">
           <button class="btn btn-primary" id="s-mode-enc" onclick="App.setStoryEncMode('enc')" style="flex:1;">🔒 ENCRYPT</button>
           <button class="btn" id="id-mode-dec" onclick="App.setStoryEncMode('dec')" style="flex:1;">🔓 DECRYPT</button>
@@ -979,8 +979,8 @@ const App = {
         </div>
       `;
     }
-    else if(step===5){
-      aBox.innerHTML=`
+    else if (step === 5) {
+      aBox.innerHTML = `
         <div id="stego-story-zone" class="panel" style="padding:24px; background:rgba(0,0,0,0.4); border-style:dashed;">
           <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px;">
             <div>
@@ -1004,8 +1004,8 @@ const App = {
       `;
       App.setupStoryStegoDrop();
     }
-    else if(step===6){
-      aBox.innerHTML=`
+    else if (step === 6) {
+      aBox.innerHTML = `
         <div class="panel" style="padding:20px; background:rgba(0,0,0,0.3); border:1px dashed var(--border);">
           <span class="form-label">Message to Sign</span>
           <input type="text" class="form-input" id="s-ecdsa-msg" value="AUTHENTIC_FIRMWARE_V2.1" onkeydown="if(event.key==='Enter') App.runStoryECDSASign()">
@@ -1028,8 +1028,8 @@ const App = {
         </div>
       `;
     }
-    else if(step===7){
-      aBox.innerHTML=`
+    else if (step === 7) {
+      aBox.innerHTML = `
         <div class="panel" style="padding:20px; background:rgba(0,0,0,0.3); border: 1px dashed var(--border);">
           <span class="form-label">1. Certificate Subject (Domain)</span>
           <input type="text" class="form-input" id="s-cert-domain" value="meridian.sys" onkeydown="if(event.key==='Enter') App.runStoryIssueCert()">
@@ -1050,15 +1050,15 @@ const App = {
         <div id="s-cert-res" style="display:none; margin-top:20px;"></div>
       `;
     }
-    else if(step===8){
-      let html='';
-      StoryData.quiz.forEach((q,qi)=>{
-        html+=`<div class="panel" style="padding:20px;margin-bottom:12px;"><div style="margin-bottom:14px;font-weight:600;font-size:15px;color:var(--bright);font-family:var(--font-ui);">${q.q}</div>`;
-        q.o.forEach((opt,oi)=>html+=`<button class="quiz-opt" id="q-${qi}-${oi}" onclick="App.ansQuiz(${qi},${oi},${q.c})">${opt}</button>`);
-        html+=`</div>`;
+    else if (step === 8) {
+      let html = '';
+      StoryData.quiz.forEach((q, qi) => {
+        html += `<div class="panel" style="padding:20px;margin-bottom:12px;"><div style="margin-bottom:14px;font-weight:600;font-size:15px;color:var(--bright);font-family:var(--font-ui);">${q.q}</div>`;
+        q.o.forEach((opt, oi) => html += `<button class="quiz-opt" id="q-${qi}-${oi}" onclick="App.ansQuiz(${qi},${oi},${q.c})">${opt}</button>`);
+        html += `</div>`;
       });
-      aBox.innerHTML=html+`<div id="s-quiz-res"></div>`;
-      App.S.story.score=0;
+      aBox.innerHTML = html + `<div id="s-quiz-res"></div>`;
+      App.S.story.score = 0;
     }
   },
 
@@ -1070,13 +1070,13 @@ const App = {
 
   runStoryHash: async () => {
     const input = document.getElementById('s-hash-in').value.trim();
-    if(!input) return alert('Enter a password first.');
+    if (!input) return alert('Enter a password first.');
     App.S.story.pwd = input;
     try {
       const r = await CE.hash(App.S.story.algo, input);
       App.S.story.hashHex = r.hex;
       App.S.story.hashBits = r.bits;
-      
+
       const res = document.getElementById('s-hash-res');
       res.innerHTML = `
         <div class="readout readout-green" style="font-size:12px; margin-bottom:12px;">
@@ -1086,11 +1086,11 @@ const App = {
         <div class="bit-grid" style="max-height:100px;"></div>
       `;
       const grid = res.querySelector('.bit-grid');
-      for(let i=0; i<Math.min(r.bits.length, 256); i++) {
-        const b = document.createElement('div'); b.className = 'bit' + (r.bits[i]==='1'?' on':''); grid.appendChild(b);
+      for (let i = 0; i < Math.min(r.bits.length, 256); i++) {
+        const b = document.createElement('div'); b.className = 'bit' + (r.bits[i] === '1' ? ' on' : ''); grid.appendChild(b);
       }
       App.showNextBtn(1);
-    } catch(e) { alert('Hashing Failed: ' + e.message); }
+    } catch (e) { alert('Hashing Failed: ' + e.message); }
   },
 
   runStoryAvalanche: async (init) => {
@@ -1103,21 +1103,21 @@ const App = {
       const r = await CE.hash(App.S.story.algo, input);
       const grid = document.getElementById('s-av-grid');
       const res = document.getElementById('s-av-res');
-      if(!grid) return;
+      if (!grid) return;
       grid.innerHTML = '';
-      
+
       let diffs = 0;
       const maxBits = Math.min(r.bits.length, 256);
-      for(let i=0; i<maxBits; i++) {
+      for (let i = 0; i < maxBits; i++) {
         const b = document.createElement('div');
         const bitOn = r.bits[i] === '1';
         const isDiff = !init && r.bits[i] !== App.S.story.hashBits[i];
-        if(isDiff) diffs++;
+        if (isDiff) diffs++;
         b.className = 'bit' + (bitOn ? ' on' : '') + (isDiff ? ' diff' : '');
         grid.appendChild(b);
       }
-      
-      if(!init) {
+
+      if (!init) {
         const percent = ((diffs / maxBits) * 100).toFixed(1);
         res.innerHTML = `
           <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -1125,11 +1125,11 @@ const App = {
             <span class="status-tag ${diffs > 100 ? 'st-ok' : 'st-warn'}">${percent}% VARIANCE</span>
           </div>
         `;
-        if(input !== App.S.story.pwd && input.length > 0) App.showNextBtn(2);
+        if (input !== App.S.story.pwd && input.length > 0) App.showNextBtn(2);
       } else {
         res.innerHTML = '// Modify the password above to observe the avalanche effect.';
       }
-    } catch(e) { alert('Hashing Failed: ' + e.message); }
+    } catch (e) { alert('Hashing Failed: ' + e.message); }
   },
 
   runStoryBruteForce: async () => {
@@ -1139,22 +1139,22 @@ const App = {
     btn.disabled = true;
     term.style.display = 'block';
     term.innerHTML = '';
-    
-    const log = (txt, cls='') => {
+
+    const log = (txt, cls = '') => {
       const l = document.createElement('div'); l.className = 'tl ' + cls; l.innerHTML = txt;
       term.appendChild(l); term.scrollTop = term.scrollHeight;
     };
 
-    if(step === 2) {
+    if (step === 2) {
       log('>> INITIALIZING DICTIONARY ATTACK...', 'to');
       await new Promise(r => setTimeout(r, 600));
       const guesses = ['password', '123456', 'admin', 'qwerty', 'meridian', App.S.story.pwd];
-      for(const g of guesses) {
+      for (const g of guesses) {
         log(`TRYING: <span class="tc">${g}</span> ...`, 'to');
         const r = await CE.hash(App.S.story.algo, g);
-        log(`HASH: ${r.hex.substring(0,32)}...`, 'to');
+        log(`HASH: ${r.hex.substring(0, 32)}...`, 'to');
         await new Promise(r => setTimeout(r, 400));
-        if(g === App.S.story.pwd) {
+        if (g === App.S.story.pwd) {
           log('!! MATCH FOUND !! ACCESS GRANTED.', 'tc');
           document.getElementById('s-log-res').style.display = 'block';
           document.getElementById('s-log-db').innerHTML = `<span class="to">DB_HASH:</span> ${App.S.story.hashHex}`;
@@ -1182,13 +1182,13 @@ const App = {
     App.show('screen-cutscene');
     const term = document.getElementById('cutscene-term');
     term.innerHTML = '';
-    
-    const addLine = (txt, cls='') => {
+
+    const addLine = (txt, cls = '') => {
       const d = document.createElement('div'); d.className = cls;
-      if(cls === 'ct-nix-badge') {
-         const b = document.createElement('div'); b.className = 'ct-nix-badge';
-         b.innerHTML = '<div class="ct-nix-badge-dot"></div>NIX';
-         term.appendChild(b);
+      if (cls === 'ct-nix-badge') {
+        const b = document.createElement('div'); b.className = 'ct-nix-badge';
+        b.innerHTML = '<div class="ct-nix-badge-dot"></div>NIX';
+        term.appendChild(b);
       }
       const s = document.createElement('span'); s.style.cssText = 'color:var(--c2); font-family:var(--font-mono); font-size:15px; margin-left:12px;';
       s.textContent = txt; term.appendChild(d); d.appendChild(s);
@@ -1196,9 +1196,9 @@ const App = {
     };
 
     const addSysLine = async (txt) => {
-       const row = document.createElement('div'); row.style.marginBottom = '4px';
-       row.innerHTML = `<span class="ct-sys">[ALRT]</span> <span style="color:var(--c2); font-family:var(--font-mono);">${txt}</span>`;
-       term.appendChild(row); term.scrollTop = term.scrollHeight;
+      const row = document.createElement('div'); row.style.marginBottom = '4px';
+      row.innerHTML = `<span class="ct-sys">[ALRT]</span> <span style="color:var(--c2); font-family:var(--font-mono);">${txt}</span>`;
+      term.appendChild(row); term.scrollTop = term.scrollHeight;
     };
 
     await addSysLine('!!! CRITICAL SYSTEM ALERT !!!');
@@ -1207,7 +1207,7 @@ const App = {
     await new Promise(r => setTimeout(r, 400));
     await addSysLine('ENCRYPTION ARCHITECTURE COMPROMISED...');
     await new Promise(r => setTimeout(r, 1000));
-    
+
     const wrap = document.createElement('div'); wrap.className = 'cta-wrap';
     const btn = document.createElement('button'); btn.className = 'cta-btn';
     btn.innerHTML = '<span>⚠</span><span>&nbsp;&nbsp;EMERGENCY LOCKDOWN</span>';
@@ -1227,11 +1227,11 @@ const App = {
 
   runStoryEncrypt: async () => {
     const pass = document.getElementById('s-enc-in').value;
-    if(!pass) return alert('Create a passphrase to lock the data.');
+    if (!pass) return alert('Create a passphrase to lock the data.');
     const btn = document.getElementById('s-enc-btn');
     btn.disabled = true;
     btn.innerText = 'STRETCHING KEY (PBKDF2)...';
-    
+
     setTimeout(async () => {
       const r = await CE.encrypt('LOCKDOWN_PROTOCOL_ALPHA', pass);
       const res = document.getElementById('s-enc-res');
@@ -1255,15 +1255,15 @@ const App = {
     const payload = document.getElementById('s-standalone-payload').value.trim();
     const pass = document.getElementById('s-standalone-key').value;
     const res = document.getElementById('s-standalone-res');
-    if(!payload || !pass) return alert('Enter both the payload and the passphrase.');
-    
+    if (!payload || !pass) return alert('Enter both the payload and the passphrase.');
+
     try {
       const r = await CE.decrypt(payload, pass);
       res.innerHTML = `
         <div class="status-tag st-ok">SUCCESS</div>
         <div class="readout readout-green" style="margin-top:12px;">${r.plain}</div>
       `;
-    } catch(e) {
+    } catch (e) {
       res.innerHTML = `
         <div class="status-tag st-err">FAILED</div>
         <div class="readout readout-red" style="margin-top:12px;">${e.message}</div>
@@ -1279,22 +1279,22 @@ const App = {
 
   setupStoryStegoDrop: () => {
     const zone = document.getElementById('stego-story-drop');
-    if(!zone) return;
+    if (!zone) return;
     zone.ondragover = (e) => { e.preventDefault(); zone.classList.add('hover'); };
     zone.ondragleave = () => zone.classList.remove('hover');
     zone.ondrop = (e) => {
       e.preventDefault(); zone.classList.remove('hover');
-      if(e.dataTransfer.files.length) {
+      if (e.dataTransfer.files.length) {
         const reader = new FileReader();
         reader.onload = (ev) => {
           const img = new Image();
           img.onload = () => {
-             const canvas = document.getElementById('stego-story-canvas');
-             const ctx = canvas.getContext('2d');
-             canvas.width = img.width; canvas.height = img.height;
-             ctx.drawImage(img, 0, 0);
-             canvas.style.display = 'block';
-             zone.style.display = 'none';
+            const canvas = document.getElementById('stego-story-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = img.width; canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            canvas.style.display = 'block';
+            zone.style.display = 'none';
           };
           img.src = ev.target.result;
         };
@@ -1305,29 +1305,29 @@ const App = {
 
   runStoryStego: () => {
     const canvas = document.getElementById('stego-story-canvas');
-    if(canvas.style.display === 'none') return alert('Please upload a decoy image first.');
+    if (canvas.style.display === 'none') return alert('Please upload a decoy image first.');
     const ctx = canvas.getContext('2d');
-    const imgData = ctx.getImageData(0,0,canvas.width,canvas.height);
+    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     CE.stegoEncode(imgData.data, "0fe721:bc892a:f821de77bc21009822a1f8...");
     ctx.putImageData(imgData, 0, 0);
     document.getElementById('stego-story-res').style.display = 'block';
     App.showNextBtn(6);
   },
 
-  ansQuiz: (qi,oi,c) => {
-    document.querySelectorAll(`[id^='q-${qi}-']`).forEach(b=>b.disabled=true);
-    if(oi===c){document.getElementById(`q-${qi}-${oi}`).classList.add('correct'); App.S.story.score++;}
-    else{document.getElementById(`q-${qi}-${oi}`).classList.add('wrong'); document.getElementById(`q-${qi}-${c}`).classList.add('correct');}
-    const total=document.querySelectorAll('.quiz-opt').length;
-    const disabled=document.querySelectorAll('.quiz-opt:disabled').length;
-    if(disabled===total){
-      const s=App.S.story.score;
+  ansQuiz: (qi, oi, c) => {
+    document.querySelectorAll(`[id^='q-${qi}-']`).forEach(b => b.disabled = true);
+    if (oi === c) { document.getElementById(`q-${qi}-${oi}`).classList.add('correct'); App.S.story.score++; }
+    else { document.getElementById(`q-${qi}-${oi}`).classList.add('wrong'); document.getElementById(`q-${qi}-${c}`).classList.add('correct'); }
+    const total = document.querySelectorAll('.quiz-opt').length;
+    const disabled = document.querySelectorAll('.quiz-opt:disabled').length;
+    if (disabled === total) {
+      const s = App.S.story.score;
       const qlen = StoryData.quiz.length;
-      document.getElementById('s-quiz-res').innerHTML=`
+      document.getElementById('s-quiz-res').innerHTML = `
         <div class="score-card">
           <div class="score-big">${s}/${qlen}</div>
           <div class="score-label">EVALUATION SCORE</div>
-          <div style="font-family:var(--font-mono);font-size:12px;color:var(--muted);margin-bottom:24px;">${s===qlen?'PERFECT SCORE. CLEARED FOR FIELD OPERATIONS.':s>=Math.floor(qlen*0.7)?'STRONG PERFORMANCE. MINOR GAPS DETECTED.':'FURTHER TRAINING REQUIRED.'}</div>
+          <div style="font-family:var(--font-mono);font-size:12px;color:var(--muted);margin-bottom:24px;">${s === qlen ? 'PERFECT SCORE. CLEARED FOR FIELD OPERATIONS.' : s >= Math.floor(qlen * 0.7) ? 'STRONG PERFORMANCE. MINOR GAPS DETECTED.' : 'FURTHER TRAINING REQUIRED.'}</div>
           <button class="btn btn-success" onclick="App.goHome()">RETURN TO MAIN MENU</button>
         </div>
       `;
@@ -1335,7 +1335,7 @@ const App = {
   },
 
   /* ─── NEW FEATURES AND RESTRUCTURED FUNCTIONS ─── */
-  
+
   // Keyboard Accessibility Setup
   setupKeyboardAccessibility: () => {
     // Only setup once
@@ -1356,22 +1356,22 @@ const App = {
   // ECDSA Story Mode Actions
   runStoryECDSASign: async () => {
     const msg = document.getElementById('s-ecdsa-msg').value;
-    if(!msg) return alert('Enter a message to sign.');
-    
+    if (!msg) return alert('Enter a message to sign.');
+
     try {
       const keys = await CE.generateECDSA();
       App.S.story.ecdsaKeyPair = keys.keyPair;
       App.S.story.ecdsaPubKeyHex = keys.publicKeyHex;
       App.S.story.ecdsaMsg = msg;
-      
+
       const sigObj = await CE.signECDSA(keys.keyPair.privateKey, msg);
       App.S.story.ecdsaSig = sigObj.signature;
       App.S.story.ecdsaSigHex = sigObj.signatureHex;
-      
+
       document.getElementById('s-ecdsa-pub').innerText = keys.publicKeyHex;
       document.getElementById('s-ecdsa-sig').innerText = sigObj.signatureHex;
       document.getElementById('s-ecdsa-res').style.display = 'block';
-      
+
       const statusBox = document.getElementById('s-ecdsa-status-box');
       statusBox.innerHTML = `
         <div class="sig-result sig-valid">
@@ -1381,21 +1381,21 @@ const App = {
       `;
       App.S.story.sigVerifiedValid = true;
       App.S.story.sigVerifiedInvalid = false; // reset tamper status
-    } catch(e) {
+    } catch (e) {
       alert('ECDSA Signing Failed: ' + e.message);
     }
   },
 
   runStoryECDSATamper: async () => {
-    if(!App.S.story.ecdsaKeyPair) return alert('Sign the message first.');
+    if (!App.S.story.ecdsaKeyPair) return alert('Sign the message first.');
     const msg = App.S.story.ecdsaMsg;
     const tamperedMsg = msg + "_TAMPERED";
     document.getElementById('s-ecdsa-msg').value = tamperedMsg;
-    
+
     try {
       const r = await CE.verifyECDSA(App.S.story.ecdsaKeyPair.publicKey, App.S.story.ecdsaSig, tamperedMsg);
       const statusBox = document.getElementById('s-ecdsa-status-box');
-      if(!r.valid) {
+      if (!r.valid) {
         statusBox.innerHTML = `
           <div class="sig-result sig-invalid">
             <div class="sig-status invalid">✗ SIGNATURE INVALID</div>
@@ -1405,22 +1405,22 @@ const App = {
         App.S.story.sigVerifiedInvalid = true;
         App.flash('s-ecdsa-status-box');
       }
-      
+
       if (App.S.story.sigVerifiedValid && App.S.story.sigVerifiedInvalid) {
         App.showNextBtn(7);
       }
-    } catch(e) { alert('Verify Failed: ' + e.message); }
+    } catch (e) { alert('Verify Failed: ' + e.message); }
   },
 
   runStoryECDSAVerifyOriginal: async () => {
-    if(!App.S.story.ecdsaKeyPair) return alert('Sign the message first.');
+    if (!App.S.story.ecdsaKeyPair) return alert('Sign the message first.');
     const msg = App.S.story.ecdsaMsg;
     document.getElementById('s-ecdsa-msg').value = msg;
-    
+
     try {
       const r = await CE.verifyECDSA(App.S.story.ecdsaKeyPair.publicKey, App.S.story.ecdsaSig, msg);
       const statusBox = document.getElementById('s-ecdsa-status-box');
-      if(r.valid) {
+      if (r.valid) {
         statusBox.innerHTML = `
           <div class="sig-result sig-valid">
             <div class="sig-status valid">✓ SIGNATURE VALID</div>
@@ -1429,19 +1429,19 @@ const App = {
         `;
         App.S.story.sigVerifiedValid = true;
       }
-      
+
       if (App.S.story.sigVerifiedValid && App.S.story.sigVerifiedInvalid) {
         App.showNextBtn(7);
       }
-    } catch(e) { alert('Verify Failed: ' + e.message); }
+    } catch (e) { alert('Verify Failed: ' + e.message); }
   },
 
   // PKI Story Mode Actions
   runStoryIssueCert: async () => {
     const domain = document.getElementById('s-cert-domain').value.trim();
     const validity = document.getElementById('s-cert-validity').value;
-    if(!domain) return alert('Enter a domain name.');
-    
+    if (!domain) return alert('Enter a domain name.');
+
     const certObj = {
       domain: domain,
       validity: validity,
@@ -1449,11 +1449,11 @@ const App = {
     };
     const certStr = JSON.stringify(certObj);
     App.S.story.certStr = certStr;
-    
+
     const sigObj = await CE.signECDSA(App.S.story.caKeys.keyPair.privateKey, certStr);
     App.S.story.certSig = sigObj.signature;
     App.S.story.certSigHex = sigObj.signatureHex;
-    
+
     App.S.story.certVerified = true;
     App.S.story.certTampered = false;
     App.renderStoryCertResult();
@@ -1461,13 +1461,13 @@ const App = {
 
   renderStoryCertResult: () => {
     const res = document.getElementById('s-cert-res');
-    if(!res) return;
-    
+    if (!res) return;
+
     res.style.display = 'block';
-    
+
     const verified = App.S.story.certVerified;
     const certObj = JSON.parse(App.S.story.certStr);
-    
+
     res.innerHTML = `
       <div class="cert-panel ${verified ? 'cert-valid' : 'cert-invalid'}">
         <div class="cert-lock ${verified ? 'secure' : 'broken'}">
@@ -1508,7 +1508,7 @@ const App = {
         `}
       </div>
     `;
-    
+
     if (App.S.story.certVerified && App.S.story.certTampered) {
       App.showNextBtn(8);
     }
@@ -1521,9 +1521,9 @@ const App = {
       publicKey: App.S.story.serverKeys.publicKeyHex
     };
     const tamperedCertStr = JSON.stringify(certObj);
-    
+
     const r = await CE.verifyECDSA(App.S.story.caKeys.keyPair.publicKey, App.S.story.certSig, tamperedCertStr);
-    
+
     App.S.story.certStr = tamperedCertStr;
     App.S.story.certVerified = r.valid;
     App.S.story.certTampered = true;
@@ -1540,7 +1540,7 @@ const App = {
     };
     const certStr = JSON.stringify(certObj);
     App.S.story.certStr = certStr;
-    
+
     const r = await CE.verifyECDSA(App.S.story.caKeys.keyPair.publicKey, App.S.story.certSig, certStr);
     App.S.story.certVerified = r.valid;
     App.renderStoryCertResult();
@@ -1554,7 +1554,7 @@ const App = {
     const hash = CE.md5(pwd);
     const hashEl = document.getElementById('crack-target-hash');
     if (hashEl) hashEl.innerText = hash;
-    
+
     const shaEl = document.getElementById('crack-sha256-target');
     if (shaEl) {
       const shaHash = await CE.hash('SHA-256', pwd + "somesalt");
@@ -1585,7 +1585,7 @@ const App = {
     if (terminal) {
       terminal.innerHTML = `[SYS] INITIALIZING OFF-THREAD WEB WORKER...<br>[SYS] TARGET MD5 HASH: ${targetHash}<br>[SYS] LOADING 2000 PASSWORDS DICTIONARY...<br>`;
     }
-    
+
     document.getElementById('crack-sha256-area').style.display = 'none';
 
     App.crackWorker = new Worker('js/md5-worker.js');
@@ -1611,7 +1611,7 @@ const App = {
         const countEl = document.getElementById('crack-progress-count');
         if (pctEl) pctEl.innerText = '100%';
         if (countEl) countEl.innerText = `${msg.attempts} / ${msg.attempts}`;
-        
+
         if (startBtn) startBtn.style.display = 'block';
         if (stopBtn) stopBtn.style.display = 'none';
         if (resArea) resArea.style.display = 'block';
@@ -1629,7 +1629,7 @@ const App = {
         document.getElementById('crack-result-password').innerText = msg.password;
         document.getElementById('crack-result-time').innerText = `${msg.time} ms`;
         document.getElementById('crack-result-attempts').innerText = msg.attempts;
-        
+
         const shareText = document.getElementById('md5-share-text');
         if (shareText) {
           const secs = (msg.time / 1000).toFixed(1);
@@ -1680,10 +1680,10 @@ const App = {
       document.getElementById('ecdsa-keys-area').style.display = 'block';
     } catch (e) { alert('ECDSA Generation Failed: ' + e.message); }
   },
-  
+
   runECDSASign: async () => {
     const msg = document.getElementById('ecdsa-msg').value;
-    if(!msg || !App.S.lab.ecdsaKeys) return alert('Generate keys and enter a message first.');
+    if (!msg || !App.S.lab.ecdsaKeys) return alert('Generate keys and enter a message first.');
     try {
       const res = await CE.signECDSA(App.S.lab.ecdsaKeys.keyPair.privateKey, msg);
       App.S.lab.ecdsaLastSig = res.signature;
@@ -1697,16 +1697,16 @@ const App = {
   runECDSATamper: () => {
     const msgEl = document.getElementById('ecdsa-msg');
     let msg = msgEl.value;
-    if(!msg) return;
-    const last = msg.charCodeAt(msg.length-1);
-    msgEl.value = msg.substring(0, msg.length-1) + String.fromCharCode(last ^ 1);
+    if (!msg) return;
+    const last = msg.charCodeAt(msg.length - 1);
+    msgEl.value = msg.substring(0, msg.length - 1) + String.fromCharCode(last ^ 1);
     App.flash('ecdsa-msg');
   },
 
   runECDSAVerify: async () => {
     const msg = document.getElementById('ecdsa-msg').value;
     const sig = App.S.lab.ecdsaLastSig;
-    if(!msg || !sig) return;
+    if (!msg || !sig) return;
     try {
       const res = await CE.verifyECDSA(App.S.lab.ecdsaKeys.keyPair.publicKey, sig, msg);
       const statusEl = document.getElementById('ecdsa-verify-status');
@@ -1741,8 +1741,8 @@ const App = {
     const resEl = document.getElementById('cert-results');
     errEl.style.display = 'none';
     resEl.style.display = 'none';
-    if(!pem) return;
-    
+    if (!pem) return;
+
     try {
       const info = await CE.parsePEMCertificate(pem);
       document.getElementById('cert-subject').innerText = info.subject;
@@ -1755,7 +1755,7 @@ const App = {
       if (statusBox) {
         let statusHtml = '';
         let isValid = true;
-        
+
         if (info.isExpired) {
           isValid = false;
           statusHtml += `<div style="color:var(--c2, #ff003c); margin-bottom:8px;">❌ <strong>NET::ERR_CERT_DATE_INVALID</strong><br><span style="color:var(--muted); font-size:11px;">The certificate has expired. Browsers will reject it to prevent attackers from using old, potentially compromised keys.</span></div>`;
@@ -1764,25 +1764,25 @@ const App = {
           isValid = false;
           statusHtml += `<div style="color:var(--c2, #ff003c); margin-bottom:8px;">❌ <strong>NET::ERR_CERT_AUTHORITY_INVALID</strong><br><span style="color:var(--muted); font-size:11px;">This is a self-signed certificate (Subject = Issuer). Browsers will block it because it was not signed by a trusted Certificate Authority (CA) in their root store.</span></div>`;
         }
-        
+
         if (isValid) {
           statusHtml += `<div style="color:var(--c3, #00ff88); margin-bottom:8px;">✅ <strong>CERTIFICATE APPEARS VALID</strong><br><span style="color:var(--muted); font-size:11px;">No immediate red flags. Provided it's signed by a trusted CA, a browser would accept it.</span></div>`;
         }
-        
+
         if (info.isEV) {
           statusHtml += `<div style="color:var(--c, #00f5ff); margin-top:12px; border-top:1px solid rgba(0,255,255,0.2); padding-top:12px;">🛡️ <strong>Extended Validation (EV) Detected</strong><br><span style="color:var(--muted); font-size:11px;">This cert includes the EV OID (2.23.140.1.1). The issuing CA performed strict identity verification on the organization.</span></div>`;
         }
-        
+
         if (info.sans && info.sans.length > 0) {
           statusHtml += `<div style="color:var(--c, #00f5ff); margin-top:12px; border-top:1px solid rgba(0,255,255,0.2); padding-top:12px;">🌐 <strong>Subject Alternative Names (SANs)</strong><br><span style="color:var(--muted); font-size:11px;">Valid for: ${info.sans.join(', ')}</span></div>`;
         }
-        
+
         statusBox.innerHTML = statusHtml;
       }
 
       resEl.style.display = 'block';
       AchievementSystem.unlock('trust_no_one');
-    } catch(e) {
+    } catch (e) {
       errEl.innerText = e.message;
       errEl.style.display = 'block';
     }
@@ -1802,22 +1802,22 @@ const App = {
   runEntropy: () => {
     const str = document.getElementById('entropy-input').value;
     const warnEl = document.getElementById('ent-compromised-warn');
-    
+
     // Check Top 10k Passwords
     const isCompromised = (typeof TOP_PASSWORDS !== 'undefined') && TOP_PASSWORDS.has(str.trim().toLowerCase());
-    
+
     warnEl.style.display = isCompromised ? 'block' : 'none';
-    
+
     const res = CE.shannonEntropy(str);
     document.getElementById('ent-bpc').innerText = res.bitsPerChar;
-    
+
     // If compromised, effective entropy is 0 for security purposes
     const effectiveTotal = isCompromised ? 0 : res.total;
     document.getElementById('ent-total').innerText = effectiveTotal;
-    
+
     let pct = Math.min(100, (effectiveTotal / 128) * 100);
     document.getElementById('ent-gauge').style.width = pct + '%';
-    
+
     let evalStr = '';
     if (isCompromised) evalStr = '<span style="color:var(--c2);">Compromised.</span> Found in top 10,000 passwords. Effective entropy is zero.';
     else if (res.total < 40) evalStr = '<span style="color:var(--c2);">Weak.</span> Highly vulnerable to brute-force or dictionary attacks.';
@@ -1830,7 +1830,7 @@ const App = {
   startBirthdayAttack: () => {
     if (App.bdWorker) App.bdWorker.terminate();
     const bits = parseInt(document.getElementById('bd-bits').value);
-    
+
     document.getElementById('bd-result-area').style.display = 'none';
     document.getElementById('bd-progress-area').style.display = 'block';
     document.getElementById('bd-attempts').innerText = '0';
@@ -1840,12 +1840,12 @@ const App = {
     document.getElementById('btn-bd-start').disabled = true;
 
     App.bdWorker = new Worker('js/birthday-worker.js');
-    
+
     const space = Math.pow(2, bits);
     const bound = Math.round(Math.pow(2, bits / 2));
     const boundEl = document.getElementById('bd-bound');
-    if(boundEl) boundEl.innerText = "~" + bound;
-    
+    if (boundEl) boundEl.innerText = "~" + bound;
+
     App.bdWorker.onmessage = (e) => {
       const data = e.data;
       if (data.type === 'progress') {
@@ -1857,15 +1857,15 @@ const App = {
       } else if (data.type === 'found') {
         document.getElementById('btn-bd-start').innerText = 'START ATTACK';
         document.getElementById('btn-bd-start').disabled = false;
-        
+
         document.getElementById('bd-attempts').innerText = data.attempts;
         document.getElementById('bd-prob').innerText = '100.00%';
         document.getElementById('bd-prob-bar').style.width = '100%';
-        
+
         document.getElementById('bd-input1').innerText = data.collision.input1;
         document.getElementById('bd-input2').innerText = data.collision.input2;
         document.getElementById('bd-hash').innerText = data.collision.hash;
-        
+
         document.getElementById('bd-result-area').style.display = 'block';
         AchievementSystem.unlock('collision_course');
       } else if (data.type === 'error') {
@@ -1874,7 +1874,7 @@ const App = {
         document.getElementById('bd-error').innerText = "Worker Error: " + data.message;
       }
     };
-    
+
     App.bdWorker.postMessage({ cmd: 'start', bits: bits });
   },
 
@@ -1922,7 +1922,7 @@ const App = {
     App.copyToClipboardRaw(link);
     App.showError('✓ Share link copied to clipboard!');
     const toast = document.getElementById('global-error-toast');
-    if (toast) { toast.style.borderColor='var(--c3)'; toast.style.color='var(--c3)'; toast.style.boxShadow='0 0 20px rgba(0,255,136,0.4)'; setTimeout(()=>{toast.style.borderColor='#ff003c';toast.style.color='#ff003c';toast.style.boxShadow='0 0 20px rgba(255,0,60,0.5)';},3000); }
+    if (toast) { toast.style.borderColor = 'var(--c3)'; toast.style.color = 'var(--c3)'; toast.style.boxShadow = '0 0 20px rgba(0,255,136,0.4)'; setTimeout(() => { toast.style.borderColor = '#ff003c'; toast.style.color = '#ff003c'; toast.style.boxShadow = '0 0 20px rgba(255,0,60,0.5)'; }, 3000); }
   },
 
   copyToClipboardRaw: (text) => {
@@ -1982,14 +1982,14 @@ const App = {
         }
       }
     };
-    
+
     let outStr = JSON.stringify(data, null, 2);
     let filename = `nix_session_${Date.now()}.json`;
 
     if (confirm("Encrypt this export using AES-GCM?")) {
       const pass = prompt("Enter a passphrase for encryption:");
       if (!pass) return alert("Export cancelled.");
-      
+
       try {
         const salt = crypto.getRandomValues(new Uint8Array(16));
         const iv = crypto.getRandomValues(new Uint8Array(12));
@@ -2008,15 +2008,15 @@ const App = {
           key,
           new TextEncoder().encode(outStr)
         );
-        
+
         const bundle = new Uint8Array(28 + cipher.byteLength);
         bundle.set(salt, 0);
         bundle.set(iv, 16);
         bundle.set(new Uint8Array(cipher), 28);
-        
+
         outStr = JSON.stringify({ encrypted: true, payloadHex: CE.bufToHex(bundle) });
         filename = `nix_session_${Date.now()}.enc.json`;
-      } catch(e) {
+      } catch (e) {
         return alert("Encryption failed: " + e.message);
       }
     }
@@ -2039,14 +2039,14 @@ const App = {
         let data = JSON.parse(ev.target.result);
         if (data.encrypted) {
           const pass = prompt("This session is encrypted. Enter passphrase:");
-          if(!pass) return;
-          
+          if (!pass) return;
+
           const hex = data.payloadHex;
           const bytes = new Uint8Array(hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
           const salt = bytes.slice(0, 16);
           const iv = bytes.slice(16, 28);
           const cipher = bytes.slice(28);
-          
+
           const keyMaterial = await crypto.subtle.importKey(
             'raw', new TextEncoder().encode(pass), { name: 'PBKDF2' }, false, ['deriveKey']
           );
@@ -2116,7 +2116,7 @@ const App = {
           ? `Session v${data.version} loaded.\nRestored: ${loaded.join(', ')}.`
           : `Session v${data.version} loaded but contained no restorable tool states.`;
         alert(summary);
-      } catch(err) {
+      } catch (err) {
         alert('Session Import Error:\n\n' + err.message);
       }
       e.target.value = '';
@@ -2129,23 +2129,23 @@ const App = {
     try {
       const keys = await CE.generateECDH();
       App.S.lab.ecdhKeys = keys;
-      
+
       const payload = btoa(JSON.stringify(keys.pubJwk)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
       const link = window.location.origin + window.location.pathname + '#ecdh=' + payload;
-      
+
       document.getElementById('ecdh-my-link').value = link;
       document.getElementById('ecdh-step-1').style.display = 'none';
       document.getElementById('ecdh-step-2').style.display = 'block';
-      
+
       const qrContainer = document.getElementById('ecdh-qr-container');
       qrContainer.innerHTML = '';
       new QRCode(qrContainer, {
         text: link,
         width: 150,
         height: 150,
-        colorDark : "#000000",
-        colorLight : "#ffffff",
-        correctLevel : QRCode.CorrectLevel.L
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.L
       });
     } catch (e) { alert('ECDH Error: ' + e.message); }
   },
@@ -2159,10 +2159,10 @@ const App = {
         while (b64.length % 4) { b64 += '='; }
         const jwkStr = atob(b64);
         const jwk = JSON.parse(jwkStr);
-        
+
         App.S.lab.ecdhPartnerJwk = jwk;
         document.getElementById('ecdh-partner-link').value = window.location.href;
-        
+
         // Auto-start step 1 if not done
         if (!App.S.lab.ecdhKeys) {
           await App.startECDHExchange();
@@ -2183,13 +2183,13 @@ const App = {
         while (b64.length % 4) { b64 += '='; }
         App.S.lab.ecdhPartnerJwk = JSON.parse(atob(b64));
       }
-      
+
       const partnerKey = await CE.importPublicKeyECDH(App.S.lab.ecdhPartnerJwk);
       const derived = await CE.deriveKeyECDH(App.S.lab.ecdhKeys.pair.privateKey, partnerKey);
-      
+
       App.S.lab.ecdhSharedSecret = derived.derivedKey;
       document.getElementById('ecdh-fingerprint').innerText = derived.fingerprint;
-      
+
       document.getElementById('ecdh-step-2').style.display = 'none';
       document.getElementById('ecdh-step-3').style.display = 'block';
       AchievementSystem.unlock('ghost_channel');
@@ -2213,7 +2213,7 @@ const App = {
       const bundle = new Uint8Array(12 + ciphertext.byteLength);
       bundle.set(iv, 0);
       bundle.set(new Uint8Array(ciphertext), 12);
-      
+
       document.getElementById('ecdh-cipher-out').value = CE.bufToHex(bundle);
       Leaderboard.track('enc');
     } catch (e) { alert("Encrypt failed: " + e.message); }
@@ -2226,7 +2226,7 @@ const App = {
       const bytes = new Uint8Array(hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
       const iv = bytes.slice(0, 12);
       const data = bytes.slice(12);
-      
+
       const decrypted = await crypto.subtle.decrypt(
         { name: 'AES-GCM', iv: iv },
         App.S.lab.ecdhSharedSecret,
@@ -2243,11 +2243,11 @@ const App = {
   tamperECDHCipher: () => {
     const cipherEl = document.getElementById('ecdh-cipher-out');
     let hex = cipherEl.value;
-    if(!hex) return;
+    if (!hex) return;
     // flip last bit
-    let lastChar = hex[hex.length-1];
+    let lastChar = hex[hex.length - 1];
     let intVal = parseInt(lastChar, 16) ^ 1;
-    cipherEl.value = hex.substring(0, hex.length-1) + intVal.toString(16);
+    cipherEl.value = hex.substring(0, hex.length - 1) + intVal.toString(16);
     App.flash('ecdh-cipher-out');
   },
 
@@ -2313,7 +2313,7 @@ setTimeout(() => {
         const entEl = document.getElementById('entropy-input');
         if (entEl && payload.input) entEl.value = payload.input;
       }
-    } catch(e) { console.error('Share fragment parse error:', e); }
+    } catch (e) { console.error('Share fragment parse error:', e); }
   }
 }, 500);
 
@@ -2358,8 +2358,8 @@ App.runDiagnostics = async () => {
     if (!verify.valid) throw new Error("ECDSA Signature Failed");
 
     msgEl.innerHTML += '<br><br>[ ALL DIAGNOSTICS PASSED ]';
-    setTimeout(() => { 
-      toast.style.display = 'none'; 
+    setTimeout(() => {
+      toast.style.display = 'none';
       // reset toast styles
       toast.style.borderColor = '#ff003c';
       toast.style.color = '#ff003c';
@@ -2378,7 +2378,7 @@ App.runBenchmark = async () => {
   if (btn.disabled) return;
   btn.disabled = true;
   btn.innerText = 'BENCHMARKING... (PLEASE WAIT)';
-  
+
   // Reset UI
   ['md5', 'sha256', 'sha512'].forEach(algo => {
     document.getElementById(`bench-${algo}-ops`).innerText = 'Running...';
@@ -2387,31 +2387,31 @@ App.runBenchmark = async () => {
 
   const iters = 10000;
   const str = "The quick brown fox jumps over the lazy dog.";
-  
+
   // MD5
   let t0 = performance.now();
-  for(let i=0; i<iters; i++) await CE.hash('MD5', str + i);
+  for (let i = 0; i < iters; i++) await CE.hash('MD5', str + i);
   const md5Ms = performance.now() - t0;
   const md5Ops = Math.round(iters / (md5Ms / 1000));
   document.getElementById('bench-md5-ops').innerText = md5Ops.toLocaleString() + ' ops/sec';
 
   // SHA-256
   t0 = performance.now();
-  for(let i=0; i<iters; i++) await CE.hash('SHA-256', str + i);
+  for (let i = 0; i < iters; i++) await CE.hash('SHA-256', str + i);
   const sha256Ms = performance.now() - t0;
   const sha256Ops = Math.round(iters / (sha256Ms / 1000));
   document.getElementById('bench-sha256-ops').innerText = sha256Ops.toLocaleString() + ' ops/sec';
 
   // SHA-512
   t0 = performance.now();
-  for(let i=0; i<iters; i++) await CE.hash('SHA-512', str + i);
+  for (let i = 0; i < iters; i++) await CE.hash('SHA-512', str + i);
   const sha512Ms = performance.now() - t0;
   const sha512Ops = Math.round(iters / (sha512Ms / 1000));
   document.getElementById('bench-sha512-ops').innerText = sha512Ops.toLocaleString() + ' ops/sec';
 
   // Calculate relative widths (max ops = 100% width)
   const maxOps = Math.max(md5Ops, sha256Ops, sha512Ops);
-  
+
   setTimeout(() => {
     document.getElementById('bench-md5-bar').style.width = ((md5Ops / maxOps) * 100) + '%';
     document.getElementById('bench-sha256-bar').style.width = ((sha256Ops / maxOps) * 100) + '%';
@@ -2438,19 +2438,19 @@ window.EXPLAINERS = {
 };
 window.currentExplainerTab = null;
 
-window.showExplainer = function(tab) {
+window.showExplainer = function (tab) {
   window.currentExplainerTab = tab;
   const title = document.getElementById('explainer-title');
   const content = document.getElementById('explainer-content');
   const modal = document.getElementById('explainer-modal');
-  if(title && content && modal) {
+  if (title && content && modal) {
     title.innerText = tab.toUpperCase() + " CONCEPT EXPLAINER";
     content.innerText = window.EXPLAINERS[tab];
     modal.style.display = 'flex';
   }
 };
-window.dismissExplainer = function() {
+window.dismissExplainer = function () {
   localStorage.setItem('explainer_' + window.currentExplainerTab, 'true');
   const modal = document.getElementById('explainer-modal');
-  if(modal) modal.style.display = 'none';
+  if (modal) modal.style.display = 'none';
 };

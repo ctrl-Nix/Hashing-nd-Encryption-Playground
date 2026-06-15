@@ -1,12 +1,25 @@
-# Progress Log — Hashing & Encryption Playground v1
+# Hashing & Encryption Playground - Progress
+
+| Version | Status | Date Completed | PR Link | Notes |
+|---|---|---|---|---|
+| v0 | [x] Complete | Pre-program | - | Full foundation built before program start |
+| v1 | [x] Complete | 2026-06-15 | - | Completed "The Forger", "CA", password cracker, and smoke tests |
+| v2 | [x] Complete | 2026-06-15 | - | Core algorithm implementations and UI hooks |
+| v3 | [x] Complete | 2026-06-15 | - | Post-Audit fixes: session import/export, story congrats, UI notifications |
+| v4 | [x] Complete | 2026-06-15 | - | Architecture documentation and diagnostics suite |
+| v5 | [ ] Not Started | - | - | - |
+
+---
+
+# Progress Log - Hashing & Encryption Playground v1
 
 ## Core Spec & Checklist Status
 
 - [x] **Audit every story chapter and sandbox tool**: Completed. All edge cases and issues were audited and written to [bug-log.md](file:///c:/Users/KIIT/OneDrive/Desktop/play/Hashing-nd-Encryption-Playground/bug-log.md).
 - [x] **Fix all high severity bugs**: Completed. Fixed and resolved 11 bugs (Bug #1 through Bug #13, with Bug #14 noted as WONTFIX due to localhost/HTTPS security limitations on plain HTTP).
 - [x] **Fix all browser console errors**: Completed. Zero console errors generated across all sandbox labs and story steps.
-- [x] **New story chapter — "The Forger"**: Completed. Integrates Web Crypto API ECDSA P-256 signatures, bit-tampering checks, and valid/invalid verification states.
-- [x] **New story chapter — "The Certificate Authority"**: Completed. PKI trust chain simulation with custom domain inputs, validity selections, and root CA signature generation.
+- [x] **New story chapter - "The Forger"**: Completed. Integrates Web Crypto API ECDSA P-256 signatures, bit-tampering checks, and valid/invalid verification states.
+- [x] **New story chapter - "The Certificate Authority"**: Completed. PKI trust chain simulation with custom domain inputs, validity selections, and root CA signature generation.
 - [x] **Password cracker simulation**: Completed. Dict attack running off-thread in a Web Worker (`md5-worker.js`) utilizing 2000 common passwords.
 - [x] **Cross-browser smoke test**: Completed. Tested and verified on Chrome 120+, Firefox 120+, and Safari 17+; logged verification status in [bug-log.md](file:///c:/Users/KIIT/OneDrive/Desktop/play/Hashing-nd-Encryption-Playground/bug-log.md).
 - [x] **Keyboard navigation**: Completed. Configured `tabindex` and event listeners for Enter/Space clicks on all dynamic and static interactive components.
@@ -29,14 +42,14 @@
 
 ---
 
-# Progress Log — Hashing & Encryption Playground v2
+# Progress Log - Hashing & Encryption Playground v2
 
 ## Core Spec & Checklist Status
 
-- [x] **New sandbox tool — ECDSA Digital Signature**: Completed. Generates P-256 key pair, signs message, displays Base64 signature, and verifies tampering. Private keys are securely contained.
-- [x] **New sandbox tool — Certificate Inspector**: Completed. Parses pasted PEM X.509 certificates to extract Issuer, Subject, Validity, Serial Number, and calculates SHA-256 fingerprint without third-party libraries.
-- [x] **New sandbox tool — Entropy Analyzer**: Completed. Calculates Shannon Entropy bits-per-character in real-time, displays total entropy bits, and features an interactive strength gauge.
-- [x] **New sandbox tool — Birthday Attack Visualizer**: Completed. Uses a dedicated Web Worker (`birthday-worker.js`) to rapidly find collisions on truncated SHA-256 hashes (8 to 20 bits) and visualizes the collision probability curve in real-time.
+- [x] **New sandbox tool - ECDSA Digital Signature**: Completed. Generates P-256 key pair, signs message, displays Base64 signature, and verifies tampering. Private keys are securely contained.
+- [x] **New sandbox tool - Certificate Inspector**: Completed. Parses pasted PEM X.509 certificates to extract Issuer, Subject, Validity, Serial Number, and calculates SHA-256 fingerprint without third-party libraries.
+- [x] **New sandbox tool - Entropy Analyzer**: Completed. Calculates Shannon Entropy bits-per-character in real-time, displays total entropy bits, and features an interactive strength gauge.
+- [x] **New sandbox tool - Birthday Attack Visualizer**: Completed. Uses a dedicated Web Worker (`birthday-worker.js`) to rapidly find collisions on truncated SHA-256 hashes (8 to 20 bits) and visualizes the collision probability curve in real-time.
 - [x] **Mobile Responsiveness overhaul**: Completed. Updated `ui.css` and `index.html` to fully support viewport widths down to 375px. Converted navigation tabs to a horizontal scrolling container and collapsed grids on mobile.
 - [x] **Touch-friendly UI pass**: Completed. Implemented `44x44px` minimum touch targets for tabs, buttons, inputs, and interactive cards. Replaced mouse-only `:hover` effects with focus and active states.
 
@@ -49,7 +62,7 @@
 
 ---
 
-# Progress Log — Hashing & Encryption Playground v3
+# Progress Log - Hashing & Encryption Playground v3
 
 ## Core Spec & Checklist Status
 
@@ -77,7 +90,7 @@
 
 ---
 
-# Progress Log — Hashing & Encryption Playground v4
+# Progress Log - Hashing & Encryption Playground v4
 
 ## Core Spec & Checklist Status
 
@@ -99,7 +112,7 @@
 
 ---
 
-# Bug Fix Log — v3 Post-Audit (Weeks 5–6 Patch)
+# Bug Fix Log - v3 Post-Audit (Weeks 5–6 Patch)
 
 ## Issues Found & Resolved
 
@@ -107,7 +120,7 @@
 - [x] **`importSession()` stale IDs**: Same stale ID issue. Fixed + added field-level validation with specific error messages for each missing/malformed field.
 - [x] **`shareActiveLab()` stale IDs**: Fixed `hash-input` → `lab-hash-in`, `enc-plain` → `lab-enc-data`. Expanded to support all tabs (compare, hmac, entropy). Replaced `alert()` with toast notification.
 - [x] **`#share=` fragment loader stale IDs**: Fragment listener at page load used same broken IDs + missing `App.startLab()` call before populating fields. Fixed and expanded to handle all tools.
-- [x] **Story congratulations screen**: `maxStep` was persisted but completing all 9 chapters showed only a small button — no visual celebration. Added fullscreen animated overlay with neon pulsing title, emoji badges, and summary card. Sets `nix_story_completed` in localStorage.
+- [x] **Story congratulations screen**: `maxStep` was persisted but completing all 9 chapters showed only a small button - no visual celebration. Added fullscreen animated overlay with neon pulsing title, emoji badges, and summary card. Sets `nix_story_completed` in localStorage.
 - [x] **Achievement notification**: Was a plain corner div with no animation. Replaced with a fullscreen neon flash (0.8s) + styled slide-in toast with description text and fade-out.
 - [x] **ECDH plain-English explainer**: Spec required a "How this works" explanation for non-technical readers. Added collapsible `<details>` accordion with paint-mixing analogy above the key exchange steps.
 
@@ -122,18 +135,18 @@
 
 ---
 
-# Progress Log � Hashing & Encryption Playground v5
+# Progress Log � Hashing & Encryption Playground v5
 
 ## Core Spec & Checklist Status
 
-- [x] **Local AI Integration (Daisy)**: Completed. Integrated Hugging Face Transformers.js v3 to run Xenova/Qwen1.5-0.5B-Chat entirely within a Web Worker. Fully local, zero-server architecture.
-- [x] **Context-Aware Prompting**: Completed. The Web Worker receives the active tool, algorithm, and last action state from the UI to construct a system prompt dynamically, allowing Daisy to provide relevant crypto-explanations.
-- [x] **Streaming Token UI**: Completed. Connected the Web Worker's TextStreamer to a custom chat UI (daisy-init.js), enabling real-time token rendering and auto-scrolling.
-- [x] **Interruptible Generation**: Completed. Added a Stop button (??) that throws a handled exception in the worker's callback loop, instantly aborting generation.
-- [x] **Cinematic Boot Sequences**: Completed. Added 
+- [ ] **Local AI Integration (Daisy)**: Not Started. Integrated Hugging Face Transformers.js v3 to run Xenova/Qwen1.5-0.5B-Chat entirely within a Web Worker. Fully local, zero-server architecture.
+- [ ] **Context-Aware Prompting**: Not Started. The Web Worker receives the active tool, algorithm, and last action state from the UI to construct a system prompt dynamically, allowing Daisy to provide relevant crypto-explanations.
+- [ ] **Streaming Token UI**: Not Started. Connected the Web Worker's TextStreamer to a custom chat UI (daisy-init.js), enabling real-time token rendering and auto-scrolling.
+- [ ] **Interruptible Generation**: Not Started. Added a Stop button (??) that throws a handled exception in the worker's callback loop, instantly aborting generation.
+- [ ] **Cinematic Boot Sequences**: Not Started. Added 
 ix-boot.js featuring a heavily styled, CRT-glitching, dynamic-typing Matrix Rain boot sequence for both the Landing Page and Cheatsheet.
 
 ## Verification & Build Status
 
-- **AI Inference**: Verified that the 300MB WASM model downloads, caches correctly in IndexedDB, and executes within the browser without main thread blocking.
-- **UI Interactivity**: Validated the Stop Generation functionality securely aborts the execution loop without crashing the Web Worker context.
+- **AI Inference**: Not Verified.
+- **UI Interactivity**: Not Verified.
