@@ -149,3 +149,34 @@
 
 - **AI Inference**: Verified that the 300MB WASM model downloads, caches correctly in IndexedDB, and executes within the browser without main thread blocking.
 - **UI Interactivity**: Validated the Stop Generation functionality securely aborts the execution loop without crashing the Web Worker context.
+
+---
+
+# Post-Audit Patch — 2026-06-16
+
+## Issues Fixed
+
+- [x] **Duplicate `unhandledrejection` listener (Bug #28)**: Removed the second handler at app.js line 2425 that fired a blocking `alert()` dialog on every crypto error. The correct toast-based handler at line 2321 (`App.showError()`) is kept. All crypto errors now route exclusively to the neon `#global-error-toast` UI element — no more disruptive alert() popups.
+
+## V2 Stretch Goal — Certificate Chain Verification ✅
+
+**Previously:** The Certificate Inspector only handled one PEM cert at a time and had no signature verification capability.
+
+**Implemented:**
+- `CE.splitPEMChain()` — splits a multi-PEM blob into individual certs
+- `CE.pemToDer()` — converts PEM → raw DER bytes
+- `CE.verifyCertPair(childDer, issuerDer)` — extracts SPKI from issuer, extracts TBSCertificate + BIT STRING signature from child, calls `crypto.subtle.verify()` with RSASSA-PKCS1-v1_5 or ECDSA depending on detected algorithm OID
+- `CE.verifyCertChain(chainPem)` — runs the full chain end-to-end, returns structured link objects
+- `App.runCertChain()` — renders a visual chain-of-trust diagram with neon node boxes (LEAF / INTERMEDIATE / ROOT CA), colored arrows (✓ green VALID / ✗ red INVALID / ⚠️ yellow MISMATCH), and per-link error detail
+- `App.loadSampleCertChain()` — loads a demo two-cert PEM chain into the textarea
+- `runCertInspect()` auto-routes to `runCertChain()` when multiple `BEGIN CERTIFICATE` blocks are detected
+- HTML: Panel title updated to "INSPECTOR & CHAIN VERIFIER", new `LOAD CHAIN SAMPLE` button added (green), button given id `btn-parse-cert` for JS control, `#cert-chain-results` container added
+
+## VoiceOver / NVDA Requirement — What it means
+
+The V4 QA spec mentioned "at least one manual screen-reader walkthrough". This means:
+
+1. Open the app in Chrome/macOS with VoiceOver turned on (Cmd+F5), or in Windows with NVDA
+2. Tab through the sandbox and confirm the reader announces: "Hash Engine Lab" (tab), "Execute Hash Function" (button), copy button states, etc.
+3. The `aria-label` attributes added in v4 already cover this — the walkthrough is just **manual confirmation** that a screen reader reads them aloud correctly
+4. **No code changes needed** — all ARIA labels, `role="button"` and `aria-live="assertive"` on the error toast were already implemented. This was a documentation gap only.

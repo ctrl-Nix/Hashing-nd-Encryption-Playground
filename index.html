@@ -709,19 +709,26 @@
   <!-- CERT INSPECTOR TAB -->
   <div id="lab-cert" class="lab-panel">
     <div class="panel">
-      <div class="panel-title"><span>X.509 CERTIFICATE INSPECTOR</span></div>
-      <p style="font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-bottom:24px;line-height:1.8;">Paste a PEM encoded certificate to extract its ASN.1/DER metadata (Issuer, Subject, Validity, Public Key).</p>
+      <div class="panel-title"><span>X.509 CERTIFICATE INSPECTOR &amp; CHAIN VERIFIER</span></div>
+      <p style="font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-bottom:24px;line-height:1.8;">Paste a single PEM certificate to inspect its metadata, or paste a <strong style="color:var(--c);">chain of certs</strong> (leaf → intermediate → root, each separated by a blank line) to verify the full chain of trust using <code style="color:var(--c3);">crypto.subtle.verify</code>.</p>
       
-      <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-        <span class="form-label" style="margin:0;">PEM Certificate</span>
-        <button class="btn" style="padding:4px 8px; font-size:9px;" onclick="App.loadSampleCert()">LOAD SAMPLE</button>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <span class="form-label" style="margin:0;">PEM Certificate (or chain)</span>
+        <div style="display:flex; gap:6px;">
+          <button class="btn" style="padding:4px 8px; font-size:9px;" onclick="App.loadSampleCert()">SINGLE CERT</button>
+          <button class="btn" style="padding:4px 8px; font-size:9px; border-color:var(--c3); color:var(--c3);" onclick="App.loadSampleCertChain()">LOAD CHAIN SAMPLE</button>
+        </div>
       </div>
-      <textarea id="cert-input" class="form-input" style="min-height:150px; font-size:10px; font-family:var(--font-mono);" placeholder="-----BEGIN CERTIFICATE-----..."></textarea>
+      <textarea id="cert-input" class="form-input" style="min-height:160px; font-size:10px; font-family:var(--font-mono);" placeholder="-----BEGIN CERTIFICATE-----&#10;(Paste one cert, or multiple PEM certs for chain verification)&#10;-----END CERTIFICATE-----"></textarea>
       
-      <button class="btn btn-primary btn-full" style="margin-top:16px;" onclick="App.runCertInspect()">PARSE CERTIFICATE</button>
+      <button id="btn-parse-cert" class="btn btn-primary btn-full" style="margin-top:16px;" onclick="App.runCertInspect()">PARSE / VERIFY CHAIN</button>
       
-      <div id="cert-error" style="display:none; color:var(--c2); font-size:11px; margin-top:16px; font-family:var(--font-mono);"></div>
+      <div id="cert-error" style="display:none; margin-top:16px; padding:12px; border:1px solid var(--c2); background:rgba(255,0,60,0.06); font-family:var(--font-mono); font-size:11px; line-height:1.8;"></div>
       
+      <!-- Chain-of-trust diagram (multi-cert input) -->
+      <div id="cert-chain-results" style="display:none; margin-top:24px;"></div>
+
+      <!-- Single cert results -->
       <div id="cert-results" style="display:none; margin-top:24px;">
         <div id="cert-browser-status" style="margin-bottom:20px; padding:16px; border:1px solid var(--border); background:rgba(0,0,0,0.3);">
         </div>

@@ -356,6 +356,179 @@ const CE = {
     }
   },
 
+  /* ─── X.509 CERTIFICATE CHAIN VERIFICATION ─── */
+
+  // Split a multi-PEM blob into individual PEM strings (root, intermediate, leaf)
+  splitPEMChain: (chainPem) => {
+    const matches = chainPem.match(/-----BEGIN CERTIFICATE-----[\s\S]+?-----END CERTIFICATE-----/g);
+    if (!matches || matches.length < 2) throw new Error('Paste at least 2 certificates (leaf + issuer). Separate them with a blank line.');
+    return matches;
+  },
+
+  // Extract raw DER bytes from a PEM string
+  pemToDer: (pem) => {
+    const b64 = pem.replace(/(-----(BEGIN|END) CERTIFICATE-----|[\r\n\s])/g, '');
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return bytes;
+  },
+
+  // Try to verify that `childDer` was signed by the public key embedded in `issuerDer`.
+  // Uses subjectPublicKeyInfo (SPKI) from the issuer cert and the TBSCertificate bytes from the child.
+  // Returns { valid: true|false, reason: string }
+  verifyCertPair: async (childDer, issuerDer) => {
+    try {
+      // --- Extract issuer's SPKI block ---
+      // SPKI starts with the sequence tag 0x30 inside the SubjectPublicKeyInfo field.
+      // We search for the BIT STRING (0x03) containing the public key after the algorithm OID.
+      // Heuristic: find the OID for rsaEncryption (1.2.840.113549.1.1.1) or ecPublicKey (1.2.840.10045.2.1)
+      // then grab the enclosing SEQUENCE as the SPKI block.
+
+      const rsaOid  = [0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x01]; // RSA OID bytes
+      const ecOid   = [0x2a, 0x86, 0x48, 0xce, 0x3d, 0x02, 0x01];              // EC OID bytes
+
+      const findSpki = (der) => {
+        // Walk bytes to find a SEQUENCE(0x30) enclosing a known algorithm OID
+        for (let i = 0; i < der.length - 20; i++) {
+          if (der[i] !== 0x30) continue;
+          // Peek inside: next bytes should be SEQUENCE (algorithm OID container)
+          const inner = i + 2;
+          if (inner >= der.length) continue;
+          if (der[inner] !== 0x30) continue;
+          // Check if either RSA or EC OID follows
+          const oidStart = inner + 2;
+          const isRSA = rsaOid.every((b, j) => der[oidStart + j] === b);
+          const isEC  = ecOid.every((b,  j) => der[oidStart + j] === b);
+          if (!isRSA && !isEC) continue;
+          // Found an algorithm sequence — outer SEQUENCE(0x30) at [i] is the SPKI
+          // Read the length of the outer SEQUENCE to slice it
+          let spkiLen, lenBytes;
+          if (der[i + 1] & 0x80) {
+            lenBytes = der[i + 1] & 0x7f;
+            spkiLen = 0;
+            for (let k = 0; k < lenBytes; k++) spkiLen = (spkiLen << 8) | der[i + 2 + k];
+            return { spki: der.slice(i, i + 2 + lenBytes + spkiLen), isEC };
+          } else {
+            spkiLen = der[i + 1];
+            return { spki: der.slice(i, i + 2 + spkiLen), isEC };
+          }
+        }
+        return null;
+      };
+
+      const issuerSpkiInfo = findSpki(issuerDer);
+      if (!issuerSpkiInfo) return { valid: false, reason: 'Could not locate issuer public key (SPKI block not found).' };
+
+      // --- Import the issuer's public key ---
+      let issuerPubKey;
+      if (issuerSpkiInfo.isEC) {
+        issuerPubKey = await crypto.subtle.importKey(
+          'spki', issuerSpkiInfo.spki,
+          { name: 'ECDSA', namedCurve: 'P-256' },
+          false, ['verify']
+        );
+      } else {
+        // Try SHA-256 RSA first, fallback label — algorithm OID determines hash but we only have SHA-256 in Web Crypto RSASSA-PKCS1-v1_5
+        issuerPubKey = await crypto.subtle.importKey(
+          'spki', issuerSpkiInfo.spki,
+          { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+          false, ['verify']
+        );
+      }
+
+      // --- Extract TBSCertificate (the signed portion) and the signature from the child cert ---
+      // A DER X.509 certificate is:  SEQUENCE { TBSCertificate, AlgorithmIdentifier, BIT STRING(signature) }
+      // TBSCertificate starts at offset 4 (SEQUENCE tag + length of outer + inner tag + length of TBS)
+      // We need to slice TBSCertificate DER bytes to verify against the stored signature.
+
+      const extractTBSAndSig = (der) => {
+        // Outer SEQUENCE
+        let offset = 0;
+        if (der[offset++] !== 0x30) return null;
+        // Read outer length
+        let outerLen, outerLenBytes;
+        if (der[offset] & 0x80) { outerLenBytes = der[offset++] & 0x7f; outerLen = 0; for (let k=0;k<outerLenBytes;k++) outerLen = (outerLen<<8)|der[offset++]; }
+        else outerLen = der[offset++];
+        const certEnd = offset + outerLen;
+
+        // TBSCertificate — first element of outer SEQUENCE, itself a SEQUENCE
+        const tbsStart = offset;
+        if (der[tbsStart] !== 0x30) return null;
+        let tbsLen, tbsLenBytes = 0;
+        if (der[tbsStart+1] & 0x80) { tbsLenBytes = der[tbsStart+1] & 0x7f; tbsLen = 0; for (let k=0;k<tbsLenBytes;k++) tbsLen = (tbsLen<<8)|der[tbsStart+2+k]; }
+        else tbsLen = der[tbsStart+1];
+        const tbsEnd = tbsStart + 2 + tbsLenBytes + tbsLen;
+        const tbsDer = der.slice(tbsStart, tbsEnd);
+
+        // Skip AlgorithmIdentifier (next SEQUENCE after TBS)
+        let algOffset = tbsEnd;
+        if (der[algOffset] !== 0x30) return null;
+        let algLen;
+        if (der[algOffset+1] & 0x80) { const lb = der[algOffset+1] & 0x7f; algLen = 0; for (let k=0;k<lb;k++) algLen=(algLen<<8)|der[algOffset+2+k]; algOffset += 2+lb+algLen; }
+        else { algLen = der[algOffset+1]; algOffset += 2+algLen; }
+
+        // BIT STRING containing the signature
+        if (der[algOffset] !== 0x03) return null;
+        let sigLen, sigLenBytes = 0;
+        if (der[algOffset+1] & 0x80) { sigLenBytes = der[algOffset+1] & 0x7f; sigLen = 0; for (let k=0;k<sigLenBytes;k++) sigLen=(sigLen<<8)|der[algOffset+2+k]; }
+        else sigLen = der[algOffset+1];
+        // Skip the leading 0x00 unused-bits byte
+        const sigStart = algOffset + 2 + sigLenBytes + 1;
+        const sigBytes = der.slice(sigStart, algOffset + 2 + sigLenBytes + sigLen);
+
+        return { tbsDer, sigBytes };
+      };
+
+      const childParts = extractTBSAndSig(childDer);
+      if (!childParts) return { valid: false, reason: 'Could not parse child certificate TBSCertificate/signature structure.' };
+
+      // --- Verify the signature ---
+      const algorithm = issuerSpkiInfo.isEC
+        ? { name: 'ECDSA', hash: 'SHA-256' }
+        : { name: 'RSASSA-PKCS1-v1_5' };
+
+      const isValid = await crypto.subtle.verify(
+        algorithm,
+        issuerPubKey,
+        childParts.sigBytes,
+        childParts.tbsDer
+      );
+      return { valid: isValid, reason: isValid ? 'Signature verified.' : 'Signature mismatch — cert was not signed by this issuer.' };
+
+    } catch (e) {
+      // ECDSA on an RSA cert (or vice-versa) will throw an algorithm error — handle gracefully
+      if (e.name === 'DataError' || e.name === 'NotSupportedError') {
+        return { valid: null, reason: `Key algorithm mismatch or unsupported: ${e.message}` };
+      }
+      return { valid: false, reason: `Verification error: ${e.message}` };
+    }
+  },
+
+  // Verify a full PEM chain blob (leaf ... root pasted together)
+  // Returns array of { leaf, issuer, valid, reason } link objects
+  verifyCertChain: async (chainPem) => {
+    const pems = CE.splitPEMChain(chainPem);
+    const ders = pems.map(p => CE.pemToDer(p));
+    const metas = await Promise.all(pems.map(p => CE.parsePEMCertificate(p)));
+
+    const links = [];
+    for (let i = 0; i < ders.length - 1; i++) {
+      const result = await CE.verifyCertPair(ders[i], ders[i + 1]);
+      links.push({
+        childLabel:  metas[i].subject   || `Cert ${i + 1}`,
+        issuerLabel: metas[i + 1].subject || `Cert ${i + 2}`,
+        childMeta:   metas[i],
+        issuerMeta:  metas[i + 1],
+        valid:       result.valid,
+        reason:      result.reason
+      });
+    }
+    // Tag the last cert as root (self-signed check)
+    const rootMeta = metas[metas.length - 1];
+    return { links, certs: metas, isRootSelfSigned: rootMeta.isSelfSigned };
+  },
+
   /* ─── ECDSA DIGITAL SIGNATURES ─── */
   generateECDSA: async () => {
     const pair = await crypto.subtle.generateKey(

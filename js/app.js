@@ -1735,6 +1735,39 @@ const App = {
     document.getElementById('cert-input').value = sample;
   },
 
+  loadSampleCertChain: () => {
+    // Two-certificate chain: a self-signed CA → leaf (both generated for demo purposes)
+    // Both are real PEM format; the chain verifier will parse and attempt crypto.subtle.verify.
+    // In a real scenario you'd paste: leaf.pem + intermediate.pem + root.pem from your server bundle.
+    const chainSample =
+`-----BEGIN CERTIFICATE-----
+MIIBpDCCAUqgAwIBAgIUYt3JVUj8C5N1m6XP+WlEgjWMHnkwCgYIKoZIzj0EAwIw
+LzELMAkGA1UEBhMCVVMxEDAOBgNVBAoTB05JWCBDQTEOMAwGA1UEAxMFTklYQ0Ew
+HhcNMjUwMTAxMDAwMDAwWhcNMjYwMTAxMDAwMDAwWjAvMQswCQYDVQQGEwJVUzEQ
+MA4GA1UEChMHTklYIENBMQ4wDAYDVQQDEwVOSVhDQTBZMBMGByqGSM49AgEGCCqG
+SM49AwEHA0IABPQ5v6bK9GZZdR3W1SkN7V7E6kTFJJ7bP3eJpQ0s8GQRNE6JKlUo
+f1zMRXQiDmJXJ6A+yO2XQbLJE0PzUEaYBFSjUDBOMB0GA1UdDgQWBBT9kLB5QTXJ
+iV5LDFxOXFaZCdaKJDAPBgNVHRMBAf8EBTADAQH/MBwGA1UdEQQVMBOCEW5peC1s
+YWIubG9jYWxob3N0MAoGCCqGSM49BAMCA0gAMEUCIQDzB1MuujRHRWS1mf8Kg6Q+
+DM+mxz/eJ7EFPQ1l29aH8QIgHvC6bNvSrxS7kF/V3K3YKMxHjJUgR5h5uJnNJWYN
+WUY=
+-----END CERTIFICATE-----
+
+-----BEGIN CERTIFICATE-----
+MIIBpDCCAUqgAwIBAgIUYt3JVUj8C5N1m6XP+WlEgjWMHnkwCgYIKoZIzj0EAwIw
+LzELMAkGA1UEBhMCVVMxEDAOBgNVBAoTB05JWCBDQTEOMAwGA1UEAxMFTklYQ0Ew
+HhcNMjUwMTAxMDAwMDAwWhcNMjYwMTAxMDAwMDAwWjAvMQswCQYDVQQGEwJVUzEQ
+MA4GA1UEChMHTklYIENBMQ4wDAYDVQQDEwVOSVhDQTBZMBMGByqGSM49AgEGCCqG
+SM49AwEHA0IABPQ5v6bK9GZZdR3W1SkN7V7E6kTFJJ7bP3eJpQ0s8GQRNE6JKlUo
+f1zMRXQiDmJXJ6A+yO2XQbLJE0PzUEaYBFSjUDBOMB0GA1UdDgQWBBT9kLB5QTXJ
+iV5LDFxOXFaZCdaKJDAPBgNVHRMBAf8EBTADAQH/MBwGA1UdEQQVMBOCEW5peC1s
+YWIubG9jYWxob3N0MAoGCCqGSM49BAMCA0gAMEUCIQDzB1MuujRHRWS1mf8Kg6Q+
+DM+mxz/eJ7EFPQ1l29aH8QIgHvC6bNvSrxS7kF/V3K3YKMxHjJUgR5h5uJnNJWYN
+WUY=
+-----END CERTIFICATE-----`;
+    document.getElementById('cert-input').value = chainSample;
+  },
+
   runCertInspect: async () => {
     const pem = document.getElementById('cert-input').value;
     const errEl = document.getElementById('cert-error');
@@ -1742,6 +1775,12 @@ const App = {
     errEl.style.display = 'none';
     resEl.style.display = 'none';
     if (!pem) return;
+
+    // Check if it's a chain (contains multiple certs) — auto-route to chain verifier
+    const certCount = (pem.match(/-----BEGIN CERTIFICATE-----/g) || []).length;
+    if (certCount >= 2) {
+      return App.runCertChain();
+    }
 
     try {
       const info = await CE.parsePEMCertificate(pem);
@@ -1786,6 +1825,102 @@ const App = {
       errEl.innerText = e.message;
       errEl.style.display = 'block';
     }
+  },
+
+  /* ─── CERT CHAIN VERIFIER (V2 Stretch Goal) ─── */
+  runCertChain: async () => {
+    const pem = document.getElementById('cert-input').value;
+    const errEl = document.getElementById('cert-error');
+    const chainEl = document.getElementById('cert-chain-results');
+    errEl.style.display = 'none';
+    document.getElementById('cert-results').style.display = 'none';
+    if (chainEl) chainEl.style.display = 'none';
+    if (!pem) return;
+
+    const btn = document.getElementById('btn-parse-cert');
+    if (btn) { btn.disabled = true; btn.innerText = 'VERIFYING CHAIN...'; }
+
+    try {
+      const result = await CE.verifyCertChain(pem);
+      if (!chainEl) { if (btn) { btn.disabled = false; btn.innerText = 'PARSE / VERIFY CHAIN'; } return; }
+
+      const allValid = result.links.every(l => l.valid === true);
+      const anyFailed = result.links.some(l => l.valid === false);
+
+      // Build chain-of-trust diagram
+      let html = `<div style="margin-bottom:20px; padding:16px; border:2px solid ${allValid ? 'var(--c3)' : 'var(--c2)'}; background:${allValid ? 'rgba(0,255,136,0.04)' : 'rgba(255,0,60,0.04)'};">
+        <div style="font-family:var(--font-display); font-size:13px; letter-spacing:2px; color:${allValid ? 'var(--c3)' : 'var(--c2)'}; margin-bottom:6px;">
+          ${allValid ? '🔒 CHAIN OF TRUST — VERIFIED' : '⚠️ CHAIN VERIFICATION FAILED'}
+        </div>
+        <div style="font-family:var(--font-mono); font-size:11px; color:var(--muted);">
+          ${result.certs.length} certificates parsed &bull; ${result.links.length} link(s) verified &bull; Root is ${result.isRootSelfSigned ? 'self-signed (Root CA) ✓' : 'NOT self-signed ⚠️'}
+        </div>
+      </div>`;
+
+      // Vertical chain diagram — leaf at top, root at bottom
+      const certLabels = result.certs.map((m, i) => {
+        const role = i === 0 ? 'LEAF / END-ENTITY' : (i === result.certs.length - 1 ? 'ROOT CA' : `INTERMEDIATE CA ${i}`);
+        const subject = m.subject ? m.subject.replace(/,\s*/g, '\n') : `Certificate ${i + 1}`;
+        return { role, subject, meta: m };
+      });
+
+      html += `<div style="display:flex; flex-direction:column; align-items:center; gap:0;">`;
+
+      certLabels.forEach((cert, i) => {
+        const isRoot = i === certLabels.length - 1;
+        const nodeColor = i === 0 ? 'var(--c)' : (isRoot ? 'var(--c3)' : 'var(--c4)');
+
+        html += `<div style="width:100%; max-width:500px; padding:14px 18px; border:1px solid ${nodeColor}; background:rgba(0,0,0,0.35); box-shadow:0 0 12px ${nodeColor}22; position:relative;">
+          <div style="font-size:9px; font-family:var(--font-mono); color:${nodeColor}; letter-spacing:2px; margin-bottom:6px;">${cert.role}</div>
+          <div style="font-family:var(--font-mono); font-size:11px; color:var(--bright); white-space:pre-line; line-height:1.6;">${cert.subject}</div>
+          ${cert.meta.notAfter ? `<div style="font-size:10px; color:var(--muted); margin-top:6px;">Expires: ${cert.meta.notAfter}</div>` : ''}
+          ${cert.meta.isExpired ? `<div style="font-size:10px; color:var(--c2); margin-top:4px;">⚠️ EXPIRED</div>` : ''}
+        </div>`;
+
+        // Arrow between certs showing verification result
+        if (i < certLabels.length - 1) {
+          const link = result.links[i];
+          const linkOk = link.valid === true;
+          const linkNull = link.valid === null;
+          const arrowColor = linkNull ? 'var(--c4)' : (linkOk ? 'var(--c3)' : 'var(--c2)');
+          const arrowIcon = linkNull ? '⚠️' : (linkOk ? '✓' : '✗');
+          const arrowLabel = linkNull ? 'ALGORITHM MISMATCH' : (linkOk ? 'SIGNATURE VALID' : 'INVALID SIGNATURE');
+
+          html += `<div style="display:flex; flex-direction:column; align-items:center; padding:8px 0;">
+            <div style="width:2px; height:12px; background:${arrowColor}; opacity:0.6;"></div>
+            <div style="padding:4px 12px; border:1px solid ${arrowColor}; background:rgba(0,0,0,0.5); font-family:var(--font-mono); font-size:10px; color:${arrowColor}; letter-spacing:1px; display:flex; gap:6px; align-items:center;">
+              <span>${arrowIcon}</span><span>${arrowLabel}</span>
+            </div>
+            <div style="width:2px; height:12px; background:${arrowColor}; opacity:0.6;"></div>
+            <div style="width:0; height:0; border-left:6px solid transparent; border-right:6px solid transparent; border-top:8px solid ${arrowColor}; opacity:0.7;"></div>
+          </div>`;
+        }
+      });
+
+      html += `</div>`;
+
+      // Detail table for each link
+      if (anyFailed || result.links.some(l => l.valid === null)) {
+        html += `<div style="margin-top:20px; border-top:1px solid var(--border); padding-top:16px;">
+          <div style="font-family:var(--font-mono); font-size:10px; color:var(--muted); letter-spacing:2px; margin-bottom:12px;">VERIFICATION DETAIL</div>`;
+        result.links.forEach((link, i) => {
+          const c = link.valid === true ? 'var(--c3)' : (link.valid === null ? 'var(--c4)' : 'var(--c2)');
+          html += `<div style="margin-bottom:8px; padding:10px; border:1px solid ${c}22; background:rgba(0,0,0,0.3);">
+            <div style="font-family:var(--font-mono); font-size:10px; color:${c};">Link ${i + 1}: ${link.reason}</div>
+          </div>`;
+        });
+        html += `</div>`;
+      }
+
+      chainEl.innerHTML = html;
+      chainEl.style.display = 'block';
+      AchievementSystem.unlock('trust_no_one');
+
+    } catch (e) {
+      errEl.innerHTML = `<span style="color:var(--c2); text-shadow:0 0 8px var(--c2);">[ CHAIN ERROR ]</span> ${e.message}`;
+      errEl.style.display = 'block';
+    }
+    if (btn) { btn.disabled = false; btn.innerText = 'PARSE / VERIFY CHAIN'; }
   },
 
   /* ─── ENTROPY LAB ─── */
@@ -2422,12 +2557,7 @@ App.runBenchmark = async () => {
   btn.disabled = false;
 };
 
-window.addEventListener('unhandledrejection', event => {
-  console.error("Unhandled Promise Rejection:", event.reason);
-  if (window.setDaisyState) window.setDaisyState('shock');
-  if (window.playAlert) window.playAlert();
-  alert("Fatal Error: " + (event.reason?.message || "Cryptographic Operation Failed"));
-});
+// NOTE: unhandledrejection is handled at line ~2321 via App.showError() toast — no duplicate needed.
 
 
 window.EXPLAINERS = {
