@@ -542,27 +542,6 @@ function initDaisy() {
     }, 1800);
   });
 
-  // ─── SECRET DOUBLE-CLICK BACKFLIP ───
-  let lastClickTime = 0;
-  widget.addEventListener('click', (e) => {
-    const now = Date.now();
-    if (now - lastClickTime < 350) {
-      // Double-click!
-      e.stopPropagation();
-      widget.classList.add('daisy-backflip');
-      const bbl = document.getElementById('daisy-bubble');
-      if (bbl) {
-        window.typewriteBubble("Never doing that again.");
-        bbl.classList.add('visible');
-        setTimeout(() => bbl.classList.remove('visible'), 3000);
-      }
-      if (window.playSuccess) window.playSuccess();
-      setTimeout(() => widget.classList.remove('daisy-backflip'), 700);
-      lastClickTime = 0;
-      return;
-    }
-    lastClickTime = now;
-  });
 
   let isDragging = false;
   widget.addEventListener('click', (e) => {
