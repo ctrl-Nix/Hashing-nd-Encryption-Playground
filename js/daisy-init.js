@@ -45,13 +45,7 @@ function initDaisy() {
           <li><strong style="color:var(--c3, #00ff88);">🪴 Level Up Dance:</strong> Unlock an achievement to water me and watch me do a 360° happy dance!</li>
           <li><strong style="color:var(--c3, #00ff88);">👀 Eye Tracking:</strong> Move your mouse around and watch my eyes follow your cursor.</li>
         </ul>
-        <div style="margin-top:16px; border-top:1px solid var(--muted); padding-top:12px; color:var(--muted);">
-          <strong style="color:var(--c, #00f5ff);">CLASSIFIED SECRETS (EASTER EGGS):</strong><br>
-          Type the answers to these clues anywhere on the keyboard:<br>
-          - What is the name of this protocol? (3 letters) -> Matrix Rain<br>
-          - The study of secure communication? (6 letters) -> Stealth Mode<br>
-          - What do we do to plain text to make a fingerprint? (4 letters) -> Overclock Mode
-        </div>
+
       </div>
     `;
     document.body.appendChild(manualModal);
@@ -197,45 +191,7 @@ function initDaisy() {
   window.addEventListener('click', resetIdle);
   resetIdle();
 
-  // --- SECRET KEYLOGGER ---
-  let keyBuffer = '';
-  window.addEventListener('keydown', (e) => {
-    if (e.key && e.key.length === 1) {
-      keyBuffer = (keyBuffer + e.key.toLowerCase()).slice(-20);
-      if (keyBuffer.endsWith('nix')) {
-        window.playSuccess();
-        document.body.style.backgroundImage = 'url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPgo8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMDcwYjE0Ii8+Cjx0ZXh0IHg9IjAiIHk9IjIwIiBmaWxsPSIjMDBmZjAwIiBvcGFjaXR5PSIwLjUiIGZvbnQtZmFtaWx5PSJtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMjAiPjEwMTExMDEwMDEwMTwvdGV4dD4KPC9zdmc+")';
-        if (window.setDaisyState) window.setDaisyState('celebrate', null);
-        const bubble = document.getElementById('daisy-bubble');
-        if (bubble) {
-          bubble.classList.add('visible');
-          window.typewriteBubble("Matrix mode engaged!");
-        }
-      }
-      if (keyBuffer.endsWith('crypto')) {
-        window.playSuccess();
-        const hackerGoggles = document.getElementById('daisy-accessory-hacker');
-        if (hackerGoggles) hackerGoggles.style.display = '';
-        if (window.setDaisyState) window.setDaisyState('celebrate', null);
-        const bubble = document.getElementById('daisy-bubble');
-        if (bubble) {
-          bubble.classList.add('visible');
-          window.typewriteBubble("Stealth mode activated!");
-        }
-      }
-      if (keyBuffer.endsWith('hash')) {
-        window.playSuccess();
-        document.documentElement.style.setProperty('--bg', '#000000');
-        document.documentElement.style.setProperty('--c', '#ff00ff');
-        if (window.setDaisyState) window.setDaisyState('celebrate', null);
-        const bubble = document.getElementById('daisy-bubble');
-        if (bubble) {
-          bubble.classList.add('visible');
-          window.typewriteBubble("Overclocking hashes!");
-        }
-      }
-    }
-  });
+
 
   // Inject CSS highlighter
   const style = document.createElement('style');
