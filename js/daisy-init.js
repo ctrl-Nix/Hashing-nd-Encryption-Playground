@@ -231,7 +231,7 @@ function initDaisy() {
       bbl.classList.add('visible');
       setTimeout(() => bbl.classList.remove('visible'), 5000);
     }
-  }, 3000);
+  }, 5000);
 
 
 
@@ -505,16 +505,16 @@ function initDaisy() {
       daisySizeState = 'big';
       widget.classList.add('daisy-big');
       widget.classList.remove('daisy-small');
-      if (bbl) { window.typewriteBubble("I feel POWERFUL! 💪"); bbl.classList.add('visible'); setTimeout(() => bbl.classList.remove('visible'), 3000); }
+      if (bbl) { window.typewriteBubble("I feel POWERFUL! 💪"); bbl.classList.add('visible'); setTimeout(() => bbl.classList.remove('visible'), 6000); }
     } else if (daisySizeState === 'big') {
       daisySizeState = 'small';
       widget.classList.add('daisy-small');
       widget.classList.remove('daisy-big');
-      if (bbl) { window.typewriteBubble("I can still break MD5 at this size."); bbl.classList.add('visible'); setTimeout(() => bbl.classList.remove('visible'), 3000); }
+      if (bbl) { window.typewriteBubble("I can still break MD5 at this size."); bbl.classList.add('visible'); setTimeout(() => bbl.classList.remove('visible'), 6000); }
     } else {
       daisySizeState = 'normal';
       widget.classList.remove('daisy-big', 'daisy-small');
-      if (bbl) { window.typewriteBubble("Back to normal. Comfortable."); bbl.classList.add('visible'); setTimeout(() => bbl.classList.remove('visible'), 2500); }
+      if (bbl) { window.typewriteBubble("Back to normal. Comfortable."); bbl.classList.add('visible'); setTimeout(() => bbl.classList.remove('visible'), 5000); }
     }
     if (window.playBlip) window.playBlip();
   });
