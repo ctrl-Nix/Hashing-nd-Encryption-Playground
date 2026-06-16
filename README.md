@@ -24,7 +24,7 @@ An unrestricted technical environment for raw cryptographic experimentation:
 - **Hashing & Entropy**: Compare MD5, SHA-1, SHA-256, and SHA-512 algorithms. Calculate Shannon Entropy and measure bits-per-character density of input strings.
 - **Symmetric & Asymmetric Encryption**: Generate 2048-bit RSA key pairs, and execute symmetric encryption utilizing PBKDF2 key derivation and AES-256-GCM payloads.
 - **Digital Signatures (ECDSA)**: Generate P-256 keys, sign payloads, and observe real-time cryptographic tampering detection.
-- **Certificate Inspector**: Parse raw PEM X.509 certificates to extract Issuer, Subject, Validity, and SHA-256 fingerprints entirely client-side.
+- **Certificate Inspector & Chain Verifier**: Parse raw PEM X.509 certificates to extract metadata, or paste an entire certificate chain (leaf to root) to visually verify the chain of trust using native browser cryptography.
 - **LSB Steganography**: Hide and extract encrypted payloads within image pixels using Least Significant Bit encoding.
 - **Two-User ECDH Key Exchange**: Secure, end-to-end symmetric key derivation utilizing shareable links and dynamically rendered QR codes for real-time browser-to-browser cryptography.
 
