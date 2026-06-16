@@ -498,13 +498,51 @@ function initDaisy() {
   const closeBtn = document.getElementById('daisy-chat-close');
 
   let tickleTimeout;
-  widget.addEventListener('mouseenter', () => {
+  let tickleSpeeds = [];
+  let lastTickleTime = 0;
+  let lastTickleX = 0;
+  let lastTickleY = 0;
+
+  widget.addEventListener('mousemove', (e) => {
     if (widget.classList.contains('daisy-sleep') || widget.classList.contains('daisy-drag') || widget.classList.contains('daisy-flower') || widget.classList.contains('daisy-dizzy')) return;
-    widget.classList.add('daisy-tickle');
-    clearTimeout(tickleTimeout);
-    tickleTimeout = setTimeout(() => {
-      widget.classList.remove('daisy-tickle');
-    }, 400);
+    
+    // Face bounding box for tickle detection
+    const rect = widget.getBoundingClientRect();
+    const faceCenterX = rect.width / 2;
+    const faceCenterY = rect.height * 0.4;
+    const hoverX = e.clientX - rect.left;
+    const hoverY = e.clientY - rect.top;
+    const distToFace = Math.sqrt((hoverX - faceCenterX)**2 + (hoverY - faceCenterY)**2);
+    
+    // Check if mouse is hovering over the face/petals area
+    if (distToFace < 40) { 
+      const now = Date.now();
+      const dt = now - lastTickleTime;
+      if (dt > 0 && dt < 100) { // calculate speed if events are close
+        const dist = Math.sqrt((e.clientX - lastTickleX)**2 + (e.clientY - lastTickleY)**2);
+        const speed = dist / dt;
+        tickleSpeeds.push(speed);
+        if (tickleSpeeds.length > 5) tickleSpeeds.shift();
+        
+        const avgSpeed = tickleSpeeds.reduce((a, b) => a + b, 0) / tickleSpeeds.length;
+        
+        // If moving quickly over the face, trigger tickle
+        if (avgSpeed > 1.2) {
+          if (!widget.classList.contains('daisy-tickle')) {
+            widget.classList.add('daisy-tickle');
+            if (window.playTypewriter) window.playTypewriter(); // Cute little tickle sound
+          }
+          clearTimeout(tickleTimeout);
+          tickleTimeout = setTimeout(() => {
+            widget.classList.remove('daisy-tickle');
+            tickleSpeeds = []; // Reset on stop
+          }, 300);
+        }
+      }
+      lastTickleTime = now;
+      lastTickleX = e.clientX;
+      lastTickleY = e.clientY;
+    }
   });
 
   let isDragging = false;
