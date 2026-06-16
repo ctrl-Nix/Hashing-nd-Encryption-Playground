@@ -66,6 +66,7 @@ function initDaisy() {
           <li><strong style="color:var(--c3, #00ff88);">👀 Eye Tracking:</strong> Move your mouse around and watch my eyes follow your cursor.</li>
           <li><strong style="color:var(--c3, #00ff88);">🔍 Size Toggle:</strong> Click the magnifier button on my widget to make me grow or shrink!</li>
           <li><strong style="color:var(--c3, #00ff88);">🍕 Feed Me:</strong> Click the pizza button to toss me a crypto byte snack. I'll munch it up!</li>
+          <li><strong style="color:var(--c3, #00ff88);">🕐 Time Greeting:</strong> When you open the playground, I'll greet you based on the time of day.</li>
         </ul>
 
       </div>

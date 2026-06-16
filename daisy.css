@@ -136,8 +136,8 @@
   user-select: none;
   line-height: 1;
 }
-#daisy-size-btn { top: 26px; left: 6px; }
-#daisy-feed-btn { top: 46px; left: 6px; }
+#daisy-size-btn { top: 30px; left: -16px; }
+#daisy-feed-btn { top: 52px; left: -16px; }
 #daisy-size-btn:hover,
 #daisy-feed-btn:hover {
   background-color: rgba(0,245,255,0.25);
