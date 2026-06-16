@@ -18,6 +18,26 @@ function initDaisy() {
     widget.appendChild(manualBtn);
   }
 
+  // Size Toggle Button
+  let sizeBtn = document.getElementById('daisy-size-btn');
+  if (!sizeBtn) {
+    sizeBtn = document.createElement('div');
+    sizeBtn.id = 'daisy-size-btn';
+    sizeBtn.textContent = '🔍';
+    sizeBtn.title = 'Toggle size';
+    widget.appendChild(sizeBtn);
+  }
+
+  // Feed Button
+  let feedBtn = document.getElementById('daisy-feed-btn');
+  if (!feedBtn) {
+    feedBtn = document.createElement('div');
+    feedBtn.id = 'daisy-feed-btn';
+    feedBtn.textContent = '🍕';
+    feedBtn.title = 'Feed Daisy!';
+    widget.appendChild(feedBtn);
+  }
+
   // Manual Modal
   let manualModal = document.getElementById('daisy-manual-modal');
   if (!manualModal) {
@@ -44,6 +64,8 @@ function initDaisy() {
           <li><strong style="color:var(--c3, #00ff88);">⚡ Shock:</strong> If a crypto tool throws an error, I get shocked!</li>
           <li><strong style="color:var(--c3, #00ff88);">🪴 Level Up Dance:</strong> Unlock an achievement to water me and watch me do a 360° happy dance!</li>
           <li><strong style="color:var(--c3, #00ff88);">👀 Eye Tracking:</strong> Move your mouse around and watch my eyes follow your cursor.</li>
+          <li><strong style="color:var(--c3, #00ff88);">🔍 Size Toggle:</strong> Click the magnifier button on my widget to make me grow or shrink!</li>
+          <li><strong style="color:var(--c3, #00ff88);">🍕 Feed Me:</strong> Click the pizza button to toss me a crypto byte snack. I'll munch it up!</li>
         </ul>
 
       </div>
@@ -190,6 +212,26 @@ function initDaisy() {
   window.addEventListener('keydown', resetIdle);
   window.addEventListener('click', resetIdle);
   resetIdle();
+
+  // ─── TIME-OF-DAY GREETING ───
+  setTimeout(() => {
+    const hour = new Date().getHours();
+    let greeting = null;
+    if (hour >= 0 && hour < 5)   greeting = "It's the middle of the night... you absolute legend.";
+    else if (hour < 9)           greeting = "Morning! The NSA starts their shifts now too. ☕";
+    else if (hour < 12)          greeting = "Good morning! Perfect time to hash some things out.";
+    else if (hour < 14)          greeting = "Lunch break crypto? You're my kind of person.";
+    else if (hour < 18)          greeting = "Afternoon session! AES doesn't break itself.";
+    else if (hour < 21)          greeting = "Evening! All the best attacks happen after dark.";
+    else                         greeting = "Working late? Respect. MD5 never sleeps either.";
+
+    const bbl = document.getElementById('daisy-bubble');
+    if (bbl && greeting) {
+      window.typewriteBubble(greeting);
+      bbl.classList.add('visible');
+      setTimeout(() => bbl.classList.remove('visible'), 5000);
+    }
+  }, 3000);
 
 
 
@@ -453,6 +495,74 @@ function initDaisy() {
   const closeBtn = document.getElementById('daisy-chat-close');
 
 
+
+  // ─── SIZE TOGGLE ───
+  let daisySizeState = 'normal'; // 'small' | 'normal' | 'big'
+  sizeBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const bbl = document.getElementById('daisy-bubble');
+    if (daisySizeState === 'normal') {
+      daisySizeState = 'big';
+      widget.classList.add('daisy-big');
+      widget.classList.remove('daisy-small');
+      if (bbl) { window.typewriteBubble("I feel POWERFUL! 💪"); bbl.classList.add('visible'); setTimeout(() => bbl.classList.remove('visible'), 3000); }
+    } else if (daisySizeState === 'big') {
+      daisySizeState = 'small';
+      widget.classList.add('daisy-small');
+      widget.classList.remove('daisy-big');
+      if (bbl) { window.typewriteBubble("I can still break MD5 at this size."); bbl.classList.add('visible'); setTimeout(() => bbl.classList.remove('visible'), 3000); }
+    } else {
+      daisySizeState = 'normal';
+      widget.classList.remove('daisy-big', 'daisy-small');
+      if (bbl) { window.typewriteBubble("Back to normal. Comfortable."); bbl.classList.add('visible'); setTimeout(() => bbl.classList.remove('visible'), 2500); }
+    }
+    if (window.playBlip) window.playBlip();
+  });
+
+  // ─── PET FOOD ───
+  let feedCooldown = false;
+  feedBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (feedCooldown || widget.classList.contains('daisy-sleep')) return;
+    feedCooldown = true;
+    feedBtn.textContent = '🔑';
+    const bbl = document.getElementById('daisy-bubble');
+    widget.classList.add('daisy-munch');
+    if (bbl) {
+      const snacks = ["Mmm, a fresh AES key! Delicious.", "256-bit flavour! *munch munch*", "Crypto bytes — my favourite!", "Tastes like SHA-256. Nutty with a hint of avalanche."];
+      window.typewriteBubble(snacks[Math.floor(Math.random() * snacks.length)]);
+      bbl.classList.add('visible');
+      setTimeout(() => bbl.classList.remove('visible'), 3500);
+    }
+    if (window.playSuccess) window.playSuccess();
+    setTimeout(() => {
+      widget.classList.remove('daisy-munch');
+      feedBtn.textContent = '🍕';
+      feedCooldown = false;
+    }, 1800);
+  });
+
+  // ─── SECRET DOUBLE-CLICK BACKFLIP ───
+  let lastClickTime = 0;
+  widget.addEventListener('click', (e) => {
+    const now = Date.now();
+    if (now - lastClickTime < 350) {
+      // Double-click!
+      e.stopPropagation();
+      widget.classList.add('daisy-backflip');
+      const bbl = document.getElementById('daisy-bubble');
+      if (bbl) {
+        window.typewriteBubble("Never doing that again.");
+        bbl.classList.add('visible');
+        setTimeout(() => bbl.classList.remove('visible'), 3000);
+      }
+      if (window.playSuccess) window.playSuccess();
+      setTimeout(() => widget.classList.remove('daisy-backflip'), 700);
+      lastClickTime = 0;
+      return;
+    }
+    lastClickTime = now;
+  });
 
   let isDragging = false;
   widget.addEventListener('click', (e) => {
