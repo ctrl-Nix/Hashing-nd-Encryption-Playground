@@ -230,9 +230,9 @@ function initDaisy() {
     if (bbl && greeting) {
       window.typewriteBubble(greeting);
       bbl.classList.add('visible');
-      setTimeout(() => bbl.classList.remove('visible'), 5000);
+      setTimeout(() => bbl.classList.remove('visible'), 9000);
     }
-  }, 5000);
+  }, 10000);
 
 
 
