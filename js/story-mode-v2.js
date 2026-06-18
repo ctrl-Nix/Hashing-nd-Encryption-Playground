@@ -607,10 +607,10 @@ App.runStoryHash = async () => {
     const res = document.getElementById('s-hash-res');
     res.innerHTML = `
       <div class="reveal-in">
-        ${SMv2.readoutHTML('s-hash-val', `GENERATED FINGERPRINT (${App.S.story.algo})`, r.hex, 'readout-green')}
+        ${readoutHTML('s-hash-val', `GENERATED FINGERPRINT (${App.S.story.algo})`, r.hex, 'readout-green')}
         <div class="bit-grid-label" style="margin-top:16px;">BIT PATTERN — ${r.bits.length} BITS</div>
         <div class="bit-grid" id="s-hash-bits" style="margin-top:4px;max-height:100px;"></div>
-        ${SMv2.missionCompleteHTML('Hash fingerprint generated. Ready to observe Avalanche Effect.')}
+        ${missionCompleteHTML('Hash fingerprint generated. Ready to observe Avalanche Effect.')}
       </div>`;
 
     const grid = document.getElementById('s-hash-bits');
