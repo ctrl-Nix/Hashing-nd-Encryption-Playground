@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nix-pwa-cache-v2';
+const CACHE_NAME = 'nix-pwa-cache-v3';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -53,27 +53,46 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Only intercept same-origin requests to avoid caching HF models or external fonts
+  // Only intercept same-origin requests to avoid caching external models or fonts
   if (event.request.url.startsWith(self.location.origin)) {
-    event.respondWith(
-      caches.match(event.request).then((cachedResponse) => {
-        // Stale-While-Revalidate strategy for local assets
-        const fetchPromise = fetch(event.request).then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            const responseClone = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
-          }
-          return networkResponse;
-        }).catch(() => {
-          console.warn('[Service Worker] Network fetch failed, relying entirely on cache.');
-        });
+    const isHtml = event.request.headers.get('accept')?.includes('text/html') || 
+                   event.request.url.endsWith('.html') || 
+                   event.request.url === self.location.origin + '/';
 
-        // Return cached response immediately if available, otherwise wait for network
-        return cachedResponse || fetchPromise;
-      })
-    );
+    if (isHtml) {
+      // Network-First strategy for HTML files to prevent caching stale layouts
+      event.respondWith(
+        fetch(event.request)
+          .then((networkResponse) => {
+            if (networkResponse && networkResponse.status === 200) {
+              const responseClone = networkResponse.clone();
+              caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
+            }
+            return networkResponse;
+          })
+          .catch(() => caches.match(event.request))
+      );
+    } else {
+      // Stale-While-Revalidate strategy for other assets (JS, CSS, images, etc.)
+      event.respondWith(
+        caches.match(event.request).then((cachedResponse) => {
+          const fetchPromise = fetch(event.request)
+            .then((networkResponse) => {
+              if (networkResponse && networkResponse.status === 200) {
+                const responseClone = networkResponse.clone();
+                caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
+              }
+              return networkResponse;
+            })
+            .catch(() => {
+              console.warn('[Service Worker] Network fetch failed, relying entirely on cache.');
+            });
+
+          return cachedResponse || fetchPromise;
+        })
+      );
+    }
   } else {
-    // For external requests (like fonts or Transformers.js models from HuggingFace), just fetch normally
     event.respondWith(fetch(event.request));
   }
 });

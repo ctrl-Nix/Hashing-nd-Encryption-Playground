@@ -1186,7 +1186,7 @@
 
 <script src="js/data.js" defer></script>
 <script src="js/crypto.js" defer></script>
-<script src="js/app.js?v=5.0.2" defer></script>
+<script src="js/app.js?v=5.0.3" defer></script>
 <script src="js/daisy-init.js" defer></script>
 <script src="js/onboarding.js" defer></script>
 
@@ -1221,6 +1221,14 @@
       navigator.serviceWorker.register('sw.js')
         .then(reg => console.log('[PWA] Service Worker registered:', reg.scope))
         .catch(err => console.error('[PWA] Service Worker registration failed:', err));
+    });
+
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!refreshing) {
+        refreshing = true;
+        window.location.reload();
+      }
     });
   }
 </script>
