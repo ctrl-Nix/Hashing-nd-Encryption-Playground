@@ -17,7 +17,7 @@
   document.head.appendChild(style);
 
   const bootOverlay = document.createElement('div');
-  bootOverlay.style.cssText = 'position:fixed; inset:0; background:#040406; z-index:999999; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#00f5ff; font-family:"Share Tech Mono", monospace; overflow:hidden; perspective:1000px;';
+  bootOverlay.style.cssText = 'position:fixed; inset:0; background:#040406; z-index:999999; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#00ff88; font-family:"Share Tech Mono", monospace; overflow:hidden; perspective:1000px;';
   
   // CRT Scanlines
   const scanlines = document.createElement('div');
@@ -30,11 +30,11 @@
   bootOverlay.appendChild(vignette);
 
   const canvas = document.createElement('canvas');
-  canvas.style.cssText = 'position:absolute; inset:0; opacity:0.35; z-index:1; filter: drop-shadow(0 0 5px #00f5ff);';
+  canvas.style.cssText = 'position:absolute; inset:0; opacity:0.35; z-index:1; filter: drop-shadow(0 0 5px #00ff88);';
   bootOverlay.appendChild(canvas);
   
   const terminal = document.createElement('div');
-  terminal.style.cssText = 'position:relative; z-index:2; width:90%; max-width:800px; font-size:18px; line-height:1.8; text-shadow:0 0 12px rgba(0,245,255,0.6); margin-top:-5%;';
+  terminal.style.cssText = 'position:relative; z-index:2; width:90%; max-width:800px; font-size:18px; line-height:1.8; text-shadow:0 0 12px rgba(0,255,136,0.6); margin-top:-5%;';
   bootOverlay.appendChild(terminal);
   
   document.body.appendChild(bootOverlay);
@@ -84,8 +84,8 @@
       ctx.fillStyle = '#ffffff'; 
       ctx.fillText(char, i*20, y*20);
       
-      // Draw the cyan tail behind it
-      ctx.fillStyle = '#00f5ff';
+      // Draw the green-turquoise tail behind it
+      ctx.fillStyle = '#00ff88';
       ctx.fillText(chars[Math.floor(Math.random()*chars.length)], i*20, (y-1)*20);
 
       if(y*20 > canvas.height && Math.random() > 0.975) drops[i] = 0;
@@ -95,7 +95,7 @@
 
   const pause = ms => new Promise(r => setTimeout(r, ms));
   
-  const typeText = async (prefix, text, color='#00f5ff') => {
+  const typeText = async (prefix, text, color='#00ff88') => {
     const line = document.createElement('div');
     line.style.marginBottom = '14px';
     

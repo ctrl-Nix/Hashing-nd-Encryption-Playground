@@ -686,7 +686,7 @@ const App = {
     const rainAnim = setInterval(() => {
       ctx.fillStyle = 'rgba(0,0,0,0.04)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = 'rgba(0, 102, 255, 0.8)'; ctx.font = '14px monospace';
+      ctx.fillStyle = 'rgba(0, 255, 136, 0.8)'; ctx.font = '14px monospace';
       drops.forEach((y, i) => {
         ctx.fillText(chars[Math.floor(Math.random() * chars.length)], i * 20, y * 20);
         if (y * 20 > canvas.height && Math.random() > 0.975) drops[i] = 0;

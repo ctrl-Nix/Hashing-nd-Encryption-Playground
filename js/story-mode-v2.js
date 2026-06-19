@@ -14,7 +14,8 @@ const CHALLENGES = {
   3: { q: "What type of attack tests every possible word in a list to guess a password? (Hint: dictionary)", a: ["dictionary", "dictionary attack"] },
   4: { q: "In symmetric encryption (like AES), do you use the same key for both encryption and decryption? (Yes/No) (Hint: Yes)", a: ["yes", "y"] },
   5: { q: "In LSB Steganography, what does LSB stand for? (Hint: least significant bit)", a: ["least significant bit"] },
-  6: { q: "If Alice signs a message with her Private Key, what key does Bob use to verify it? (Hint: public key)", a: ["public", "public key", "alice's public key"] }
+  6: { q: "If Alice signs a message with her Private Key, what key does Bob use to verify it? (Hint: public key)", a: ["public", "public key", "alice's public key"] },
+  7: { q: "Who signs a digital certificate to prove a server's identity and form a trust chain? (Hint: Certificate Authority)", a: ["certificate authority", "ca"] }
 };
 
 window.checkMiniChallenge = function(idx) {
@@ -604,10 +605,17 @@ App.runStoryHash = async () => {
     App.S.story.hashHex = r.hex;
     App.S.story.hashBits = r.bits;
 
+    let colorClass = 'readout-green';
+    if (App.S.story.algo === 'MD5') {
+      colorClass = 'readout-red';
+    } else if (App.S.story.algo === 'SHA-1') {
+      colorClass = 'readout-warn';
+    }
+
     const res = document.getElementById('s-hash-res');
     res.innerHTML = `
       <div class="reveal-in">
-        ${readoutHTML('s-hash-val', `GENERATED FINGERPRINT (${App.S.story.algo})`, r.hex, 'readout-green')}
+        ${readoutHTML('s-hash-val', `GENERATED FINGERPRINT (${App.S.story.algo})`, r.hex, colorClass)}
         <div class="bit-grid-label" style="margin-top:16px;">BIT PATTERN — ${r.bits.length} BITS</div>
         <div class="bit-grid" id="s-hash-bits" style="margin-top:4px;max-height:100px;"></div>
         ${missionCompleteHTML('Hash fingerprint generated. Ready to observe Avalanche Effect.')}
