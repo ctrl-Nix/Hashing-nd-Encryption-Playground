@@ -8,13 +8,13 @@
 ───────────────────────────────────────────────────────────────── */
 
 const CHALLENGES = {
-  1: { q: "What is the exact length (in characters) of a SHA-256 hash?", a: ["64"] },
-  2: { q: "If you change one character of the input, does the hash change completely? (Yes/No)", a: ["yes", "y"] },
-  3: { q: "What extra component does HMAC use to sign data that a normal hash doesn't have?", a: ["key", "secret key", "secret"] },
-  4: { q: "What type of attack tests every possible word in a list to guess a password?", a: ["dictionary", "dictionary attack"] },
-  5: { q: "In symmetric encryption (like AES), do you use the same key for both encryption and decryption? (Yes/No)", a: ["yes", "y"] },
-  6: { q: "In LSB Steganography, what does LSB stand for?", a: ["least significant bit"] },
-  7: { q: "If Alice signs a message with her Private Key, what key does Bob use to verify it?", a: ["public", "public key", "alice's public key"] }
+  0: { q: "What is the exact length (in characters) of a SHA-256 hash? (Hint: Type 64)", a: ["64"] },
+  1: { q: "If you change one character of the input, does the hash change completely? (Yes/No) (Hint: Yes)", a: ["yes", "y"] },
+  2: { q: "What extra component does HMAC use to sign data that a normal hash doesn't have? (Hint: key)", a: ["key", "secret key", "secret"] },
+  3: { q: "What type of attack tests every possible word in a list to guess a password? (Hint: dictionary)", a: ["dictionary", "dictionary attack"] },
+  4: { q: "In symmetric encryption (like AES), do you use the same key for both encryption and decryption? (Yes/No) (Hint: Yes)", a: ["yes", "y"] },
+  5: { q: "In LSB Steganography, what does LSB stand for? (Hint: least significant bit)", a: ["least significant bit"] },
+  6: { q: "If Alice signs a message with her Private Key, what key does Bob use to verify it? (Hint: public key)", a: ["public", "public key", "alice's public key"] }
 };
 
 window.checkMiniChallenge = function(idx) {
