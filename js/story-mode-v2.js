@@ -622,9 +622,10 @@ App.runStoryHash = async () => {
       </div>`;
 
     const grid = document.getElementById('s-hash-bits');
+    const bitOnClass = (App.S.story.algo === 'MD5' || App.S.story.algo === 'SHA-1') ? ' diff' : ' on';
     for (let i = 0; i < Math.min(r.bits.length, 256); i++) {
       const b = document.createElement('div');
-      b.className = 'bit' + (r.bits[i] === '1' ? ' on' : '');
+      b.className = 'bit' + (r.bits[i] === '1' ? bitOnClass : '');
       grid.appendChild(b);
     }
     App.showNextBtn(1);
