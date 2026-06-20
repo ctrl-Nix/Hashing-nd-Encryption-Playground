@@ -194,7 +194,7 @@ const App = {
       window.scrollTo({ top: tabsEl.offsetTop - 40, behavior: 'smooth' });
     }
 
-    if (['ecdh', 'ecdsa', 'rsa', 'hmac'].includes(tab) && !localStorage.getItem('explainer_' + tab)) {
+    if (window.EXPLAINERS && window.EXPLAINERS[tab] && !localStorage.getItem('explainer_' + tab)) {
       if (window.showExplainer) window.showExplainer(tab);
     }
 
@@ -2561,6 +2561,15 @@ App.runBenchmark = async () => {
 
 
 window.EXPLAINERS = {
+  'hash': "Imagine a meat grinder. You put a document in, turn the handle, and out comes a fixed-length string of characters (the hash). It's easy to grind the meat, but impossible to un-grind it to get the original document back. Any tiny change to the document completely changes the resulting hash.",
+  'compare': "Different meat grinders produce different sizes of output. Older ones like MD5 produce small outputs, which makes them faster but easier to trick into producing the same output for two different inputs (a collision). Modern ones like SHA-256 produce longer, much more secure outputs.",
+  'enc': "Imagine a high-tech safe. You can lock your data inside it using a master password (the key). Only someone with that exact same master password can unlock it. AES-GCM not only locks the data but also places a tamper-evident seal on it, so you'll know if someone tried to mess with the safe.",
+  'stego': "Imagine writing a secret message on the back of a postage stamp attached to a normal postcard. Everyone just sees the postcard, completely ignoring the stamp. Steganography hides encrypted data directly inside the invisible 'noise' of an image's pixels, so no one even knows a secret exists.",
+  'cracker': "Imagine a burglar trying every word in the dictionary to guess your password. MD5 is so incredibly fast that a modern computer can make billions of guesses per second. This simulation shows how quickly weak passwords can be cracked when using outdated hashing algorithms.",
+  'cert': "Imagine an ID card issued by a trusted government. The Certificate Inspector verifies if an ID (Digital Certificate) is authentic, hasn't expired, and was actually signed by a trusted authority. This prevents attackers from setting up fake websites pretending to be your bank.",
+  'entropy': "Imagine trying to guess a password. 'password123' is like guessing a predictable word—very easy (low entropy). A random string of characters is like trying to guess the exact position of every grain of sand on a beach—practically impossible (high entropy). Entropy measures this unpredictability.",
+  'birthday': "Imagine being in a room with 23 people. It's surprisingly likely that two people share the same birthday. In cryptography, this 'Birthday Paradox' means we don't need to try every possible combination to find a hash collision—we just need a large enough group of random hashes.",
+  'benchmark': "Imagine a race between different engines. This benchmark tests how many times your CPU can run each hashing algorithm per second. Older algorithms like MD5 are incredibly fast (which makes them dangerous for passwords), while stronger algorithms like SHA-512 are more complex but provide better security.",
   'ecdh': "Imagine you and a friend each pick a secret color, mix it with a shared public color, then swap mixtures — but an eavesdropper can't reverse the mix to find your original secret colors. You mix your friend's mixture with your secret color, and you both get the exact same final color. That's Elliptic Curve Diffie-Hellman: math that lets two people agree on a shared secret over a public channel without ever sending the secret itself.",
   'ecdsa': "Imagine a wax seal on an envelope. Anyone can look at the seal and verify it came from your unique signet ring (Public Key), but nobody else can create the seal without holding the physical ring (Private Key). ECDSA uses elliptic curves to sign digital documents so perfectly that forgery is mathematically impossible.",
   'rsa': "Imagine a padlock that anyone can snap shut (encrypt with Public Key), but only you have the physical key to unlock (decrypt with Private Key). RSA relies on the fact that it's incredibly easy to multiply two massive prime numbers together, but almost impossible for computers to factor the result back into those two primes.",
