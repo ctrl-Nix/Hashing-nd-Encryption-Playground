@@ -2611,7 +2611,7 @@ window.EXPLAINERS = {
     terms: [
       { name: 'Dictionary Attack', def: 'Hashing a list of common passwords and comparing against a stolen hash database' },
       { name: 'Rainbow Table', def: 'Pre-computed hash→password lookup table — defeated by salting' },
-      { name: 'Zero-Knowledge Auth', def: 'The server proves it knows your password's hash without ever learning the password' },
+      { name: 'Zero-Knowledge Auth', def: "The server proves it knows your password's hash without ever learning the password" },
       { name: 'Salt', def: 'A random value added to the password before hashing — makes rainbow tables useless' }
     ],
     why: `The 2012 LinkedIn breach exposed <strong>6.5 million SHA-1 passwords without salts</strong>. Because SHA-1 was fast, attackers cracked 90% of them within days using rainbow tables. Salting and slow algorithms (bcrypt, Argon2) would have prevented this.`,
