@@ -168,7 +168,7 @@
 .cutscene-term::-webkit-scrollbar { display: none; }
 
 .ct-sys {
-  font-size: 11px; letter-spacing: 3px; color: rgba(61,79,97,0.8);
+  font-size: 11px; letter-spacing: 3px; color: rgba(140, 160, 180, 0.9);
   font-weight: normal;
 }
 .ct-nix-badge {
