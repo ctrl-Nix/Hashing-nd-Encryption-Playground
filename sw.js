@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nix-pwa-cache-v6';
+const CACHE_NAME = 'nix-pwa-cache-v7';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

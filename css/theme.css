@@ -31,6 +31,9 @@ body {
   background: var(--void);
   color: var(--text);
   font-family: var(--font-ui);
+  font-size: 15px;
+  line-height: 1.6;
+  letter-spacing: 0.5px;
   min-height: 100vh;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
