@@ -112,10 +112,10 @@
       <div class="hud-module">TACTICAL SANDBOX</div>
     </div>
     <div class="hud-right">
-      <button class="btn btn-primary" style="padding:4px 8px; font-size:10px; margin-right:8px; border-color:var(--c4, #ff00ff); color:var(--c4, #ff00ff);" onclick="window.showOnboarding()">📖 TUTORIAL</button>
-      <button class="btn" style="padding:4px 8px; font-size:10px; margin-right:8px;" onclick="App.showStats()">📊 STATS</button>
-      <button class="btn" style="padding:4px 8px; font-size:10px; margin-right:8px;" onclick="App.runDiagnostics()">🛠️ DIAGNOSTICS</button>
-      <button class="btn" style="padding:4px 8px; font-size:10px; margin-right:8px;" onclick="App.showAchievements()">🏆 ACHIEVEMENTS</button>
+      <button class="btn btn-primary" style="padding:4px 8px; font-size:10px; margin-right:8px; border-color:var(--c4, #ff00ff); color:var(--c4, #ff00ff);" onclick="window.showOnboarding()">TUTORIAL</button>
+      <button class="btn" style="padding:4px 8px; font-size:10px; margin-right:8px;" onclick="App.showStats()">STATS</button>
+      <button class="btn" style="padding:4px 8px; font-size:10px; margin-right:8px;" onclick="App.runDiagnostics()">DIAGNOSTICS</button>
+      <button class="btn" style="padding:4px 8px; font-size:10px; margin-right:8px;" onclick="App.showAchievements()">ACHIEVEMENTS</button>
       <span class="status-tag st-ok">LOGGING DISABLED</span>
     </div>
   </div>
@@ -124,7 +124,7 @@
     <button class="btn btn-primary" onclick="App.shareActiveLab()" style="font-size:10px; padding:4px 8px;">SHARE LINK</button>
     <button class="btn" onclick="App.exportSession()" style="font-size:10px; padding:4px 8px;">EXPORT SESSION</button>
     <button class="btn" onclick="document.getElementById('session-import-file').click()" style="font-size:10px; padding:4px 8px;">IMPORT SESSION</button>
-    <button class="btn btn-primary" style="font-size:10px; padding:4px 8px; border-color:var(--c3, #00ff88); color:var(--c3, #00ff88);" onclick="if(window.showExplainer && window.currentExplainerTab) window.showExplainer(window.currentExplainerTab)">📖 VIEW EXPLAINER</button>
+    <button class="btn btn-primary" style="font-size:10px; padding:4px 8px; border-color:var(--c3, #00ff88); color:var(--c3, #00ff88);" onclick="if(window.showExplainer && window.currentExplainerTab) window.showExplainer(window.currentExplainerTab)">VIEW EXPLAINER</button>
     <input type="file" id="session-import-file" style="display:none;" accept=".json" onchange="App.importSession(event)">
   </div>
 
@@ -340,7 +340,7 @@
       <div id="lab-enc-input-area">
         <div style="display:flex;justify-content:space-between;align-items:flex-end;">
           <span class="form-label" id="lab-enc-lbl-data" style="margin-bottom:0;">Plaintext Data</span>
-          <button id="lab-btn-paste" class="paste-btn" style="display:none;" onclick="App.pasteVal('lab-enc-data')">📋 PASTE</button>
+          <button id="lab-btn-paste" class="paste-btn" style="display:none;" onclick="App.pasteVal('lab-enc-data')">PASTE</button>
         </div>
         <textarea id="lab-enc-data" class="form-input" style="margin-top:8px;" placeholder="Enter secret payload..."></textarea>
         <span class="form-label">Master Passphrase</span>
@@ -586,7 +586,7 @@
       </div>
 
       <div class="btn-group" style="margin-top:16px;">
-        <button class="btn btn-danger" id="btn-crack-start" onclick="App.startMD5Crack()" style="flex:1;">⚡ INITIATE DICTIONARY ATTACK</button>
+        <button class="btn btn-danger" id="btn-crack-start" onclick="App.startMD5Crack()" style="flex:1;">INITIATE DICTIONARY ATTACK</button>
         <button class="btn" id="btn-crack-stop" onclick="App.stopMD5Crack()" style="display:none;">◼ ABORT</button>
       </div>
     </div>
@@ -699,7 +699,7 @@
           <div class="readout readout-dim" id="ecdsa-sig-out" style="word-break:break-all; font-size:11px;"></div>
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
-          <button class="btn btn-danger" onclick="App.runECDSATamper()">⚡ TAMPER (FLIP 1 BIT)</button>
+          <button class="btn btn-danger" onclick="App.runECDSATamper()">TAMPER (FLIP 1 BIT)</button>
           <button class="btn btn-success" onclick="App.runECDSAVerify()">VERIFY SIGNATURE</button>
         </div>
         <div id="ecdsa-verify-status" style="margin-top:20px; font-size:16px; font-weight:bold; text-align:center;"></div>

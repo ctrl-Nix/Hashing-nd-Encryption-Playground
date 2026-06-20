@@ -18,7 +18,7 @@ const StoryExplain = [
       { name: 'SHA-256', def: 'Current gold standard — no known practical collisions' },
     ],
     why: `Passwords are <strong>never stored in plain text</strong> in secure systems. Only their hash is stored. When you log in, the server re-hashes what you typed and compares — the real password never travels the network or lives in the database.`,
-    fact: `💡 The SHA-256 output space has 2<sup>256</sup> possible values — more than the number of atoms in the observable universe. Finding two matching inputs by brute force is physically impossible.`,
+    fact: `[i] The SHA-256 output space has 2<sup>256</sup> possible values — more than the number of atoms in the observable universe. Finding two matching inputs by brute force is physically impossible.`,
   },
 
   /* 1 — Avalanche Effect */
@@ -39,7 +39,7 @@ const StoryExplain = [
 
   /* 2 — Password Login & Dictionary Attack */
   {
-    icon: '🛡️',
+    icon: '[DEF]',
     title: 'Secure Login & Dictionary Attacks',
     subtitle: 'Zero-knowledge authentication in action',
     what: `Modern authentication uses a <strong>Zero-Knowledge Proof</strong>: the server never needs to know your actual password. It stores only the hash. At login, it hashes your input and compares digests. A <strong>Dictionary Attack</strong> works by hashing thousands of common passwords and comparing — it only succeeds if you used a weak, common password.`,
@@ -50,7 +50,7 @@ const StoryExplain = [
       { name: 'Salt', def: 'A random value added to the password before hashing — makes rainbow tables useless' },
     ],
     why: `The 2012 LinkedIn breach exposed <strong>6.5 million SHA-1 passwords without salts</strong>. Because SHA-1 was fast, attackers cracked 90% of them within days using rainbow tables. Salting and slow algorithms (bcrypt, Argon2) would have prevented this.`,
-    fact: `⚠️ The most common password in every breach is still "123456". A dictionary attack finds it in milliseconds. Strong, unique passwords are still your first line of defense.`,
+    fact: `[WARN] The most common password in every breach is still "123456". A dictionary attack finds it in milliseconds. Strong, unique passwords are still your first line of defense.`,
   },
 
   /* 3 — Network Breach / Incident Zero */
@@ -66,12 +66,12 @@ const StoryExplain = [
       { name: 'Privilege Escalation', def: 'Gaining higher access levels than initially compromised' },
     ],
     why: `<strong>Defence in depth</strong> means even if an attacker breaks one layer, additional encryption layers protect data at rest. This is why we need AES encryption <em>on top of</em> authentication — a hacked server shouldn't expose plaintext secrets.`,
-    fact: `🌐 The average time to detect a data breach in 2023 was <strong>204 days</strong>. Attackers often reside undetected inside networks for months, slowly escalating access.`,
+    fact: `The average time to detect a data breach in 2023 was <strong>204 days</strong>. Attackers often reside undetected inside networks for months, slowly escalating access.`,
   },
 
   /* 4 — AES-256-GCM Encryption */
   {
-    icon: '🔐',
+    icon: '[CRYPTO]',
     title: 'AES-256-GCM Encryption',
     subtitle: 'Symmetric encryption with authenticated integrity',
     what: `<strong>AES-256-GCM</strong> is a symmetric encryption algorithm — the same key is used to lock and unlock data. <strong>GCM mode</strong> (Galois/Counter Mode) adds an <strong>Authentication Tag</strong> that detects any tampering with the ciphertext. PBKDF2 stretches a human-readable passphrase into a strong cryptographic key using 100,000 hash iterations and a random Salt.`,
@@ -122,7 +122,7 @@ const StoryExplain = [
 
   /* 7 — PKI / Certificate Authority */
   {
-    icon: '🏛️',
+    icon: '[PKI]',
     title: 'Public Key Infrastructure (PKI)',
     subtitle: 'How your browser trusts strangers on the internet',
     what: `<strong>PKI</strong> solves the "Who do you trust?" problem at internet scale. A <strong>Certificate Authority (CA)</strong> is a trusted organization that digitally signs <strong>X.509 certificates</strong> which bind a domain name to a public key. Your browser ships with ~150 pre-trusted root CAs. When you visit a website, it presents its certificate, the browser verifies the CA's signature, and a secure TLS connection is established.`,
@@ -134,12 +134,12 @@ const StoryExplain = [
       { name: 'Certificate Pinning', def: 'Apps that reject any certificate not matching a pre-known fingerprint' },
     ],
     why: `Without PKI, a man-in-the-middle could intercept your HTTPS connection and substitute their own public key — you'd think you're talking to your bank, but you'd actually be talking to the attacker. CA signatures make this mathematically detectable. That's why your browser shows a <strong>red padlock</strong> for expired or forged certificates.`,
-    fact: `🔑 The world's root CAs (DigiCert, Let's Encrypt, Comodo) collectively sign billions of certificates. <strong>Let's Encrypt alone</strong> has issued over 3 billion free certificates since 2016, driving HTTPS adoption from 40% to 95%+ of web traffic.`,
+    fact: `The world's root CAs (DigiCert, Let's Encrypt, Comodo) collectively sign billions of certificates. <strong>Let's Encrypt alone</strong> has issued over 3 billion free certificates since 2016, driving HTTPS adoption from 40% to 95%+ of web traffic.`,
   },
 
   /* 8 — Final Quiz */
   {
-    icon: '📋',
+    icon: '[TEST]',
     title: 'Final Assessment',
     subtitle: 'Prove your clearance — 6 questions covering all modules',
     what: `You have traversed the full cryptographic stack — from basic hashing to PKI certificate chains. This assessment tests whether you can apply these concepts, not just recall them. Each question reflects a real-world security scenario.`,

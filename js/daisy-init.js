@@ -61,7 +61,7 @@ function initDaisy() {
           <li><strong style="color:var(--c3, #00ff88);">👉 Poke:</strong> Click directly on my face to poke me and make me flinch!</li>
           <li><strong style="color:var(--c3, #00ff88);">😵‍💫 Dizzy Spin:</strong> Click, drag me fast in circles around the screen, and drop me to make me dizzy!</li>
           <li><strong style="color:var(--c3, #00ff88);">🕶️ Hacker Mode:</strong> Switch to advanced labs (like RSA or Steganography) and I'll put on my cyber-goggles.</li>
-          <li><strong style="color:var(--c3, #00ff88);">⚡ Shock:</strong> If a crypto tool throws an error, I get shocked!</li>
+          <li><strong style="color:var(--c3, #00ff88);">Shock:</strong> If a crypto tool throws an error, I get shocked!</li>
           <li><strong style="color:var(--c3, #00ff88);">🪴 Level Up Dance:</strong> Unlock an achievement to water me and watch me do a 360° happy dance!</li>
           <li><strong style="color:var(--c3, #00ff88);">👀 Eye Tracking:</strong> Move your mouse around and watch my eyes follow your cursor.</li>
           <li><strong style="color:var(--c3, #00ff88);">🔍 Size Toggle:</strong> Click the magnifier button on my widget to make me grow or shrink!</li>
@@ -526,7 +526,7 @@ function initDaisy() {
     e.stopPropagation();
     if (feedCooldown || widget.classList.contains('daisy-sleep')) return;
     feedCooldown = true;
-    feedBtn.textContent = '🔑';
+    feedBtn.textContent = '[KEY]';
     const bbl = document.getElementById('daisy-bubble');
     widget.classList.add('daisy-munch');
     if (bbl) {

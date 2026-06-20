@@ -1,9 +1,9 @@
 /* ═══════════════════════════════════════════════ */
 const AchievementSystem = {
   badges: {
-    first_hash: { name: "First Hash", desc: "Hash your first string in the engine.", icon: "🔑" },
+    first_hash: { name: "First Hash", desc: "Hash your first string in the engine.", icon: '[KEY]' },
     bit_flipper: { name: "Bit Flipper", desc: "Trigger an avalanche effect by changing a single character.", icon: "🌊" },
-    crypto_ninja: { name: "Crypto Ninja", desc: "Encrypt a payload using AES-GCM.", icon: "🥷" },
+    crypto_ninja: { name: "Crypto Ninja", desc: "Encrypt a payload using AES-GCM.", icon: '[NINJA]' },
     rsa_master: { name: "RSA Master", desc: "Generate an RSA 2048-bit keypair.", icon: "🗝️" },
     ghost_channel: { name: "Ghost Channel", desc: "Establish an end-to-end ECDH shared secret.", icon: "👻" },
     the_forger: { name: "The Forger", desc: "Generate an ECDSA digital signature.", icon: "✒️" },
@@ -928,7 +928,7 @@ const App = {
     }
     else if (step === 2) {
       aBox.innerHTML = `
-        <div class="btn-group"><button class="btn btn-danger" onclick="App.runStoryBruteForce()" id="btn-brute">INITIALIZE BRUTE FORCE SCRIPT ⚡</button></div>
+        <div class="btn-group"><button class="btn btn-danger" onclick="App.runStoryBruteForce()" id="btn-brute">INITIALIZE BRUTE FORCE SCRIPT </button></div>
         <div class="term" id="brute-term" style="display:none;margin-top:16px;"></div>
         <div id="s-log-res" style="display:none;margin-top:20px;">
           <span class="form-label">Final Comparator — <span class="status-tag st-ok">MATCH</span> vs <span class="status-tag st-err">MISMATCH</span></span>
@@ -947,8 +947,8 @@ const App = {
     else if (step === 4) {
       aBox.innerHTML = `
         <div style="display:flex;gap:8px;margin-bottom:24px;">
-          <button class="btn btn-primary" id="s-mode-enc" onclick="App.setStoryEncMode('enc')" style="flex:1;">🔒 ENCRYPT</button>
-          <button class="btn" id="id-mode-dec" onclick="App.setStoryEncMode('dec')" style="flex:1;">🔓 DECRYPT</button>
+          <button class="btn btn-primary" id="s-mode-enc" onclick="App.setStoryEncMode('enc')" style="flex:1;">[LOCKED] ENCRYPT</button>
+          <button class="btn" id="id-mode-dec" onclick="App.setStoryEncMode('dec')" style="flex:1;">[UNLOCKED] DECRYPT</button>
         </div>
         <div id="s-enc-panel">
           <span class="form-label" style="color:var(--c3);">1. Client Encryption Phase</span>
@@ -966,13 +966,13 @@ const App = {
           <div style="font-size:13px;color:var(--muted);margin-bottom:12px;font-family:var(--font-ui);">Paste any AES-GCM payload (Salt:IV:Cipher) and its passphrase to decrypt — works with Pro Sandbox payloads too.</div>
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
             <span class="form-label" style="margin:0;">Ciphertext Payload</span>
-            <button class="paste-btn" onclick="App.pasteVal('s-standalone-payload')">📋 PASTE</button>
+            <button class="paste-btn" onclick="App.pasteVal('s-standalone-payload')">PASTE</button>
           </div>
           <textarea class="form-input" id="s-standalone-payload" style="min-height:70px;" placeholder="Paste salt:iv:cipher here..."></textarea>
           <span class="form-label">Passphrase</span>
           <input type="password" class="form-input" id="s-standalone-key" placeholder="Decryption passphrase...">
           <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
-            <button class="btn btn-primary" onclick="App.runStandaloneDecrypt()" style="flex:1;">🔓 DECRYPT</button>
+            <button class="btn btn-primary" onclick="App.runStandaloneDecrypt()" style="flex:1;">[UNLOCKED] DECRYPT</button>
             <button class="btn" onclick="App.clearStandaloneDecrypt()">↺ CLEAR</button>
           </div>
           <div id="s-standalone-res" style="margin-top:20px;"></div>
@@ -1211,7 +1211,7 @@ const App = {
 
     const wrap = document.createElement('div'); wrap.className = 'cta-wrap';
     const btn = document.createElement('button'); btn.className = 'cta-btn';
-    btn.innerHTML = '<span>⚠</span><span>&nbsp;&nbsp;EMERGENCY LOCKDOWN</span>';
+    btn.innerHTML = '<span>[WARN]</span><span>&nbsp;&nbsp;EMERGENCY LOCKDOWN</span>';
     btn.onclick = () => {
       App.jumpToStory(4);
     };
@@ -1472,7 +1472,7 @@ const App = {
     res.innerHTML = `
       <div class="cert-panel ${verified ? 'cert-valid' : 'cert-invalid'}">
         <div class="cert-lock ${verified ? 'secure' : 'broken'}">
-          ${verified ? '🔒 SECURE CONNECTION // HTTPS ACTIVE' : '🔓 SECURITY ALERT // UNTRUSTED CERTIFICATE'}
+          ${verified ? '[LOCKED] SECURE CONNECTION // HTTPS ACTIVE' : '[UNLOCKED] SECURITY ALERT // UNTRUSTED CERTIFICATE'}
         </div>
         
         <div class="cert-chain">
@@ -1806,15 +1806,15 @@ WUY=
         }
 
         if (isValid) {
-          statusHtml += `<div style="color:var(--c3, #00ff88); margin-bottom:8px;">✅ <strong>CERTIFICATE APPEARS VALID</strong><br><span style="color:var(--muted); font-size:11px;">No immediate red flags. Provided it's signed by a trusted CA, a browser would accept it.</span></div>`;
+          statusHtml += `<div style="color:var(--c3, #00ff88); margin-bottom:8px;">[OK] <strong>CERTIFICATE APPEARS VALID</strong><br><span style="color:var(--muted); font-size:11px;">No immediate red flags. Provided it's signed by a trusted CA, a browser would accept it.</span></div>`;
         }
 
         if (info.isEV) {
-          statusHtml += `<div style="color:var(--c, #00f5ff); margin-top:12px; border-top:1px solid rgba(0,255,255,0.2); padding-top:12px;">🛡️ <strong>Extended Validation (EV) Detected</strong><br><span style="color:var(--muted); font-size:11px;">This cert includes the EV OID (2.23.140.1.1). The issuing CA performed strict identity verification on the organization.</span></div>`;
+          statusHtml += `<div style="color:var(--c, #00f5ff); margin-top:12px; border-top:1px solid rgba(0,255,255,0.2); padding-top:12px;">[SHIELD] <strong>Extended Validation (EV) Detected</strong><br><span style="color:var(--muted); font-size:11px;">This cert includes the EV OID (2.23.140.1.1). The issuing CA performed strict identity verification on the organization.</span></div>`;
         }
 
         if (info.sans && info.sans.length > 0) {
-          statusHtml += `<div style="color:var(--c, #00f5ff); margin-top:12px; border-top:1px solid rgba(0,255,255,0.2); padding-top:12px;">🌐 <strong>Subject Alternative Names (SANs)</strong><br><span style="color:var(--muted); font-size:11px;">Valid for: ${info.sans.join(', ')}</span></div>`;
+          statusHtml += `<div style="color:var(--c, #00f5ff); margin-top:12px; border-top:1px solid rgba(0,255,255,0.2); padding-top:12px;"><strong>Subject Alternative Names (SANs)</strong><br><span style="color:var(--muted); font-size:11px;">Valid for: ${info.sans.join(', ')}</span></div>`;
         }
 
         statusBox.innerHTML = statusHtml;
@@ -1851,10 +1851,10 @@ WUY=
       // Build chain-of-trust diagram
       let html = `<div style="margin-bottom:20px; padding:16px; border:2px solid ${allValid ? 'var(--c3)' : 'var(--c2)'}; background:${allValid ? 'rgba(0,255,136,0.04)' : 'rgba(255,0,60,0.04)'};">
         <div style="font-family:var(--font-display); font-size:13px; letter-spacing:2px; color:${allValid ? 'var(--c3)' : 'var(--c2)'}; margin-bottom:6px;">
-          ${allValid ? '🔒 CHAIN OF TRUST — VERIFIED' : '⚠️ CHAIN VERIFICATION FAILED'}
+          ${allValid ? '[LOCKED] CHAIN OF TRUST — VERIFIED' : '[WARN] CHAIN VERIFICATION FAILED'}
         </div>
         <div style="font-family:var(--font-mono); font-size:11px; color:var(--muted);">
-          ${result.certs.length} certificates parsed &bull; ${result.links.length} link(s) verified &bull; Root is ${result.isRootSelfSigned ? 'self-signed (Root CA) ✓' : 'NOT self-signed ⚠️'}
+          ${result.certs.length} certificates parsed &bull; ${result.links.length} link(s) verified &bull; Root is ${result.isRootSelfSigned ? 'self-signed (Root CA) ✓' : 'NOT self-signed [WARN]'}
         </div>
       </div>`;
 
@@ -1875,7 +1875,7 @@ WUY=
           <div style="font-size:9px; font-family:var(--font-mono); color:${nodeColor}; letter-spacing:2px; margin-bottom:6px;">${cert.role}</div>
           <div style="font-family:var(--font-mono); font-size:11px; color:var(--bright); white-space:pre-line; line-height:1.6;">${cert.subject}</div>
           ${cert.meta.notAfter ? `<div style="font-size:10px; color:var(--muted); margin-top:6px;">Expires: ${cert.meta.notAfter}</div>` : ''}
-          ${cert.meta.isExpired ? `<div style="font-size:10px; color:var(--c2); margin-top:4px;">⚠️ EXPIRED</div>` : ''}
+          ${cert.meta.isExpired ? `<div style="font-size:10px; color:var(--c2); margin-top:4px;">[WARN] EXPIRED</div>` : ''}
         </div>`;
 
         // Arrow between certs showing verification result
@@ -1884,7 +1884,7 @@ WUY=
           const linkOk = link.valid === true;
           const linkNull = link.valid === null;
           const arrowColor = linkNull ? 'var(--c4)' : (linkOk ? 'var(--c3)' : 'var(--c2)');
-          const arrowIcon = linkNull ? '⚠️' : (linkOk ? '✓' : '✗');
+          const arrowIcon = linkNull ? '[WARN]' : (linkOk ? '✓' : '✗');
           const arrowLabel = linkNull ? 'ALGORITHM MISMATCH' : (linkOk ? 'SIGNATURE VALID' : 'INVALID SIGNATURE');
 
           html += `<div style="display:flex; flex-direction:column; align-items:center; padding:8px 0;">
@@ -2571,7 +2571,7 @@ window.EXPLAINERS = {
       { name: 'Collision', def: 'Two different inputs that produce the same hash — a critical weakness' }
     ],
     why: `Passwords are <strong>never stored in plain text</strong> in secure systems. Only their hash is stored. When you log in, the server re-hashes what you typed and compares — the real password never travels the network or lives in the database.`,
-    fact: `💡 The SHA-256 output space has 2<sup>256</sup> possible values — more than the number of atoms in the observable universe. Finding two matching inputs by brute force is physically impossible.`
+    fact: `[i] The SHA-256 output space has 2<sup>256</sup> possible values — more than the number of atoms in the observable universe. Finding two matching inputs by brute force is physically impossible.`
   },
   'compare': {
     icon: '⚖️', title: 'Algorithm Comparison', subtitle: 'Not all hashes are created equal',
@@ -2581,10 +2581,10 @@ window.EXPLAINERS = {
       { name: 'SHA-256', def: 'Current gold standard — no known practical collisions' }
     ],
     why: `Choosing the right algorithm is a balance of security and performance. For passwords, you want slow hashes (like bcrypt). For file integrity, you want fast, secure hashes (like SHA-256).`,
-    fact: `⚠️ MD5 was designed in 1992. By 2004 it was shown to be vulnerable, and in 2008 a rogue CA certificate was created using an MD5 collision.`
+    fact: `[WARN] MD5 was designed in 1992. By 2004 it was shown to be vulnerable, and in 2008 a rogue CA certificate was created using an MD5 collision.`
   },
   'enc': {
-    icon: '🔐', title: 'AES-256-GCM Encryption', subtitle: 'Symmetric encryption with authenticated integrity',
+    icon: '[CRYPTO]', title: 'AES-256-GCM Encryption', subtitle: 'Symmetric encryption with authenticated integrity',
     what: `<strong>AES-256-GCM</strong> is a symmetric encryption algorithm — the same key is used to lock and unlock data. <strong>GCM mode</strong> (Galois/Counter Mode) adds an <strong>Authentication Tag</strong> that detects any tampering with the ciphertext.`,
     terms: [
       { name: 'AES-256', def: '256-bit block cipher — the NSA standard for TOP SECRET documents' },
@@ -2607,7 +2607,7 @@ window.EXPLAINERS = {
     fact: `🎨 A 1920×1080 image has ~6.2 million pixels. With 3 bits per pixel (one per RGB channel), you can hide ~2.3 MB of data — enough for a 300-page book — with changes invisible to any human observer.`
   },
   'cracker': {
-    icon: '🛡️', title: 'Secure Login & Dictionary Attacks', subtitle: 'Zero-knowledge authentication in action',
+    icon: '[DEF]', title: 'Secure Login & Dictionary Attacks', subtitle: 'Zero-knowledge authentication in action',
     what: `A <strong>Dictionary Attack</strong> works by hashing thousands of common passwords and comparing them against a stolen hash. MD5 is so incredibly fast that a modern computer can make billions of guesses per second. This simulation shows how quickly weak passwords can be cracked when using outdated hashing algorithms.`,
     terms: [
       { name: 'Dictionary Attack', def: 'Hashing a list of common passwords and comparing against a stolen hash database' },
@@ -2616,10 +2616,10 @@ window.EXPLAINERS = {
       { name: 'Salt', def: 'A random value added to the password before hashing — makes rainbow tables useless' }
     ],
     why: `The 2012 LinkedIn breach exposed <strong>6.5 million SHA-1 passwords without salts</strong>. Because SHA-1 was fast, attackers cracked 90% of them within days using rainbow tables. Salting and slow algorithms (bcrypt, Argon2) would have prevented this.`,
-    fact: `⚠️ The most common password in every breach is still "123456". A dictionary attack finds it in milliseconds. Strong, unique passwords are still your first line of defense.`
+    fact: `[WARN] The most common password in every breach is still "123456". A dictionary attack finds it in milliseconds. Strong, unique passwords are still your first line of defense.`
   },
   'cert': {
-    icon: '🏛️', title: 'Public Key Infrastructure (PKI)', subtitle: 'How your browser trusts strangers on the internet',
+    icon: '[PKI]', title: 'Public Key Infrastructure (PKI)', subtitle: 'How your browser trusts strangers on the internet',
     what: `<strong>PKI</strong> solves the "Who do you trust?" problem at internet scale. A <strong>Certificate Authority (CA)</strong> is a trusted organization that digitally signs <strong>X.509 certificates</strong> which bind a domain name to a public key. Your browser ships with ~150 pre-trusted root CAs. When you visit a website, it presents its certificate, the browser verifies the CA's signature, and a secure TLS connection is established.`,
     terms: [
       { name: 'CA', def: 'Certificate Authority — a trusted entity whose public key is pre-installed in browsers/OS' },
@@ -2628,7 +2628,7 @@ window.EXPLAINERS = {
       { name: 'HTTPS / TLS', def: 'Encrypted web traffic authenticated by PKI certificates' }
     ],
     why: `Without PKI, a man-in-the-middle could intercept your HTTPS connection and substitute their own public key — you'd think you're talking to your bank, but you'd actually be talking to the attacker. CA signatures make this mathematically detectable. That's why your browser shows a <strong>red padlock</strong> for expired or forged certificates.`,
-    fact: `🔑 The world's root CAs (DigiCert, Let's Encrypt, Comodo) collectively sign billions of certificates. <strong>Let's Encrypt alone</strong> has issued over 3 billion free certificates since 2016, driving HTTPS adoption from 40% to 95%+ of web traffic.`
+    fact: `The world's root CAs (DigiCert, Let's Encrypt, Comodo) collectively sign billions of certificates. <strong>Let's Encrypt alone</strong> has issued over 3 billion free certificates since 2016, driving HTTPS adoption from 40% to 95%+ of web traffic.`
   },
   'entropy': {
     icon: '🎲', title: 'Entropy Analyzer', subtitle: 'Measuring cryptographic randomness',
@@ -2650,7 +2650,7 @@ window.EXPLAINERS = {
       { name: 'Pigeonhole Principle', def: 'If you have N boxes and N+1 items, at least one box must contain two items' }
     ],
     why: `Because of the birthday paradox, a hash function is only practically secure up to <strong>half its length</strong>. A 256-bit hash (like SHA-256) actually provides 128 bits of security against collision attacks.`,
-    fact: `🎯 To find a collision in a 64-bit hash space, you only need to generate about 4.2 billion hashes (which a GPU can do in seconds), not the full 18 quintillion.`
+    fact: `[>] To find a collision in a 64-bit hash space, you only need to generate about 4.2 billion hashes (which a GPU can do in seconds), not the full 18 quintillion.`
   },
   'benchmark': {
     icon: '⏱️', title: 'Hash Benchmark', subtitle: 'Measuring cryptographic speed',
@@ -2673,7 +2673,7 @@ window.EXPLAINERS = {
       { name: 'Shared Secret', def: 'The final combined value that only you and the other party can calculate' }
     ],
     why: `ECDH is the foundation of modern secure communication. When you visit an HTTPS website, your browser and the server use a Diffie-Hellman exchange to generate a temporary session key. Even if someone records the entire conversation, they can't figure out the session key.`,
-    fact: `🛡️ This provides "Forward Secrecy": even if the server's long-term key is compromised years later, past conversations cannot be decrypted.`
+    fact: `[SHIELD] This provides "Forward Secrecy": even if the server's long-term key is compromised years later, past conversations cannot be decrypted.`
   },
   'ecdsa': {
     icon: '✍️', title: 'ECDSA Digital Signatures', subtitle: 'Cryptographic proof of identity and integrity',
@@ -2688,7 +2688,7 @@ window.EXPLAINERS = {
     fact: `💎 Bitcoin transactions use ECDSA. Every time you send BTC, your wallet signs the transaction with your private key. The blockchain network verifies the signature before accepting it — no banks required.`
   },
   'rsa': {
-    icon: '🔐', title: 'RSA Cryptography', subtitle: 'The grandfather of public key crypto',
+    icon: '[CRYPTO]', title: 'RSA Cryptography', subtitle: 'The grandfather of public key crypto',
     what: `Imagine a padlock that anyone can snap shut (encrypt with Public Key), but only you have the physical key to unlock (decrypt with Private Key). RSA relies on the fact that it's incredibly easy to multiply two massive prime numbers together, but almost impossible for computers to factor the result back into those two primes.`,
     terms: [
       { name: 'Asymmetric Crypto', def: 'Cryptography using two different keys (one public, one private)' },
@@ -2699,7 +2699,7 @@ window.EXPLAINERS = {
     fact: `⏳ A 2048-bit RSA key is currently considered secure until at least the year 2030, but quantum computers running Shor's Algorithm could theoretically break it in seconds.`
   },
   'hmac': {
-    icon: '🛡️', title: 'HMAC Authentication', subtitle: 'Verifying data integrity and authenticity',
+    icon: '[DEF]', title: 'HMAC Authentication', subtitle: 'Verifying data integrity and authenticity',
     what: `Imagine sending a sealed letter to a bank teller. You both share a secret password. You hash the letter's contents combined with the password. The teller repeats the math. If the hashes match, they know the letter wasn't tampered with AND it definitely came from you (since only you two know the password). That's HMAC.`,
     terms: [
       { name: 'MAC', def: 'Message Authentication Code — a cryptographic checksum' },
@@ -2708,7 +2708,7 @@ window.EXPLAINERS = {
       { name: 'Authenticity', def: 'Ensuring the data actually came from the expected sender' }
     ],
     why: `HMAC is everywhere in modern web development. It is used to secure Webhooks (so your server knows a payment notification actually came from Stripe/PayPal), to sign JSON Web Tokens (JWTs) for user sessions, and to authenticate API requests.`,
-    fact: `🔑 Unlike a regular hash, an attacker cannot generate a valid HMAC even if they know the payload perfectly. Without the exact secret key, any forgery attempt will completely fail the verification step.`
+    fact: `Unlike a regular hash, an attacker cannot generate a valid HMAC even if they know the payload perfectly. Without the exact secret key, any forgery attempt will completely fail the verification step.`
   }
 };
 window.currentExplainerTab = null;
@@ -2744,7 +2744,7 @@ window.showExplainer = function (tab) {
       if (ex.why) {
         html += `
         <div class="concept-why">
-          <div class="concept-why-icon">🛡️</div>
+          <div class="concept-why-icon">[SHIELD]</div>
           <div class="concept-why-text"><strong>Why It Matters:</strong> ${ex.why}</div>
         </div>`;
       }
@@ -2752,7 +2752,7 @@ window.showExplainer = function (tab) {
       if (ex.fact) {
         html += `
         <div class="fact-card" style="margin-top:16px;">
-          <div class="fact-card-icon">${ex.icon || '💡'}</div>
+          <div class="fact-card-icon">${ex.icon || '[i]'}</div>
           <div class="fact-card-content">
             <div class="fact-card-label">DID YOU KNOW?</div>
             <div class="fact-card-text">${ex.fact}</div>

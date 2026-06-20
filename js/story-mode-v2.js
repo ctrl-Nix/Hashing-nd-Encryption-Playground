@@ -88,11 +88,11 @@ App.showNextBtn = (nextIdx) => {
       <div class="congrats-title">MISSION COMPLETE</div>
       <div class="congrats-sub">// MATRIX PROTOCOL — ALL 9 CHAPTERS CLEARED — CLEARANCE LEVEL: MAXIMUM</div>
       <div class="congrats-badges">
-        <span class="congrats-badge">🏆</span>
-        <span class="congrats-badge">🔐</span>
-        <span class="congrats-badge">🌐</span>
-        <span class="congrats-badge">⚡</span>
-        <span class="congrats-badge">🥷</span>
+        <span class="congrats-badge">[WIN]</span>
+        <span class="congrats-badge">[CRYPTO]</span>
+        <span class="congrats-badge">[NET]</span>
+        <span class="congrats-badge">[SYS]</span>
+        <span class="congrats-badge">[NINJA]</span>
       </div>
       <div style="font-family:var(--font-mono);font-size:12px;color:var(--muted);max-width:500px;line-height:2;margin-bottom:32px;border:1px solid rgba(0,245,255,0.1);padding:20px;">
         You've mastered hashing, symmetric &amp; asymmetric encryption, digital signatures,<br>
@@ -100,8 +100,8 @@ App.showNextBtn = (nextIdx) => {
         <span style="color:var(--c3);margin-top:8px;display:block;">[ OPERATIVE STATUS: FIELD READY ]</span>
       </div>
       <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
-        <button class="btn btn-primary" style="font-size:14px;padding:14px 28px;" onclick="document.getElementById('story-congrats-overlay').remove(); App.goHome();">↩ RETURN TO BASE</button>
-        <button class="btn" style="font-size:14px;padding:14px 28px;" onclick="document.getElementById('story-congrats-overlay').remove(); App.showAchievements();">🏆 VIEW ACHIEVEMENTS</button>
+        <button class="btn btn-primary" style="font-size:14px;padding:14px 28px;" onclick="document.getElementById('story-congrats-overlay').remove(); App.goHome();">< RETURN TO BASE</button>
+        <button class="btn" style="font-size:14px;padding:14px 28px;" onclick="document.getElementById('story-congrats-overlay').remove(); App.showAchievements();">VIEW ACHIEVEMENTS</button>
       </div>
     `;
     document.body.appendChild(overlay);
@@ -109,13 +109,13 @@ App.showNextBtn = (nextIdx) => {
     // Also show in the zone
     zone.innerHTML = `
       <div class="mission-complete" style="margin-bottom:16px;">
-        <div class="mc-badge">🏆</div>
+        <div class="mc-badge">[WIN]</div>
         <div class="mc-text">
           <div class="mc-text-title">MISSION ACCOMPLISHED</div>
           <div class="mc-text-sub">Matrix Protocol secured. You are cleared for field operations.</div>
         </div>
       </div>
-      <button class="btn btn-success btn-full" onclick="App.goHome()">↩ RETURN TO BASE</button>`;
+      <button class="btn btn-success btn-full" onclick="App.goHome()">< RETURN TO BASE</button>`;
 
   } else {
     const challenge = CHALLENGES[currentIdx];
@@ -125,7 +125,7 @@ App.showNextBtn = (nextIdx) => {
       if (currentIdx === 3) {
         zone.innerHTML = `<button class="btn btn-primary btn-full" onclick="App.runStoryBreachCutscene()">▶ PROCEED TO NEXT PHASE</button>`;
       } else if (currentIdx === 7) {
-        zone.innerHTML = `<button class="btn btn-success btn-full" onclick="App.jumpToStory(8)">📋 PROCEED TO FINAL ASSESSMENT</button>`;
+        zone.innerHTML = `<button class="btn btn-success btn-full" onclick="App.jumpToStory(8)">PROCEED TO FINAL ASSESSMENT</button>`;
       } else {
         zone.innerHTML = `<button class="btn btn-primary btn-full" onclick="App.jumpToStory(${nextIdx})">▶ PROCEED TO NEXT PHASE</button>`;
       }
@@ -227,7 +227,7 @@ function renderConceptBrief(stepIdx, autoOpen = false) {
     <div class="concept-brief${openClass}" id="concept-brief-${stepIdx}">
       <div class="concept-brief-header" onclick="SMv2.toggleBrief(${stepIdx})">
         <div class="cbh-left">
-          <div class="cbh-icon">${d.icon || '📖'}</div>
+          <div class="cbh-icon">${d.icon || ''}</div>
           <div>
             <div class="cbh-title">CONCEPT BRIEF — ${d.title}</div>
             <div class="cbh-sub">${d.subtitle || ''}</div>
@@ -244,12 +244,12 @@ function renderConceptBrief(stepIdx, autoOpen = false) {
           ${termsHTML ? `<div class="concept-terms">${termsHTML}</div>` : ''}
           ${d.why ? `
             <div class="concept-why">
-              <div class="concept-why-icon">🎯</div>
+              <div class="concept-why-icon">[>]</div>
               <div class="concept-why-text">${d.why}</div>
             </div>` : ''}
           ${d.fact ? `
             <div class="fact-card">
-              <div class="fact-card-icon">💡</div>
+              <div class="fact-card-icon">[i]</div>
               <div class="fact-card-content">
                 <div class="fact-card-label">DID YOU KNOW?</div>
                 <div class="fact-card-text">${d.fact}</div>
@@ -262,7 +262,7 @@ function renderConceptBrief(stepIdx, autoOpen = false) {
 
 /** Hint box */
 function hintHTML(text) {
-  return `<div class="hint-box"><div class="hint-box-icon">💡</div><div class="hint-box-text">${text}</div></div>`;
+  return `<div class="hint-box"><div class="hint-box-icon">[i]</div><div class="hint-box-text">${text}</div></div>`;
 }
 
 /** Phase label */
@@ -320,7 +320,7 @@ App.renderStory = () => {
           <div class="algo-dot"></div>
           <div class="algo-info">
             <div class="algo-name">MD5</div>
-            <div class="algo-tag tag-danger">⚠ NOT SAFE — Collision attacks exist</div>
+            <div class="algo-tag tag-danger">[WARN] NOT SAFE — Collision attacks exist</div>
           </div>
         </div>
 
@@ -328,7 +328,7 @@ App.renderStory = () => {
           <div class="algo-dot"></div>
           <div class="algo-info">
             <div class="algo-name">SHA-1</div>
-            <div class="algo-tag tag-warn">⚠ DEPRECATED — Broken since 2017</div>
+            <div class="algo-tag tag-warn">[WARN] DEPRECATED — Broken since 2017</div>
           </div>
         </div>
 
@@ -383,7 +383,7 @@ App.renderStory = () => {
       ${phaseLabel('⬡ DICTIONARY ATTACK SIMULATOR', 'phase-warn')}
       ${hintHTML('Watch the attacker hash common passwords one by one. The attack <strong>only succeeds</strong> if your password was in their list — this is why password uniqueness matters.')}
       <div class="btn-group">
-        <button class="btn btn-danger" onclick="App.runStoryBruteForce()" id="btn-brute">⚡ INITIALIZE DICTIONARY ATTACK</button>
+        <button class="btn btn-danger" onclick="App.runStoryBruteForce()" id="btn-brute">INITIALIZE DICTIONARY ATTACK</button>
       </div>
       <div class="term" id="brute-term" style="display:none;margin-top:16px;"></div>
       <div id="s-log-res" style="display:none;margin-top:20px;">
@@ -423,13 +423,13 @@ App.renderStory = () => {
   else if (step === 4) {
     aBox.innerHTML = prefix + `
       <div style="display:flex;gap:8px;margin-bottom:24px;">
-        <button class="btn btn-primary" id="s-mode-enc" onclick="App.setStoryEncMode('enc')" style="flex:1;">🔒 ENCRYPT</button>
-        <button class="btn" id="id-mode-dec" onclick="App.setStoryEncMode('dec')" style="flex:1;">🔓 DECRYPT</button>
+        <button class="btn btn-primary" id="s-mode-enc" onclick="App.setStoryEncMode('enc')" style="flex:1;">[LOCKED] ENCRYPT</button>
+        <button class="btn" id="id-mode-dec" onclick="App.setStoryEncMode('dec')" style="flex:1;">[UNLOCKED] DECRYPT</button>
       </div>
       <div id="s-enc-panel">
         ${phaseLabel('⬡ CLIENT ENCRYPTION PHASE', 'phase-ok')}
         <div class="hint-box" style="margin-bottom:14px;">
-          <div class="hint-box-icon">🔑</div>
+          <div class="hint-box-icon"></div>
           <div class="hint-box-text">The payload <strong>LOCKDOWN_PROTOCOL_ALPHA</strong> must be encrypted before transit. Create a passphrase — it will be stretched through <strong>PBKDF2 (100,000 iterations)</strong> into a 256-bit AES key.</div>
         </div>
         <span class="form-label">Plaintext Payload (Locked)</span>
@@ -445,18 +445,18 @@ App.renderStory = () => {
       <div id="s-dec-panel" style="display:none;">
         ${phaseLabel('⬡ STANDALONE DECRYPTION', 'phase-ok')}
         <div class="hint-box" style="margin-bottom:14px;">
-          <div class="hint-box-icon">📋</div>
+          <div class="hint-box-icon"></div>
           <div class="hint-box-text">Paste any <strong>Salt:IV:Ciphertext</strong> payload (from the encryption step or the Pro Sandbox) and its passphrase to decrypt it here.</div>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
           <span class="form-label" style="margin:0;">Ciphertext Payload</span>
-          <button class="paste-btn" onclick="App.pasteVal('s-standalone-payload')">📋 PASTE</button>
+          <button class="paste-btn" onclick="App.pasteVal('s-standalone-payload')">PASTE</button>
         </div>
         <textarea class="form-input" id="s-standalone-payload" style="min-height:70px;" placeholder="Paste salt:iv:cipher here..."></textarea>
         <span class="form-label">Passphrase</span>
         <input type="password" class="form-input" id="s-standalone-key" placeholder="Decryption passphrase...">
         <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
-          <button class="btn btn-primary" onclick="App.runStandaloneDecrypt()" style="flex:1;">🔓 DECRYPT</button>
+          <button class="btn btn-primary" onclick="App.runStandaloneDecrypt()" style="flex:1;">[UNLOCKED] DECRYPT</button>
           <button class="btn" onclick="App.clearStandaloneDecrypt()">↺ CLEAR</button>
         </div>
         <div id="s-standalone-res" style="margin-top:20px;"></div>
@@ -555,7 +555,7 @@ App.renderStory = () => {
         <span class="form-label" style="margin-top:12px;">3. Server Public Key (Auto-Generated)</span>
         <input type="text" class="form-input" id="s-cert-pub" value="${App.S.story.serverKeys ? App.S.story.serverKeys.publicKeyHex.substring(0, 40) + '...' : 'Generating...'}" disabled style="opacity:0.6;">
         
-        <button class="btn btn-primary btn-full" style="margin-top:16px;" onclick="App.runStoryIssueCert()">🏛️ ISSUE DIGITAL CERTIFICATE</button>
+        <button class="btn btn-primary btn-full" style="margin-top:16px;" onclick="App.runStoryIssueCert()">ISSUE DIGITAL CERTIFICATE</button>
       </div>
       
       <div id="s-cert-res" style="display:none;margin-top:20px;"></div>
@@ -568,7 +568,7 @@ App.renderStory = () => {
     let html = `
       ${progressHTML}
       <div class="quiz-header">
-        <div class="quiz-header-icon">📋</div>
+        <div class="quiz-header-icon"></div>
         <div>
           <div class="quiz-header-title">FINAL ASSESSMENT</div>
           <div class="quiz-header-sub">6 QUESTIONS · BASED ON ALL 8 MODULES · PROVE YOUR CLEARANCE</div>
@@ -652,7 +652,7 @@ App.runStoryEncrypt = async () => {
           <div class="status-tag st-ok" style="margin-bottom:12px;">ENCRYPTION COMPLETE — AES-256-GCM</div>
           ${readoutHTML('s-enc-payload', 'ENCRYPTED PAYLOAD (Salt : IV : Ciphertext)', r.payload, 'readout-cyan')}
           <div class="hint-box" style="margin-top:12px;">
-            <div class="hint-box-icon">📋</div>
+            <div class="hint-box-icon"></div>
             <div class="hint-box-text">Copy this payload and switch to <strong>DECRYPT mode</strong> above to prove it works. This payload is safe to transmit — <strong>only your passphrase can unlock it</strong>.</div>
           </div>
           ${missionCompleteHTML('Payload encrypted with AES-256-GCM. Integrity is now mathematically guaranteed.')}
@@ -734,7 +734,7 @@ App.ansQuiz = (qi, oi, c) => {
         <div style="font-family:var(--font-mono);font-size:12px;margin-bottom:24px;">
           <span class="status-tag ${verdictClass}">${verdict}</span>
         </div>
-        <button class="btn btn-success" onclick="App.goHome()">↩ RETURN TO MAIN MENU</button>
+        <button class="btn btn-success" onclick="App.goHome()">< RETURN TO MAIN MENU</button>
       </div>`;
   }
 };
@@ -771,7 +771,7 @@ App.runStoryECDSASign = async () => {
     const statusBox = document.getElementById('s-ecdsa-status-box');
     statusBox.innerHTML = `
       <div class="sig-result sig-valid reveal-in">
-        <div class="sig-status valid">✅ SIGNATURE VALID</div>
+        <div class="sig-status valid">[OK] SIGNATURE VALID</div>
         <p style="font-size:12px;color:var(--muted);line-height:1.6;">Verified against Public Key. The message is authentic and untampered. Now try tampering to see what happens.</p>
       </div>`;
     App.S.story.sigVerifiedValid = true;
