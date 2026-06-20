@@ -85,7 +85,7 @@
       ctx.fillText(char, i*20, y*20);
       
       // Draw the green-turquoise tail behind it
-      ctx.fillStyle = '#00ff88';
+      ctx.fillStyle = '#00f5ff';
       ctx.fillText(chars[Math.floor(Math.random()*chars.length)], i*20, (y-1)*20);
 
       if(y*20 > canvas.height && Math.random() > 0.975) drops[i] = 0;
