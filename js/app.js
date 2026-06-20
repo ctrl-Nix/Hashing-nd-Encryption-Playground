@@ -194,7 +194,7 @@ const App = {
       window.scrollTo({ top: tabsEl.offsetTop - 40, behavior: 'smooth' });
     }
 
-    if (window.EXPLAINERS && window.EXPLAINERS[tab] && !localStorage.getItem('explainer_v2_' + tab)) {
+    if (window.EXPLAINERS && window.EXPLAINERS[tab] && !localStorage.getItem('explainer_v3_' + tab)) {
       if (window.showExplainer) window.showExplainer(tab);
     }
 
@@ -2766,7 +2766,7 @@ window.showExplainer = function (tab) {
   }
 };
 window.dismissExplainer = function () {
-  localStorage.setItem('explainer_v2_' + window.currentExplainerTab, 'true');
+  localStorage.setItem('explainer_v3_' + window.currentExplainerTab, 'true');
   const modal = document.getElementById('explainer-modal');
   if (modal) modal.style.display = 'none';
 };
