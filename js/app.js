@@ -194,7 +194,7 @@ const App = {
       window.scrollTo({ top: tabsEl.offsetTop - 40, behavior: 'smooth' });
     }
 
-    if (window.EXPLAINERS && window.EXPLAINERS[tab] && !localStorage.getItem('explainer_' + tab)) {
+    if (window.EXPLAINERS && window.EXPLAINERS[tab] && !localStorage.getItem('explainer_v2_' + tab)) {
       if (window.showExplainer) window.showExplainer(tab);
     }
 
@@ -2714,17 +2714,59 @@ window.currentExplainerTab = null;
 
 window.showExplainer = function (tab) {
   window.currentExplainerTab = tab;
-  const title = document.getElementById('explainer-title');
-  const content = document.getElementById('explainer-content');
   const modal = document.getElementById('explainer-modal');
-  if (title && content && modal) {
-    title.innerText = tab.toUpperCase() + " CONCEPT EXPLAINER";
-    content.innerText = window.EXPLAINERS[tab];
+  const contentBox = document.getElementById('explainer-content');
+  const titleBox = document.getElementById('explainer-title');
+  
+  if(modal && contentBox && titleBox) {
+    const ex = window.EXPLAINERS[tab];
+    if (typeof ex === 'string') {
+      titleBox.innerText = tab.toUpperCase() + " CONCEPT EXPLAINER";
+      contentBox.innerText = ex;
+    } else if (ex) {
+      titleBox.innerText = ex.title.toUpperCase();
+      
+      let html = `<div class="concept-what">${ex.what}</div>`;
+      
+      if (ex.terms && ex.terms.length > 0) {
+        html += `<div class="concept-terms">`;
+        ex.terms.forEach(t => {
+          html += `
+          <div class="concept-term">
+            <div class="concept-term-name">${t.name}</div>
+            <div class="concept-term-def">${t.def}</div>
+          </div>`;
+        });
+        html += `</div>`;
+      }
+      
+      if (ex.why) {
+        html += `
+        <div class="concept-why">
+          <div class="concept-why-icon">🛡️</div>
+          <div class="concept-why-text"><strong>Why It Matters:</strong> ${ex.why}</div>
+        </div>`;
+      }
+      
+      if (ex.fact) {
+        html += `
+        <div class="fact-card" style="margin-top:16px;">
+          <div class="fact-card-icon">${ex.icon || '💡'}</div>
+          <div class="fact-card-content">
+            <div class="fact-card-label">DID YOU KNOW?</div>
+            <div class="fact-card-text">${ex.fact}</div>
+          </div>
+        </div>`;
+      }
+      
+      contentBox.innerHTML = html;
+    }
+    
     modal.style.display = 'flex';
   }
 };
 window.dismissExplainer = function () {
-  localStorage.setItem('explainer_' + window.currentExplainerTab, 'true');
+  localStorage.setItem('explainer_v2_' + window.currentExplainerTab, 'true');
   const modal = document.getElementById('explainer-modal');
   if (modal) modal.style.display = 'none';
 };
