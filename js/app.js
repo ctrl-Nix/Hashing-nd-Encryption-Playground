@@ -2561,19 +2561,154 @@ App.runBenchmark = async () => {
 
 
 window.EXPLAINERS = {
-  'hash': "Imagine a meat grinder. You put a document in, turn the handle, and out comes a fixed-length string of characters (the hash). It's easy to grind the meat, but impossible to un-grind it to get the original document back. Any tiny change to the document completely changes the resulting hash.",
-  'compare': "Different meat grinders produce different sizes of output. Older ones like MD5 produce small outputs, which makes them faster but easier to trick into producing the same output for two different inputs (a collision). Modern ones like SHA-256 produce longer, much more secure outputs.",
-  'enc': "Imagine a high-tech safe. You can lock your data inside it using a master password (the key). Only someone with that exact same master password can unlock it. AES-GCM not only locks the data but also places a tamper-evident seal on it, so you'll know if someone tried to mess with the safe.",
-  'stego': "Imagine writing a secret message on the back of a postage stamp attached to a normal postcard. Everyone just sees the postcard, completely ignoring the stamp. Steganography hides encrypted data directly inside the invisible 'noise' of an image's pixels, so no one even knows a secret exists.",
-  'cracker': "Imagine a burglar trying every word in the dictionary to guess your password. MD5 is so incredibly fast that a modern computer can make billions of guesses per second. This simulation shows how quickly weak passwords can be cracked when using outdated hashing algorithms.",
-  'cert': "Imagine an ID card issued by a trusted government. The Certificate Inspector verifies if an ID (Digital Certificate) is authentic, hasn't expired, and was actually signed by a trusted authority. This prevents attackers from setting up fake websites pretending to be your bank.",
-  'entropy': "Imagine trying to guess a password. 'password123' is like guessing a predictable word—very easy (low entropy). A random string of characters is like trying to guess the exact position of every grain of sand on a beach—practically impossible (high entropy). Entropy measures this unpredictability.",
-  'birthday': "Imagine being in a room with 23 people. It's surprisingly likely that two people share the same birthday. In cryptography, this 'Birthday Paradox' means we don't need to try every possible combination to find a hash collision—we just need a large enough group of random hashes.",
-  'benchmark': "Imagine a race between different engines. This benchmark tests how many times your CPU can run each hashing algorithm per second. Older algorithms like MD5 are incredibly fast (which makes them dangerous for passwords), while stronger algorithms like SHA-512 are more complex but provide better security.",
-  'ecdh': "Imagine you and a friend each pick a secret color, mix it with a shared public color, then swap mixtures — but an eavesdropper can't reverse the mix to find your original secret colors. You mix your friend's mixture with your secret color, and you both get the exact same final color. That's Elliptic Curve Diffie-Hellman: math that lets two people agree on a shared secret over a public channel without ever sending the secret itself.",
-  'ecdsa': "Imagine a wax seal on an envelope. Anyone can look at the seal and verify it came from your unique signet ring (Public Key), but nobody else can create the seal without holding the physical ring (Private Key). ECDSA uses elliptic curves to sign digital documents so perfectly that forgery is mathematically impossible.",
-  'rsa': "Imagine a padlock that anyone can snap shut (encrypt with Public Key), but only you have the physical key to unlock (decrypt with Private Key). RSA relies on the fact that it's incredibly easy to multiply two massive prime numbers together, but almost impossible for computers to factor the result back into those two primes.",
-  'hmac': "Imagine sending a sealed letter to a bank teller. You both share a secret password. You hash the letter's contents combined with the password. The teller repeats the math. If the hashes match, they know the letter wasn't tampered with AND it definitely came from you (since only you two know the password). That's HMAC (Hash-based Message Authentication Code)."
+  'hash': {
+    icon: '🔏', title: 'Hash Functions', subtitle: 'One-way fingerprinting of data',
+    what: `A <strong>Hash Function</strong> takes any input — a single character or an entire terabyte — and produces a fixed-length output called a <strong>digest</strong>. It is completely one-way: you cannot reverse it to find the original input. Every tiny change to the input produces a totally different digest.`,
+    terms: [
+      { name: 'Digest', def: 'The fixed-length output of a hash function (e.g., 256 bits for SHA-256)' },
+      { name: 'Pre-image Resistance', def: 'You cannot reverse a hash back to the original input' },
+      { name: 'Collision', def: 'Two different inputs that produce the same hash — a critical weakness' }
+    ],
+    why: `Passwords are <strong>never stored in plain text</strong> in secure systems. Only their hash is stored. When you log in, the server re-hashes what you typed and compares — the real password never travels the network or lives in the database.`,
+    fact: `💡 The SHA-256 output space has 2<sup>256</sup> possible values — more than the number of atoms in the observable universe. Finding two matching inputs by brute force is physically impossible.`
+  },
+  'compare': {
+    icon: '⚖️', title: 'Algorithm Comparison', subtitle: 'Not all hashes are created equal',
+    what: `Different hash algorithms produce different sizes of output. Older ones like MD5 produce small outputs, which makes them faster but easier to trick into producing the same output for two different inputs (a collision). Modern ones like SHA-256 produce longer, much more secure outputs.`,
+    terms: [
+      { name: 'MD5 / SHA-1', def: 'Broken algorithms — researchers can craft collisions deliberately' },
+      { name: 'SHA-256', def: 'Current gold standard — no known practical collisions' }
+    ],
+    why: `Choosing the right algorithm is a balance of security and performance. For passwords, you want slow hashes (like bcrypt). For file integrity, you want fast, secure hashes (like SHA-256).`,
+    fact: `⚠️ MD5 was designed in 1992. By 2004 it was shown to be vulnerable, and in 2008 a rogue CA certificate was created using an MD5 collision.`
+  },
+  'enc': {
+    icon: '🔐', title: 'AES-256-GCM Encryption', subtitle: 'Symmetric encryption with authenticated integrity',
+    what: `<strong>AES-256-GCM</strong> is a symmetric encryption algorithm — the same key is used to lock and unlock data. <strong>GCM mode</strong> (Galois/Counter Mode) adds an <strong>Authentication Tag</strong> that detects any tampering with the ciphertext.`,
+    terms: [
+      { name: 'AES-256', def: '256-bit block cipher — the NSA standard for TOP SECRET documents' },
+      { name: 'GCM Mode', def: 'Provides both encryption and authentication — tampered data is rejected outright' },
+      { name: 'IV / Nonce', def: 'Initialization Vector — ensures identical messages produce different ciphertexts' },
+      { name: 'Auth Tag', def: '128-bit MAC that detects any modification to the ciphertext' }
+    ],
+    why: `The payload format <code>Salt:IV:Ciphertext</code> is a self-contained encrypted bundle. You need all three components <strong>plus the passphrase</strong> to decrypt. Without the correct key, GCM's authentication tag causes decryption to fail with an explicit error — silent data corruption is impossible.`,
+    fact: `⏱️ With a strong passphrase and PBKDF2's 100,000 iterations, brute-forcing a single guess takes ~0.1 seconds on modern hardware. Testing 1 trillion passwords would take <strong>3,171 years</strong>.`
+  },
+  'stego': {
+    icon: '🖼️', title: 'LSB Steganography', subtitle: 'Hiding secrets in plain sight',
+    what: `<strong>Steganography</strong> is the art of hiding the <em>existence</em> of a message — not just encrypting it. <strong>Least Significant Bit (LSB)</strong> steganography works by replacing the last bit of each pixel's RGB channel with a bit from the secret message. Each pixel changes by at most 1/255 brightness units — completely invisible to the human eye, yet sufficient to hide kilobytes of data.`,
+    terms: [
+      { name: 'LSB', def: 'Least Significant Bit — the rightmost bit of a number, changing it alters the value by ±1' },
+      { name: 'Carrier Image', def: 'The decoy image that contains the hidden payload' },
+      { name: 'Plausible Deniability', def: 'Hiding a message means the carrier looks like an ordinary photo' }
+    ],
+    why: `<strong>Encryption tells an adversary a secret exists</strong>. Steganography hides that fact entirely. Intelligence agencies and dissidents combine both — encrypt the message first, then hide the ciphertext in a vacation photo. The photo passes inspection; the ciphertext resists decryption.`,
+    fact: `🎨 A 1920×1080 image has ~6.2 million pixels. With 3 bits per pixel (one per RGB channel), you can hide ~2.3 MB of data — enough for a 300-page book — with changes invisible to any human observer.`
+  },
+  'cracker': {
+    icon: '🛡️', title: 'Secure Login & Dictionary Attacks', subtitle: 'Zero-knowledge authentication in action',
+    what: `A <strong>Dictionary Attack</strong> works by hashing thousands of common passwords and comparing them against a stolen hash. MD5 is so incredibly fast that a modern computer can make billions of guesses per second. This simulation shows how quickly weak passwords can be cracked when using outdated hashing algorithms.`,
+    terms: [
+      { name: 'Dictionary Attack', def: 'Hashing a list of common passwords and comparing against a stolen hash database' },
+      { name: 'Rainbow Table', def: 'Pre-computed hash→password lookup table — defeated by salting' },
+      { name: 'Zero-Knowledge Auth', def: 'The server proves it knows your password's hash without ever learning the password' },
+      { name: 'Salt', def: 'A random value added to the password before hashing — makes rainbow tables useless' }
+    ],
+    why: `The 2012 LinkedIn breach exposed <strong>6.5 million SHA-1 passwords without salts</strong>. Because SHA-1 was fast, attackers cracked 90% of them within days using rainbow tables. Salting and slow algorithms (bcrypt, Argon2) would have prevented this.`,
+    fact: `⚠️ The most common password in every breach is still "123456". A dictionary attack finds it in milliseconds. Strong, unique passwords are still your first line of defense.`
+  },
+  'cert': {
+    icon: '🏛️', title: 'Public Key Infrastructure (PKI)', subtitle: 'How your browser trusts strangers on the internet',
+    what: `<strong>PKI</strong> solves the "Who do you trust?" problem at internet scale. A <strong>Certificate Authority (CA)</strong> is a trusted organization that digitally signs <strong>X.509 certificates</strong> which bind a domain name to a public key. Your browser ships with ~150 pre-trusted root CAs. When you visit a website, it presents its certificate, the browser verifies the CA's signature, and a secure TLS connection is established.`,
+    terms: [
+      { name: 'CA', def: 'Certificate Authority — a trusted entity whose public key is pre-installed in browsers/OS' },
+      { name: 'X.509', def: 'The standard format for digital certificates (Subject, Issuer, Public Key, Signature)' },
+      { name: 'Chain of Trust', def: 'Root CA → Intermediate CA → Server Cert — each level signed by the one above' },
+      { name: 'HTTPS / TLS', def: 'Encrypted web traffic authenticated by PKI certificates' }
+    ],
+    why: `Without PKI, a man-in-the-middle could intercept your HTTPS connection and substitute their own public key — you'd think you're talking to your bank, but you'd actually be talking to the attacker. CA signatures make this mathematically detectable. That's why your browser shows a <strong>red padlock</strong> for expired or forged certificates.`,
+    fact: `🔑 The world's root CAs (DigiCert, Let's Encrypt, Comodo) collectively sign billions of certificates. <strong>Let's Encrypt alone</strong> has issued over 3 billion free certificates since 2016, driving HTTPS adoption from 40% to 95%+ of web traffic.`
+  },
+  'entropy': {
+    icon: '🎲', title: 'Entropy Analyzer', subtitle: 'Measuring cryptographic randomness',
+    what: `<strong>Entropy</strong> is a measure of unpredictability. 'password123' is like guessing a predictable word—very easy (low entropy). A random string of characters is like trying to guess the exact position of every grain of sand on a beach—practically impossible (high entropy).`,
+    terms: [
+      { name: 'Bits of Entropy', def: 'The mathematical number of binary guesses required to crack a value' },
+      { name: 'Character Set', def: 'The alphabet used (e.g. lowercase, uppercase, numbers, symbols)' },
+      { name: 'Brute-force', def: 'Trying every single possible combination blindly' }
+    ],
+    why: `Password length is exponentially more powerful than complexity. Adding one character to a password multiplies the time it takes to crack it by the size of the character set. A 16-character lowercase password is much stronger than an 8-character password with symbols.`,
+    fact: `📈 A truly random 128-bit key (like those used in AES) has so much entropy that cracking it would require more energy than boiling all the water on Earth.`
+  },
+  'birthday': {
+    icon: '🎂', title: 'Birthday Paradox', subtitle: 'Probability of collision',
+    what: `Imagine being in a room with 23 people. It's surprisingly likely (50% chance) that two people share the same birthday. In cryptography, this <strong>Birthday Paradox</strong> means we don't need to try every possible combination to find a hash collision—we just need a large enough group of random hashes.`,
+    terms: [
+      { name: 'Birthday Attack', def: 'A class of brute-force attack that exploits the mathematics behind the birthday problem' },
+      { name: 'Collision', def: 'Two different inputs producing the identical hash output' },
+      { name: 'Pigeonhole Principle', def: 'If you have N boxes and N+1 items, at least one box must contain two items' }
+    ],
+    why: `Because of the birthday paradox, a hash function is only practically secure up to <strong>half its length</strong>. A 256-bit hash (like SHA-256) actually provides 128 bits of security against collision attacks.`,
+    fact: `🎯 To find a collision in a 64-bit hash space, you only need to generate about 4.2 billion hashes (which a GPU can do in seconds), not the full 18 quintillion.`
+  },
+  'benchmark': {
+    icon: '⏱️', title: 'Hash Benchmark', subtitle: 'Measuring cryptographic speed',
+    what: `Imagine a race between different engines. This benchmark tests how many times your CPU can run each hashing algorithm per second. Older algorithms like MD5 are incredibly fast, while stronger algorithms like SHA-512 are more complex but provide better security.`,
+    terms: [
+      { name: 'Hashes / sec', def: 'The number of hash operations a processor can perform per second' },
+      { name: 'CPU Bottleneck', def: 'When the processor is the limiting factor for calculation speed' },
+      { name: 'PBKDF2 / Argon2', def: 'Algorithms specifically designed to be SLOW to thwart fast crackers' }
+    ],
+    why: `Speed is a double-edged sword. You want fast hashes for verifying massive file downloads, but you want <strong>slow hashes</strong> for storing passwords. If an algorithm can hash 10 million times per second, a hacker can guess 10 million passwords per second!`,
+    fact: `🚀 Modern GPUs can calculate over 100 billion MD5 hashes per second, making fast hashing algorithms totally obsolete for password storage.`
+  },
+  'ecdh': {
+    icon: '🤝', title: 'ECDH Key Exchange', subtitle: 'Establishing shared secrets publicly',
+    what: `Imagine you and a friend each pick a secret color, mix it with a shared public color, then swap mixtures. You mix your friend's mixture with your secret color, and you both get the exact same final color. That's Elliptic Curve Diffie-Hellman: math that lets two people agree on a shared secret over a public channel without ever sending the secret itself.`,
+    terms: [
+      { name: 'Elliptic Curve', def: 'Advanced mathematical structures used for high-security cryptography' },
+      { name: 'Public Key', def: 'The "mixture" that you share openly' },
+      { name: 'Private Key', def: 'Your "secret color" that never leaves your device' },
+      { name: 'Shared Secret', def: 'The final combined value that only you and the other party can calculate' }
+    ],
+    why: `ECDH is the foundation of modern secure communication. When you visit an HTTPS website, your browser and the server use a Diffie-Hellman exchange to generate a temporary session key. Even if someone records the entire conversation, they can't figure out the session key.`,
+    fact: `🛡️ This provides "Forward Secrecy": even if the server's long-term key is compromised years later, past conversations cannot be decrypted.`
+  },
+  'ecdsa': {
+    icon: '✍️', title: 'ECDSA Digital Signatures', subtitle: 'Cryptographic proof of identity and integrity',
+    what: `<strong>Elliptic Curve Digital Signature Algorithm (ECDSA)</strong> uses asymmetric key pairs. The <strong>private key</strong> (kept secret) signs a message. The <strong>public key</strong> (shared openly) verifies it. Anyone can verify the signature, but only the private key holder could have created it. Changing even one byte of a signed message invalidates the signature completely.`,
+    terms: [
+      { name: 'Private Key', def: 'Secret 256-bit value — the only key that can create valid signatures' },
+      { name: 'Public Key', def: 'Derived from the private key — anyone can use it to verify, but not sign' },
+      { name: 'Signature', def: 'Two values (r, s) that mathematically bind the message to the private key' },
+      { name: 'Non-repudiation', def: 'The signer cannot later deny signing — mathematical proof they used their private key' }
+    ],
+    why: `<strong>Encryption hides data; signatures prove authorship.</strong> When you send an email, anyone can claim to be you. With a digital signature tied to your private key, recipients can cryptographically verify the message originated from you and arrived unmodified.`,
+    fact: `💎 Bitcoin transactions use ECDSA. Every time you send BTC, your wallet signs the transaction with your private key. The blockchain network verifies the signature before accepting it — no banks required.`
+  },
+  'rsa': {
+    icon: '🔐', title: 'RSA Cryptography', subtitle: 'The grandfather of public key crypto',
+    what: `Imagine a padlock that anyone can snap shut (encrypt with Public Key), but only you have the physical key to unlock (decrypt with Private Key). RSA relies on the fact that it's incredibly easy to multiply two massive prime numbers together, but almost impossible for computers to factor the result back into those two primes.`,
+    terms: [
+      { name: 'Asymmetric Crypto', def: 'Cryptography using two different keys (one public, one private)' },
+      { name: 'Prime Factorization', def: 'The mathematical hard problem that keeps RSA secure' },
+      { name: 'Key Size', def: 'RSA typically requires very large keys (2048 to 4096 bits) to be secure' }
+    ],
+    why: `RSA paved the way for secure internet communication. While elliptic curves (ECDSA/ECDH) are faster and use smaller keys, RSA is still widely used in older systems, email encryption (PGP), and certificate signing.`,
+    fact: `⏳ A 2048-bit RSA key is currently considered secure until at least the year 2030, but quantum computers running Shor's Algorithm could theoretically break it in seconds.`
+  },
+  'hmac': {
+    icon: '🛡️', title: 'HMAC Authentication', subtitle: 'Verifying data integrity and authenticity',
+    what: `Imagine sending a sealed letter to a bank teller. You both share a secret password. You hash the letter's contents combined with the password. The teller repeats the math. If the hashes match, they know the letter wasn't tampered with AND it definitely came from you (since only you two know the password). That's HMAC.`,
+    terms: [
+      { name: 'MAC', def: 'Message Authentication Code — a cryptographic checksum' },
+      { name: 'Secret Key', def: 'The shared password used to generate the HMAC' },
+      { name: 'Integrity', def: 'Ensuring the data has not been modified in transit' },
+      { name: 'Authenticity', def: 'Ensuring the data actually came from the expected sender' }
+    ],
+    why: `HMAC is everywhere in modern web development. It is used to secure Webhooks (so your server knows a payment notification actually came from Stripe/PayPal), to sign JSON Web Tokens (JWTs) for user sessions, and to authenticate API requests.`,
+    fact: `🔑 Unlike a regular hash, an attacker cannot generate a valid HMAC even if they know the payload perfectly. Without the exact secret key, any forgery attempt will completely fail the verification step.`
+  }
 };
 window.currentExplainerTab = null;
 
